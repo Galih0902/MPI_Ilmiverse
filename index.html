@@ -956,6 +956,8 @@ function animPerson(p, t, mode, spd) {
     else if (mode === 'stretch') { const e = (Math.sin(t * 1.6 + p.ph) + 1) / 2; A[0].rotation.x = A[1].rotation.x = -3.0 * e; A[0].rotation.z = 0.3 * e; A[1].rotation.z = -0.3 * e; b.rotation.x = -0.12 * e; }
     else if (mode === 'phone') { H.rotation.x = 0.4; A[1].rotation.x = -1.35; A[1].rotation.z = -0.2; A[0].rotation.x = 0.05; b.position.y = Math.sin(t * 2 + p.ph) * 0.01; }
     else if (mode === 'clap') { const c = Math.abs(Math.sin(t * 8 + p.ph)); A[0].rotation.x = A[1].rotation.x = -1.35; A[0].rotation.z = 0.5 - c * 0.35; A[1].rotation.z = -0.5 + c * 0.35; b.position.y = Math.abs(Math.sin(t * 4)) * 0.03; }
+    else if (mode === 'cook') { const e = Math.sin(t * 4 + p.ph); b.rotation.x = 0.1; A[0].rotation.x = -0.9; A[1].rotation.x = -1.0 + e * 0.25; A[1].rotation.z = e * 0.2; H.rotation.y = Math.sin(t * 0.8) * 0.3; }
+    else if (mode === 'tv') { const sd = MCH - p.seat; b.position.y = -sd; L[0].rotation.x = L[1].rotation.x = -1.5; A[0].rotation.x = A[1].rotation.x = -0.5; H.rotation.x = -0.05; if (Math.sin(t * 0.9 + p.ph) > 0.85) { A[1].rotation.x = -2.3; H.rotation.x = -0.15; } }
     else if (mode === 'sweep') { const e = Math.sin(t * 3 + p.ph); b.rotation.x = 0.25; A[0].rotation.x = A[1].rotation.x = -0.9 + e * 0.25; b.rotation.y = e * 0.18; L[0].rotation.x = e * 0.2; L[1].rotation.x = -e * 0.2; }
     else if (mode === 'dance') { const e = Math.sin(t * 8 + p.ph); b.position.y = Math.abs(e) * 0.1; b.rotation.y = e * 0.4; A[0].rotation.x = -2.5 + e * 0.6; A[1].rotation.x = -2.5 - e * 0.6; A[0].rotation.z = 0.4; A[1].rotation.z = -0.4; L[0].rotation.x = e * 0.5; L[1].rotation.x = -e * 0.5; }
     else if (mode === 'pray') {
@@ -968,7 +970,7 @@ function animPerson(p, t, mode, spd) {
     }
     else { L[0].rotation.x = L[1].rotation.x = 0; A[0].rotation.x = Math.sin(t * 1.5 + p.ph) * 0.06; A[1].rotation.x = -A[0].rotation.x; b.position.y = Math.sin(t * 2 + p.ph) * 0.02; }
     if (p.kickUntil > t) L[1].rotation.x = -1.4 * Math.min(1, (p.kickUntil - t) * 6);
-    if (mode !== 'sit' && mode !== 'write' && mode !== 'read' && mode !== 'eatsit') b.position.y *= 0.45;
+    if (mode !== 'sit' && mode !== 'write' && mode !== 'read' && mode !== 'eatsit' && mode !== 'tv') b.position.y *= 0.45;
 }
 const SCV = 0.6, SCB = 0.7;
 function buildBike(color, basket, raw) {
@@ -1682,7 +1684,7 @@ function buildAvatar(opts) {
                 const e = (Math.sin((t - this.poseStart) * 3) + 1) / 2;
                 A[1].sh.rotation.x = -1.2 * e - 0.2; A[1].el.rotation.x = -1.9 * e; head.rotation.x = -0.3 * e; hb = 0;
             } else if (this.pose === 'sit') {
-                g.position.y = -(MCH - 0.55); L[0].hip.rotation.x = L[1].hip.rotation.x = -1.5; L[0].knee.rotation.x = L[1].knee.rotation.x = 0; A[0].sh.rotation.x = A[1].sh.rotation.x = -0.4; hb = 0;
+                g.position.y = -(MCH - (this.sitH || 0.55)); L[0].hip.rotation.x = L[1].hip.rotation.x = -1.5; L[0].knee.rotation.x = L[1].knee.rotation.x = 0; A[0].sh.rotation.x = A[1].sh.rotation.x = -0.4; hb = 0;
             } else if (this.pose === 'pray') {
                 const f = prayFrame(t - this.poseStart), th = f.th; this._prayRot = true;
                 g.rotation.x = th; g.position.y = f.hy - MCH * Math.cos(th); g.position.z = -MCH * Math.sin(th);
@@ -1761,7 +1763,9 @@ function setPet(id) {
    8. COLLISION
    ========================================== */
 function resolveCollisions(p) {
+    if (player.pose === 'sit' && p === playerGroup.position) return;
     boxColliders.forEach(c => {
+        if (c.lvl === 'up' ? p.y < 2.8 : (c.lvl === 'low' && p.y >= 2.8)) return;
         const dx = p.x - c.x, dz = p.z - c.z, cs = Math.cos(c.rot), sn = Math.sin(c.rot);
         let lx = dx * cs - dz * sn, lz = dx * sn + dz * cs;
         const hw = c.hw + 0.8, hd = c.hd + 0.8;
@@ -2126,7 +2130,7 @@ function spawnAnimal(kind, x, z, r, indoor) {
     return a;
 }
 [[-14, 38], [24, 54], [-62, 18], [50, -22], [-20, -55], [70, 76], [-100, 12]].forEach(([x, z]) => spawnAnimal('cat', x, z, 7));
-[[10, 52], [-44, 6], [66, -56], [30, 40], [-90, -8]].forEach(([x, z]) => spawnAnimal('dog', x, z, 10));
+[[10, 52], [-44, 6], [66, -56], [30, 40], [-90, -8], [-30, 40], [90, 30]].forEach(([x, z]) => spawnAnimal('cat', x, z, 8));
 [[136, 40], [136, -40], [-136, 40], [-136, -40], [76, 98], [-24, 86], [100, 120], [-136, 62], [22, 124], [-60, 102]].forEach(([x, z]) => spawnAnimal('ayam', x, z, 6));
 [[28, -112], [86, 94], [-132, 2], [-70, 70]].forEach(([x, z]) => spawnAnimal('kambing', x, z, 8));
 function petAnimal(a) {
@@ -2221,7 +2225,7 @@ let tvScreen = null, clockTex = null, homeWallM = null, hostFig = null;
     /* tanaman, rak sepatu, lampu */
     [[12.2, 10], [-12, -3.2]].forEach(([x, z]) => { mkCyl(0.7, 0.5, 1.2, 0xc2410c, x, 0.6, z, g, 8); mkSph(1.1, 0x16a34a, x, 2.2, z, g, null, 7); mkSph(0.8, 0x15803d, x + 0.4, 3.0, z, g, null, 7); });
     mkBox(2.4, 0.9, 0.9, 0x78350f, 3.6, 0.45, -HD + 1.1, g); [-0.7, 0.7].forEach(s => mkBox(0.7, 0.3, 0.3, 0xf8fafc, 3.6 + s, 1.0, -HD + 1.1, g));
-    mkCyl(0.08, 0.08, 4.5, 0x475569, 4, 2.3, 7, g, 5); place(new THREE.Mesh(gCyl(0.9, 0.6, 1, 8), mkGlow(0xfef3c7, 0.5, 1.2)), 4, 4.8, 7, g);
+    mkCyl(0.08, 0.08, 2.6, 0x475569, 4, 1.3, 7, g, 5); place(new THREE.Mesh(gCyl(0.7, 0.5, 0.8, 8), mkGlow(0xfef3c7, 0.5, 1.2)), 4, 2.9, 7, g);
     /* piano, congklak, kucing, tuan rumah */
     mkBox(5, 2.1, 1.6, 0x111827, 9, 1.05, 9.7, g); mkBox(4.6, 0.12, 1.1, 0xf8fafc, 9, 2.16, 9.4, g); for (let i = 0; i < 6; i++) mkBox(0.3, 0.14, 0.6, 0x111827, 7.3 + i * 0.7 + (i > 2 ? 0.7 : 0), 2.25, 9.15, g);
     mkBox(1.6, 0.9, 0.9, 0x78350f, 9, 0.45, 7.9, g); col(9, 9.7, 2.6, 0.9);
@@ -2328,7 +2332,7 @@ function extraInteract(it) {
         case 'enterhome': enterHome(it.house); return true;
         case 'exithome': exitHome(); return true;
         case 'bed': sleepNow(); return true;
-        case 'tv': openTV(); return true;
+        case 'tv': watchTV(); return true;
         case 'fridge': openFridge(); return true;
         case 'wardrobe': if (curHouse !== PH) floatText('Itu lemari milik tuan rumah 😄', '#fde047'); else openShop(); return true;
         case 'books': openHomeBooks(); return true;
@@ -2625,6 +2629,7 @@ function checkNearby() {
         if (!!it.indoor !== inHouse) return;
         if (it.rt && it.rt.inside) return;
         if (it.hideIf && it.hideIf()) return;
+        if (inHouse && Math.abs(playerGroup.position.y - (it.y || 0)) > 2.2) return;
         const d = Math.hypot(playerGroup.position.x - it.pos.x, playerGroup.position.z - it.pos.z);
         if (d < it.radius && d < bd) { best = it; bd = d; }
     });
@@ -3291,6 +3296,14 @@ function updateDayNight(t) {
    22. LOOP
    ========================================== */
 const SPEED = 0.34, GRAV = -0.021;
+/* ===== lantai bertingkat (loft rumah, lantai 2 perpustakaan, lift) ===== */
+const FLOORS = {}, LIFT = { y: 0, target: 0, ride: false, g: null, cx: 0, cz: 0 };
+function curFloorKey() {
+    if (!inHouse) return null;
+    if (curRoom && window.ROOMS) { for (const k in ROOMS) if (Math.abs(ROOMS[k].cx - curRoom.x) < 1 && Math.abs(ROOMS[k].cz - curRoom.z) < 1) return k; return null; }
+    return (curHouse && (curHouse.player || curHouse.idx % 4 === 3)) ? 'home' : null;
+}
+function floorY(x, z, y) { if (!inHouse) return 0; const k = curFloorKey(), f = k && FLOORS[k]; return f ? f(x, z, y) : 0; }
 let acc = 0, fpsFrames = 0, fpsTime = 0;
 
 function update(dt) {
@@ -3320,7 +3333,9 @@ function update(dt) {
     }
 
     playerVelY += GRAV * k; p.y += playerVelY * k;
-    if (p.y <= 0) { p.y = 0; playerVelY = 0; isGrounded = true; }
+    const fy = floorY(p.x, p.z, p.y);
+    if (LIFT.ride) { p.y = LIFT.y; playerVelY = 0; isGrounded = true; }
+    else if (p.y <= fy || (p.y - fy < 0.7 && playerVelY <= 0 && fy > 0)) { p.y = fy; playerVelY = 0; isGrounded = true; }
     if (swimming) { p.x = clamp(p.x, POOL.px - 15.4, POOL.px + 15.4); p.z = clamp(p.z, POOL.pz - 7.4, POOL.pz + 7.4); }
     else if (inHouse) { const R = curRoom || { x: HOME.x, z: HOME.z, hw: 12.6, hd: 10.8 }; p.x = clamp(p.x, R.x - R.hw, R.x + R.hw); p.z = clamp(p.z, R.z - R.hd, R.z + R.hd); }
     else { p.x = clamp(p.x, -155, 155); p.z = clamp(p.z, -155, 155); }
@@ -3445,6 +3460,7 @@ let curRoom=null;
     R.I('exithome',0,-hd+1.8,3.8,'Keluar 🚪');room[key]=R;
     interactables.push({id:key+'in',type:'enterroom',room:key,pos:new THREE.Vector3(front.x,0,front.z),radius:5.5,label});return R;
   }
+  window.MKROOM=mkRoom;
   const lamp=(g,x,z)=>place(new THREE.Mesh(gSph(0.7,8),mkGlow(0xfef08a,0.6,1.2)),x,6,z,g);
   /* --- Masjid --- */
   (function(){const R=mkRoom('masjid',800,600,11,9,0xfef9e7,0xe7d9b8,toW({x:28,z:128,rot:Math.PI},0,10),'Masuk Masjid 🕌'),g=R.g;
@@ -3611,6 +3627,252 @@ const SCHOOL_HOURS = h => h >= 7 && h < 15 && !(h >= 10 && h < 10.8);
         V10X.acts.forEach(a => { if (nightNow || Math.hypot(p.x - a.x, p.z - a.z) > 110) return; animPerson(a.p, t, a.mode, 1); });
         if (player.pose === 'pray' && playerGroup.position.distanceTo(V10X.lastPos) > 0.03) player.pose = null;
         V10X.lastPos.copy(playerGroup.position);
+    };
+})();
+/* ===== v11: duduk, nonton TV, rumah bertingkat, orang tua ===== */
+function sitAt(wx, wz, rot, sitH, y0) {
+    playerGroup.position.set(wx, y0 || 0, wz); playerGroup.rotation.y = rot; player.sitH = sitH; playerVelY = 0;
+    player.setPose('sit', clock.elapsedTime, 1e9); sfx.click();
+}
+const addSit = (indoor, wx, wz, rot, sitH, y, label, r) => interactables.push({ id: 'sit' + interactables.length, type: 'roomact', indoor, y: y || 0, pos: new THREE.Vector3(wx, 0, wz), radius: r || 2.4,
+    label: label || 'Duduk 🪑', hideIf: () => player.pose === 'sit' && Math.hypot(playerGroup.position.x - wx, playerGroup.position.z - wz) < 0.6, fn: () => sitAt(wx, wz, rot, sitH, y) });
+const addAct = (indoor, wx, wz, y, r, label, fn) => interactables.push({ id: 'act' + interactables.length, type: 'roomact', indoor, y: y || 0, pos: new THREE.Vector3(wx, 0, wz), radius: r, label, fn });
+const HG = new THREE.Group(); HG.position.set(HOME.x, 0, HOME.z); scene.add(HG);
+const FLOOR_UP = 3.4;
+const homeLoft = new THREE.Group(); HG.add(homeLoft);
+(function () {
+    const L = homeLoft, W = (lx, lz) => [HOME.x + lx, HOME.z + lz];
+    const colU = (lx, lz, hw, hd) => { const c = { x: HOME.x + lx, z: HOME.z + lz, rot: 0, hw, hd, lvl: 'up' }; boxColliders.push(c); };
+    /* lantai atas (loft) */
+    mkBox(19, 0.3, 10.6, 0xb45309, 4.1, FLOOR_UP - 0.15, 6.3, L); mkBox(19.2, 0.12, 0.3, 0x78350f, 4.1, FLOOR_UP - 0.4, 1.05, L);
+    mkPlane(18.6, 10.2, 0xe7d3b0, 4.1, FLOOR_UP + 0.01, 6.3, L);
+    /* tangga */
+    for (let i = 0; i < 12; i++) { const h = (i + 1) * FLOOR_UP / 12; mkBox(2.6, h, 0.76, 0xd6a65a, -4.1, h / 2, -8 + 0.38 + i * 0.75, L); mkBox(2.6, 0.06, 0.2, 0xb45309, -4.1, h + 0.01, -8 + 0.7 + i * 0.75, L); }
+    [-5.5, -2.7].forEach(x => { const r = mkBox(0.12, 0.12, 9.6, 0x78350f, x, 1.7 + 0.9, -3.5, L); r.rotation.x = -Math.atan2(FLOOR_UP, 9); for (let i = 0; i < 5; i++) mkBox(0.1, 1.0, 0.1, 0x78350f, x, (i * 2 + 1) * 0.37 + 0.5, -7.2 + i * 1.9, L); });
+    /* pagar pembatas lantai atas */
+    mkBox(16.4, 0.12, 0.12, 0x78350f, 5.4, FLOOR_UP + 1.05, 1.05, L); for (let i = 0; i < 9; i++) mkBox(0.1, 1.05, 0.1, 0x78350f, -2.6 + i * 2, FLOOR_UP + 0.52, 1.05, L);
+    colU(5.4, 1.05, 8.2, 0.12);
+    signPlane(['LANTAI 2 🛏️'], 3.2, 0.8, '#7f1d1d', '#fde68a', L, -4.1, FLOOR_UP + 1.8, 1.2, 0);
+    /* kamar di atas: kasur, meja belajar, lemari + cermin, rak, mainan */
+    mkBox(3.2, 0.5, 5.4, 0x92400e, -1.5, FLOOR_UP + 0.25, 8.9, L); mkBox(3.0, 0.4, 5.0, 0xf8fafc, -1.5, FLOOR_UP + 0.6, 8.9, L); mkBox(3.0, 0.2, 3.2, 0x16a34a, -1.5, FLOOR_UP + 0.85, 7.6, L); mkBox(1.4, 0.3, 0.9, 0xfef3c7, -1.5, FLOOR_UP + 0.95, 11.0, L); colU(-1.5, 8.9, 1.6, 2.7);
+    mkBox(3.4, 1.2, 1.4, 0x78350f, 4.8, FLOOR_UP + 0.6, 11.0, L); mkBox(1.2, 0.08, 0.8, 0xf8fafc, 4.4, FLOOR_UP + 1.24, 10.9, L); mkBox(0.6, 0.5, 0.1, 0x111827, 5.4, FLOOR_UP + 1.5, 11.2, L); mkBox(0.9, 0.9, 0.9, 0xd6a65a, 4.8, FLOOR_UP + 0.45, 9.5, L); colU(4.8, 10.6, 1.8, 0.8);
+    mkBox(3.6, 3.0, 1.4, 0x92400e, 10.8, FLOOR_UP + 1.5, 10.9, L); mkBox(1.5, 2.6, 0.1, 0x78350f, 10.0, FLOOR_UP + 1.5, 10.15, L); mkBox(1.5, 2.6, 0.1, 0x78350f, 11.6, FLOOR_UP + 1.5, 10.15, L); colU(10.8, 10.9, 1.9, 0.8);
+    mkBox(2.0, 2.8, 0.12, 0xe2e8f0, 7.6, FLOOR_UP + 1.9, 11.85, L); place(new THREE.Mesh(gBox(1.8, 2.6, 0.06), cm(0xbae6fd, { metalness: 0.9, roughness: 0.05 })), 7.6, FLOOR_UP + 1.9, 11.78, L);
+    mkBox(0.8, 3.0, 4.2, 0x78350f, 13.0, FLOOR_UP + 1.5, 6.3, L); for (let r = 0; r < 4; r++) for (let i = 0; i < 6; i++) mkBox(0.5, 0.5, 0.45, [0xef4444, 0x2563eb, 0x16a34a, 0xfacc15][(i + r) % 4], 12.65, FLOOR_UP + 0.5 + r * 0.7, 4.6 + i * 0.65, L); colU(13.0, 6.3, 0.6, 2.2);
+    mkCyl(2.0, 2.0, 0.04, 0x1d4ed8, 0, 0, 0, L, 20).position.set(6, FLOOR_UP + 0.04, 6);
+    [[0xef4444, 5.2], [0xfacc15, 6.0], [0x16a34a, 6.8]].forEach(([c, x]) => mkBox(0.7, 0.7, 0.7, c, x, FLOOR_UP + 0.4, 6.4, L));
+    mkSph(0.5, 0xf8fafc, 6.4, FLOOR_UP + 0.5, 5.4, L, null, 8);
+    const lampL = mkGlow(0xfff7c2, 0.7, 1.2); [[2, 6], [9, 6]].forEach(([x, z]) => mkBox(2.4, 0.1, 0.5, 0xffffff, x, 6.4, z, L).material = lampL);
+    /* interaksi lantai atas */
+    const wy = FLOOR_UP;
+    addAct(true, HOME.x + 8.4, HOME.z + 9.2, wy, 4.4, 'Ganti Baju 👕', () => { floatText('👕 Pilih baju, topi, dan teman barumu!', '#c084fc'); openShop(); });
+    addAct(true, HOME.x + 7.6, HOME.z + 9.4, wy, 3.2, 'Berkaca 🪞', () => { player.setPose('dance', clock.elapsedTime, 2.4); floatText('😎 Gayamu keren hari ini!', '#7dd3fc'); });
+    addAct(true, HOME.x - 1.5, HOME.z + 8.0, wy, 3.4, 'Tidur 😴', () => sleepNow());
+    addAct(true, HOME.x + 4.8, HOME.z + 9.2, wy, 2.6, 'Belajar di Meja 📚', () => { sitAt(HOME.x + 4.8, HOME.z + 9.6, Math.PI, 0.7, wy); homeReward('belajar', 30, 8, '+8 XP 📚 Rajin belajar!'); });
+    addAct(true, HOME.x + 5.8, HOME.z + 5.6, wy, 3.2, 'Main Boneka & Balok 🧸', () => { player.setPose('wave', clock.elapsedTime, 2); homeReward('mainan', 40, 5, '+5 XP 🧸 Seru bermain!'); });
+    interactables.push({ id: 'upstairs', type: 'roomact', indoor: true, y: 0, pos: new THREE.Vector3(HOME.x - 4.1, 0, HOME.z - 8.4), radius: 3.2, label: 'Naik Tangga ⬆️ (jalan ke atas)', fn: () => floatText('🪜 Jalan terus ke arah tangga untuk naik!', '#fde047'), hideIf: () => !homeLoft.visible });
+    FLOORS.home = (x, z, y) => {
+        const lx = x - HOME.x, lz = z - HOME.z;
+        if (lx >= -5.4 && lx <= -2.8 && lz >= -8 && lz < 1) return FLOOR_UP * (lz + 8) / 9;
+        if (lx >= -5.4 && lx <= 13.6 && lz >= 1 && lz <= 11.6) return y >= 3.2 ? FLOOR_UP : 0;
+        return 0;
+    };
+})();
+/* semua furnitur di bawah loft hanya aktif di lantai bawah */
+boxColliders.forEach(c => { if (!c.lvl && c.x > HOME.x - 6 && c.x < HOME.x + 20 && Math.abs(c.z - HOME.z) < 13 && c.z - HOME.z > 0.9 && Math.abs(c.x - HOME.x) < 15) c.lvl = 'low'; });
+/* lampu berdiri tinggi di bawah loft dipendekkan */
+/* ---- Ayah & Ibu, TV, duduk di sofa & kursi makan ---- */
+const parents = new THREE.Group(); HG.add(parents);
+const dad = buildPerson({ shirt: 0x1d4ed8, pants: 0x1e293b, hat: 'peci', skin: 0xc68642 }); dad.seat = 1.1; dad.root.position.set(-8.3, 0, 7.6); dad.root.rotation.y = -Math.PI / 2; parents.add(dad.root);
+const mom = buildPerson({ shirt: 0xdb2777, hijab: 0x7c3aed, skirt: true, longSleeve: true, pants: 0x7c2d12, skin: 0xc68642 }); mom.root.position.set(10.6, 0, -8.5); mom.root.rotation.y = Math.PI / 2; parents.add(mom.root);
+[[dad, '👨 Ayah', -8.3, 7.6], [mom, '👩 Ibu', 10.6, -8.5]].forEach(([p, nm, x, z]) => { const tg = createTextSprite(nm, '#a16207'); tg.scale.set(5, 1.25, 1); tg.position.set(x, 3.9, z); parents.add(tg); });
+const spoon = new THREE.Mesh(gBox(0.08, 0.7, 0.08), cm(0x9ca3af)); spoon.position.set(0, -0.9, 0.3); mom.arms[1].add(spoon);
+const PARENT_TALK = {
+    ayah: ['Belajar yang rajin ya, Nak!', 'Ayah bangga sama kamu 👍', 'Nonton TV boleh, tapi jangan lupa PR.', 'Besok pagi kita olahraga bareng, ya!'],
+    ibu: ['Sudah makan belum, Nak? 🍛', 'Hati-hati di jalan ya!', 'Ibu masak sayur asem kesukaanmu.', 'Cuci tangan dulu sebelum makan, ya 🧼']
+};
+addAct(true, HOME.x - 6.6, HOME.z + 7.6, 0, 3.6, 'Ngobrol dengan Ayah 👨', () => { if (curHouse !== PH) return; floatText('👨 Ayah: ' + pick(PARENT_TALK.ayah), '#93c5fd'); homeReward('ayah', 45, 5, '+5 XP 💙 Nasihat Ayah'); });
+addAct(true, HOME.x + 9.4, HOME.z - 7.2, 0, 3.6, 'Ngobrol dengan Ibu 👩', () => { if (curHouse !== PH) return; floatText('👩 Ibu: ' + pick(PARENT_TALK.ibu), '#f9a8d4'); homeReward('ibu', 45, 5, '+5 XP 💗 Kasih sayang Ibu'); });
+/* sofa & kursi makan */
+addSit(true, HOME.x - 8.3, HOME.z + 4.6, -Math.PI / 2, 1.1, 0, 'Duduk di Sofa 🛋️', 3.0);
+[[8, 4.7, Math.PI], [8, -1.7, 0], [11.2, 1.5, -Math.PI / 2], [4.8, 1.5, Math.PI / 2]].forEach(([lx, lz, r]) => addSit(true, HOME.x + lx, HOME.z + lz, r, 1.75, 0, 'Duduk di Kursi Makan 🪑', 2.0));
+let tvWatch = false;
+function watchTV() {
+    if (curHouse) { sitAt(HOME.x - 8.3, HOME.z + 4.6, -Math.PI / 2, 1.1, 0); tvWatch = true; }
+    openTV();
+}
+const tvCtx = tvScreen && tvScreen.map && tvScreen.map.image.getContext('2d');
+let tvT = 0;
+function drawTV(t) {
+    if (!tvCtx || t - tvT < 0.3) return; tvT = t; const c = tvCtx, W = 128, H = 64, prog = Math.floor(t / 7) % 3;
+    if (prog === 0) { const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#38bdf8'); g.addColorStop(1, '#86efac'); c.fillStyle = g; c.fillRect(0, 0, W, H); c.fillStyle = '#fde047'; c.beginPath(); c.arc(106, 12, 8, 0, 7); c.fill(); const bx = (t * 40) % W, by = H - 12 - Math.abs(Math.sin(t * 4)) * 26; c.fillStyle = '#ef4444'; c.beginPath(); c.arc(bx, by, 7, 0, 7); c.fill(); c.fillStyle = '#fff'; c.font = 'bold 10px sans-serif'; c.fillText('KARTUN ILMI', 6, 12); }
+    else if (prog === 1) { c.fillStyle = '#1e3a8a'; c.fillRect(0, 0, W, H); c.fillStyle = '#f8fafc'; c.beginPath(); c.arc(30, 26, 12, 0, 7); c.fill(); c.fillStyle = '#334155'; c.fillRect(18, 38, 24, 14); c.fillStyle = '#dc2626'; c.fillRect(0, 54, W, 10); c.fillStyle = '#fff'; c.font = 'bold 9px sans-serif'; c.fillText('ILMI NEWS • ' + (Math.floor(t * 3) % 2 ? 'Cuaca cerah' : 'Belajar yuk!'), 4, 62); c.fillStyle = '#fde047'; c.fillRect(60 + Math.sin(t) * 6, 20, 50, 4); c.fillRect(60, 30, 40, 4); }
+    else { c.fillStyle = '#581c87'; c.fillRect(0, 0, W, H); for (let i = 0; i < 6; i++) { c.fillStyle = ['#f472b6', '#22d3ee', '#facc15', '#4ade80'][i % 4]; c.fillRect(i * 22 + Math.sin(t * 3 + i) * 4, 10 + (i % 2) * 22, 16, 16); } c.fillStyle = '#fff'; c.font = 'bold 11px sans-serif'; c.fillText('KUIS SERU!', 30, 58); }
+    tvScreen.map.needsUpdate = true;
+}
+/* ===== v11: gedung pelajaran bertema (bisa dimasuki), perpustakaan 2 lantai dengan lift ===== */
+const V11 = { rooms: [], spin: [] };
+function scribbleTex(words, bg, cols, W, H, n) {
+    return canvasTex(W, H, (c, w, h) => {
+        c.fillStyle = bg; c.fillRect(0, 0, w, h); let seed = words.length * 97 + w;
+        const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+        for (let i = 0; i < n; i++) { const t = words[i % words.length], fs = 22 + Math.floor(rnd() * 46); c.save(); c.translate(rnd() * w, rnd() * h); c.rotate((rnd() - 0.5) * 0.9); c.font = `bold ${fs}px Fredoka, sans-serif`; c.fillStyle = cols[Math.floor(rnd() * cols.length)]; c.globalAlpha = 0.55 + rnd() * 0.45; c.fillText(t, 0, 0); c.restore(); }
+    });
+}
+const bldRot = cfg => (cfg.x === 0 && cfg.z < 0) ? 0 : (Math.atan2(-cfg.x, -cfg.z) || 0);
+const THEMES = {
+    math: { words: ['2+2=4', 'π ≈ 3,14', '√81 = 9', 'a² + b² = c²', '12 × 12 = 144', '½ + ¼ = ¾', 'x + 5 = 12', 'L = p × l', '25%', '7 × 8 = 56', '÷', '∑', '∠ 90°', 'Keliling', '0,75', '100 − 37 = 63', 'V = s³', '3/4', 'y = 2x'], bg: '#0c4a6e', cols: ['#fde047', '#f8fafc', '#7dd3fc', '#86efac'], wall: 0xe0f2fe, floor: 0xbae6fd, facts: ['Angka nol ditemukan di India, lho!', 'Segitiga punya 3 sisi dan jumlah sudutnya 180°.', 'Bilangan prima hanya habis dibagi 1 dan dirinya sendiri.', 'π (pi) itu perbandingan keliling lingkaran dan diameternya.'], name: 'Matematika' },
+    science: { words: ['H₂O', 'Fotosintesis', 'Gravitasi', 'Tata Surya', 'Siklus Air', 'CO₂', 'Energi', 'Sel', 'Magnet', 'Cahaya', 'Rantai Makanan', 'Metamorfosis', 'Gaya', 'Listrik', 'Fosil', 'Ekosistem', 'O₂'], bg: '#064e3b', cols: ['#bbf7d0', '#fde68a', '#a5f3fc', '#f8fafc'], wall: 0xdcfce7, floor: 0xbbf7d0, facts: ['Tumbuhan membuat makanan lewat fotosintesis.', 'Matahari itu bintang, bukan planet.', 'Air bisa berwujud padat, cair, dan gas.', 'Jantung manusia berdetak sekitar 100.000 kali sehari!'], name: 'IPAS' },
+    indo: { words: ['Pantun', 'Kalimat Efektif', 'Kata Baku', 'Puisi', 'Dongeng', 'Sinonim', 'Antonim', 'Paragraf', 'Huruf Kapital', 'Ejaan', 'Cerita Rakyat', 'Surat', 'Membaca', 'Menulis', 'Imbuhan', 'Ide Pokok', 'Teks Narasi'], bg: '#831843', cols: ['#fbcfe8', '#fde68a', '#f8fafc', '#fda4af'], wall: 0xfce7f3, floor: 0xfbcfe8, facts: ['Pantun terdiri dari sampiran dan isi.', 'Awal kalimat selalu pakai huruf kapital.', 'Sinonim = persamaan kata, antonim = lawan kata.', 'Bahasa Indonesia diresmikan lewat Sumpah Pemuda 1928.'], name: 'B. Indonesia' },
+    english: { words: ['Hello!', 'Good morning', 'Apple', 'Thank you', 'Please', 'Colors', 'Family', 'I am happy', 'Verb', 'Noun', 'Sunday', 'Monday', 'How are you?', 'School', 'Friend', 'Beautiful', 'Goodbye!'], bg: '#4c1d95', cols: ['#ddd6fe', '#fde047', '#f8fafc', '#fca5a5'], wall: 0xede9fe, floor: 0xddd6fe, facts: ['"Good morning" dipakai untuk menyapa di pagi hari.', 'Ada 26 huruf dalam alfabet Inggris.', '"Thank you" artinya terima kasih.', 'A rainbow has seven colors!'], name: 'B. Inggris' },
+    ips: { words: ['Peta', 'Benua', 'Samudra', 'Kerajaan', 'Merdeka 1945', 'Pahlawan', 'Sabang–Merauke', 'Perdagangan', 'Suku Bangsa', 'Rumah Adat', 'Mata Uang', 'Kompas', 'Pulau', 'Budaya', 'Sejarah', 'Ekonomi', 'Gotong Royong'], bg: '#7c2d12', cols: ['#fed7aa', '#fde68a', '#f8fafc', '#fdba74'], wall: 0xffedd5, floor: 0xfed7aa, facts: ['Indonesia punya lebih dari 17.000 pulau.', 'Ada 5 benua dan 5 samudra di dunia.', 'Kompas selalu menunjuk ke arah utara.', 'Rupiah adalah mata uang Indonesia.'], name: 'IPS' },
+    pkn: { words: ['Pancasila', 'Bhinneka Tunggal Ika', 'Garuda', 'Gotong Royong', 'Musyawarah', 'NKRI', 'UUD 1945', 'Hak & Kewajiban', 'Toleransi', 'Merah Putih', 'Sumpah Pemuda', 'Demokrasi', 'Adil', 'Persatuan', 'Kejujuran', 'Disiplin'], bg: '#134e4a', cols: ['#99f6e4', '#fecaca', '#f8fafc', '#fde68a'], wall: 0xccfbf1, floor: 0x99f6e4, facts: ['Pancasila punya lima sila.', '"Bhinneka Tunggal Ika" artinya berbeda-beda tetapi tetap satu.', 'Warna bendera kita: Merah Putih.', 'Musyawarah berarti berunding untuk mufakat.'], name: 'Pancasila' },
+    seni: { words: ['Lukis', 'Warna Primer', 'Tari', 'Batik', 'Angklung', 'Do Re Mi', 'Kolase', 'Patung', 'Gamelan', 'Irama', 'Origami', 'Gambar', 'Merah Kuning Biru', 'Kriya', 'Musik', 'Seni Rupa', 'Melodi'], bg: '#701a75', cols: ['#f0abfc', '#fde047', '#67e8f9', '#f8fafc'], wall: 0xfae8ff, floor: 0xf5d0fe, facts: ['Warna primer: merah, kuning, biru.', 'Angklung terbuat dari bambu dan sudah diakui UNESCO.', 'Batik adalah warisan budaya Indonesia.', 'Mencampur biru dan kuning menghasilkan hijau.'], name: 'Seni Budaya' },
+    perpus: { words: ['Buku jendela dunia', 'Membaca itu seru', 'Perpustakaan', 'Cerita', 'Ensiklopedia', 'Kamus', 'Dongeng', 'Sains', 'Sejarah', 'Petualangan', 'Pengetahuan'], bg: '#451a03', cols: ['#fde68a', '#fed7aa', '#f8fafc', '#fcd34d'], wall: 0xfef3c7, floor: 0xd6a65a, facts: ['Membaca 15 menit sehari bikin kamu makin pintar!', 'Perpustakaan tertua di dunia ada ribuan tahun lalu.', 'Jangan lipat halaman buku, pakai pembatas ya 🔖'], name: 'Perpustakaan' }
+};
+(function () {
+    const keys = ['math', 'science', 'indo', 'english', 'ips', 'pkn', 'seni', 'library'];
+    keys.forEach((id, idx) => {
+        const cfg = buildingCfg.find(b => b.id === id); if (!cfg) return;
+        const lib = id === 'library', th = THEMES[lib ? 'perpus' : id], key = 'g_' + id, cx = 1400 + idx * 200, cz = 600, hw = lib ? 13 : 12, hd = lib ? 10.5 : 9.5, rot = bldRot(cfg);
+        const front = toW({ x: cfg.x, z: cfg.z, rot }, 0, 16);
+        const R = MKROOM(key, cx, cz, hw, hd, th.wall, th.floor, front, 'Masuk Gedung ' + th.name + ' 🚪'); R.h.rot = rot; const g = R.g;
+        const B = (w, h, d, c, x, y, z, o) => mkBox(w, h, d, c, x, y, z, g, o), CY = (a, b, h, c, x, y, z, s, o) => mkCyl(a, b, h, c, x, y, z, g, s || 10, o), SP = (r, c, x, y, z, o) => mkSph(r, c, x, y, z, g, o, 10);
+        /* dinding penuh tulisan sesuai tema */
+        const wp = (tex, w, h, x, y, z, ry) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex })); m.position.set(x, y, z); m.rotation.y = ry; g.add(m); return m; };
+        wp(scribbleTex(th.words, th.bg, th.cols, 1024, 512, 70), hd * 2 - 1, 5.2, -hw + 0.1, 3.5, 0, Math.PI / 2);
+        wp(scribbleTex(th.words.slice().reverse(), th.bg, th.cols, 1024, 512, 70), hd * 2 - 1, 5.2, hw - 0.1, 3.5, 0, -Math.PI / 2);
+        wp(scribbleTex(th.words, th.bg, th.cols, 1024, 512, 90), hw * 2 - 1, 5.2, 0, 3.5, hd - 0.1, Math.PI);
+        const sit = (lx, lz, r, h) => addSit(true, cx + lx, cz + lz, r, h || 0.62, 0, 'Duduk di Kursi 🪑', 2.0);
+        const desk = (lx, lz, c) => { B(2.6, 0.15, 1.3, c || 0xd6a65a, lx, 1.2, lz); [-1.1, 1.1].forEach(a => [-0.5, 0.5].forEach(b => B(0.12, 1.2, 0.12, 0x475569, lx + a, 0.6, lz + b))); B(1.0, 0.1, 0.9, 0x2563eb, lx, 0.62, lz - 1.3); B(1.0, 0.8, 0.1, 0x2563eb, lx, 1.05, lz - 1.75); R.col(lx, lz, 1.4, 0.7); sit(lx, lz - 1.3, 0, 0.68); };
+        [[-6, -1], [0, -1], [6, -1], [-6, 3], [0, 3], [6, 3]].forEach(([x, z], i) => { if (!lib || i < 0) desk(x, z, [0xd6a65a, 0xfde68a, 0xfcd34d][i % 3]); });
+        /* papan tulis + guru standby */
+        B(10, 3.6, 0.2, 0x14532d, 0, 3.4, hd - 0.4); B(10.4, 0.2, 0.3, 0x78350f, 0, 1.55, hd - 0.4);
+        const eq = { math: ['2x + 5 = 17', 'x = 6 ✅'], science: ['Fotosintesis', 'CO₂ + H₂O → O₂ + gula'], indo: ['Kalimat: S + P + O', 'Ibu memasak nasi.'], english: ['I am a student.', 'She is happy.'], ips: ['Sabang – Merauke', '17.000+ pulau'], pkn: ['Pancasila', '1 • 2 • 3 • 4 • 5'], seni: ['Merah + Kuning', '= Oranye 🎨'], library: ['PERPUSTAKAAN', 'Tenang • Baca • Pinjam'] }[id];
+        signPlane(eq, 8.6, 2.6, '#14532d', '#f8fafc', g, 0, 3.4, hd - 0.52, Math.PI);
+        const tp = buildPerson({ shirt: [0x1d4ed8, 0x7c3aed, 0x0f766e, 0xb91c1c][idx % 4], pants: 0x1e293b, hijab: idx % 2 ? 0x7c3aed : undefined, skirt: idx % 2 === 1, longSleeve: idx % 2 === 1, skin: pick(SK), hat: idx % 2 ? undefined : 'peci' });
+        tp.root.position.set(lib ? -9 : 5.5, 0, lib ? -6.4 : hd - 2.2); tp.root.rotation.y = lib ? 0 : Math.PI; g.add(tp.root); tp.ph = idx;
+        const tg = createTextSprite('👩‍🏫 Guru ' + th.name, '#0f766e'); tg.scale.set(6, 1.5, 1); tg.position.set(tp.root.position.x, 3.8, tp.root.position.z); g.add(tg);
+        const roomRec = { key, cx, cz, teacher: tp, id, upd: null }; V11.rooms.push(roomRec);
+        addAct(true, cx + tp.root.position.x, cz + tp.root.position.z - (lib ? 0 : 0.5), 0, 3.6, 'Ngobrol dengan Guru ' + th.name + ' 👩‍🏫', () => { floatText('👩‍🏫 ' + pick(th.facts), '#fde047'); homeReward('guru' + id, 40, 4, '+4 XP 🎓 Ilmu baru'); });
+        if (!lib) addAct(true, cx, cz + hd - 3.4, 0, 4, 'Kerjakan Kuis ' + th.name + ' 📝', () => openQuiz(id));
+        else addAct(true, cx - 3, cz - 6.4, 0, 4, 'Baca Buku 📚', () => openLibrary());
+        /* interaktable pintu depan gedung -> masuk ruangan */
+        const ex = interactables.find(it => it.id === id && (it.type === 'quiz' || it.type === 'library')); if (ex) { ex.type = 'enterroom'; ex.room = key; ex.label = 'Masuk Gedung ' + th.name; }
+        /* ---- dekorasi khas tiap pelajaran ---- */
+        const ped = (x, z, fn, lbl) => { B(1.5, 1.0, 1.5, 0xf8fafc, x, 0.5, z); fn(x, z); signPlane([lbl], 1.6, 0.5, '#0f172a', '#f8fafc', g, x, 0.55, z - 0.78, Math.PI); R.col(x, z, 0.8, 0.8); };
+        if (id === 'math') {
+            ped(-8.5, 7, (x, z) => B(1.3, 1.3, 1.3, 0xef4444, x, 1.65, z), 'KUBUS'); ped(-4.5, 7, (x, z) => mkCone(1, 1.7, 0xfacc15, x, 1.85, z, g, 4), 'LIMAS'); ped(4.5, 7, (x, z) => SP(0.75, 0x3b82f6, x, 1.75, z), 'BOLA'); ped(8.5, 7, (x, z) => CY(0.7, 0.7, 1.4, 0x16a34a, x, 1.7, z), 'TABUNG');
+            B(3.6, 2.4, 0.2, 0x92400e, -10.5, 1.8, 3); [0, 1, 2, 3, 4].forEach(r => { B(3.5, 0.07, 0.07, 0x78350f, -10.5, 1.0 + r * 0.45, 3.02); for (let i = 0; i < 9; i++) SP(0.16, [0xef4444, 0xfacc15, 0x22c55e, 0x3b82f6, 0xec4899][r], -11.9 + i * 0.3 + (i > 4 ? 0.5 : 0), 1.0 + r * 0.45, 3.08); });
+            signPlane(['SEMPOA 🧮'], 2.4, 0.6, '#92400e', '#fff', g, -10.5, 3.3, 2.88, Math.PI);
+            [[-9, -6], [9, -6]].forEach(([x, z]) => { B(1.4, 1.4, 1.4, 0xfde047, x, 0.7, z); signPlane(['7 × 8', '= ?'], 1.2, 1.0, '#ca8a04', '#fff', g, x, 0.8, z - 0.72, Math.PI); R.col(x, z, 0.8, 0.8); });
+        } else if (id === 'science') {
+            const sol = new THREE.Group(); sol.position.set(0, 4.6, 2); g.add(sol); const sun = new THREE.Mesh(gSph(1.1, 12), mkGlow(0xfacc15, 0.9, 0.9)); sol.add(sun);
+            [[2.4, 0.3, 0x9ca3af], [3.4, 0.45, 0xfb923c], [4.5, 0.5, 0x38bdf8], [5.6, 0.4, 0xef4444], [7, 0.8, 0xfbbf24], [8.5, 0.7, 0xfde68a]].forEach(([d, r, c], i) => { const arm = new THREE.Group(); const pl = new THREE.Mesh(gSph(r, 10), cm(c)); pl.position.x = d; arm.add(pl); arm.rotation.y = i * 1.1; sol.add(arm); V11.spin.push([arm, 0.5 / (1 + i * 0.5), rid => roomRec]); });
+            signPlane(['TATA SURYA ☀️'], 4, 0.8, '#1e3a8a', '#fde68a', g, 0, 6.3, 2.6, Math.PI);
+            const vol = mkCone(2.2, 2.8, 0x78350f, -8, 1.4, 6.5, g, 10); const lava = mkCone(0.9, 0.9, 0xf97316, -8, 2.9, 6.5, g, 8, { emissive: 0xea580c, emissiveIntensity: 1 }); R.col(-8, 6.5, 2.2, 2.2); signPlane(['GUNUNG BERAPI 🌋'], 3, 0.6, '#7c2d12', '#fff', g, -8, 0.4, 4.6, Math.PI);
+            [[-6, -1], [0, -1], [6, -1]].forEach(([x, z], i) => { B(3.4, 0.2, 1.6, 0xe2e8f0, x, 1.25, z); B(3.2, 1.2, 1.4, 0x64748b, x, 0.6, z); R.col(x, z, 1.8, 0.9); [0, 1, 2].forEach(j => { CY(0.25, 0.25, 0.7, [0x22c55e, 0xef4444, 0x3b82f6][(i + j) % 3], x - 1 + j, 1.7, z, 8, { transparent: true, opacity: 0.7, emissive: [0x16a34a, 0xb91c1c, 0x1d4ed8][(i + j) % 3], emissiveIntensity: 0.5 }); }); sit(x, z - 1.4, 0, 0.7); });
+            [[9, 6], [-10, 1], [10, 1]].forEach(([x, z], i) => { CY(0.7, 0.5, 1.1, 0xc2410c, x, 0.55, z, 8); SP(1.0, 0x16a34a, x, 1.9, z); SP(0.7, 0x15803d, x + 0.4, 2.6, z); });
+            signPlane(['SIKLUS AIR', '☁️ → 🌧️ → 🌊 → ☀️'], 6, 1.8, '#0e7490', '#fff', g, -hw + 0.2, 3.5, -4, Math.PI / 2);
+        } else if (id === 'indo') {
+            [-9, -3, 3, 9].forEach(x => { B(5, 3.6, 0.8, 0x78350f, x, 1.8, 8.6); [0.6, 1.4, 2.2, 3.0].forEach((y, t) => { for (let i = 0; i < 8; i++) B(0.45, 0.6, 0.5, [0xef4444, 0x3b82f6, 0x16a34a, 0xfacc15, 0xec4899][(i + t + Math.round(x)) % 5], x - 2 + i * 0.57, y, 8.3); }); R.col(x, 8.6, 2.6, 0.5); });
+            ['A', 'B', 'C', 'D', 'E'].forEach((ch, i) => { B(1.2, 1.2, 1.2, [0xef4444, 0x3b82f6, 0x16a34a, 0xfacc15, 0xec4899][i], -9 + i * 1.5, 0.6, 5.2); signPlane([ch], 1.0, 1.0, '#ffffff', '#111827', g, -9 + i * 1.5, 0.62, 4.58, Math.PI); });
+            signPlane(['PANTUN', 'Buah cempedak di luar pagar,', 'ambil galah tolong jolokkan.', 'Budi baik jangan dilupa,', 'ingat selalu sampai tua.'], 6, 2.6, '#9d174d', '#fff', g, 7.8, 3.4, -hd + 0.3, 0);
+            mkCyl(2.4, 2.4, 0.04, 0xfb7185, 0, 0.04, -6.4, g, 24); [[-1.5, -6.4], [1.5, -6.7], [0, -7.8]].forEach(([x, z], i) => { const b = SP(0.8, [0x3b82f6, 0xfacc15, 0x16a34a][i], x, 0.6, z); b.scale.y = 0.7; });
+            const bd = B(5, 2.4, 0.15, 0xd6a65a, -8.5, 3.4, -hd + 0.3); for (let i = 0; i < 8; i++) B(0.8, 0.6, 0.05, [0xfef08a, 0xbbf7d0, 0xfbcfe8, 0xbae6fd][i % 4], -10.3 + (i % 4) * 1.2, 4 - Math.floor(i / 4) * 0.8, -hd + 0.4);
+        } else if (id === 'english') {
+            B(2.2, 4.2, 2.2, 0xdc2626, -9, 2.1, 6.5); place(new THREE.Mesh(gBox(1.6, 2.4, 0.1), HGLASS), -9, 2.4, 5.35, g); signPlane(['TELEPHONE'], 1.8, 0.4, '#111827', '#fff', g, -9, 4.0, 5.38, Math.PI); R.col(-9, 6.5, 1.3, 1.3);
+            B(3.6, 1.4, 1.5, 0xdc2626, 9, 0.9, 6.5); B(3.4, 1.2, 1.4, 0xdc2626, 9, 2.1, 6.5); B(3.5, 0.5, 0.05, 0xbae6fd, 9, 2.1, 5.8); [-1.1, 1.1].forEach(x => CY(0.4, 0.4, 0.2, 0x111827, 9 + x, 0.4, 5.7, 8).rotation.z = Math.PI / 2); R.col(9, 6.5, 1.9, 0.9);
+            const flag = (x, kind) => { const t = canvasTex(256, 128, (c, w, h) => { if (kind === 'uk') { c.fillStyle = '#1e3a8a'; c.fillRect(0, 0, w, h); c.strokeStyle = '#fff'; c.lineWidth = 26; c.beginPath(); c.moveTo(0, 0); c.lineTo(w, h); c.moveTo(w, 0); c.lineTo(0, h); c.stroke(); c.strokeStyle = '#dc2626'; c.lineWidth = 10; c.stroke(); c.fillStyle = '#fff'; c.fillRect(w / 2 - 20, 0, 40, h); c.fillRect(0, h / 2 - 20, w, 40); c.fillStyle = '#dc2626'; c.fillRect(w / 2 - 12, 0, 24, h); c.fillRect(0, h / 2 - 12, w, 24); } else { for (let i = 0; i < 7; i++) { c.fillStyle = i % 2 ? '#fff' : '#dc2626'; c.fillRect(0, i * h / 7, w, h / 7); } c.fillStyle = '#1e3a8a'; c.fillRect(0, 0, w * 0.45, h * 0.55); c.fillStyle = '#fff'; for (let i = 0; i < 9; i++) for (let j = 0; j < 5; j++) c.fillRect(8 + i * 18, 8 + j * 18, 5, 5); } }); wp(t, 4.4, 2.2, x, 4.0, hd - 0.14, Math.PI); };
+            flag(-7.5, 'uk'); flag(7.5, 'us'); signPlane(['HELLO! 👋', 'Good morning, friends!'], 6, 1.6, '#6d28d9', '#fde047', g, 0, 6.0, hd - 0.35, Math.PI);
+            signPlane(['A B C D E F G H I', 'J K L M N O P Q R', 'S T U V W X Y Z'], 6.4, 2.6, '#7c3aed', '#fff', g, -hw + 0.2, 3.4, 4, Math.PI / 2);
+            ['RED', 'BLUE', 'GREEN', 'YELLOW'].forEach((n, i) => { B(1.1, 1.1, 1.1, [0xef4444, 0x3b82f6, 0x16a34a, 0xfacc15][i], -3 + i * 2, 0.55, -7); signPlane([n], 1.0, 0.4, '#111827', '#fff', g, -3 + i * 2, 0.6, -7.58, 0); });
+        } else if (id === 'ips') {
+            const mapT = canvasTex(512, 256, (c, w, h) => { c.fillStyle = '#38bdf8'; c.fillRect(0, 0, w, h); c.fillStyle = '#22c55e'; [[60, 60, 90, 70], [90, 150, 40, 70], [250, 60, 60, 40], [250, 130, 50, 70], [330, 60, 110, 60], [420, 170, 50, 30], [380, 140, 30, 20]].forEach(([x, y, a, b]) => { c.beginPath(); c.ellipse(x + a / 2, y + b / 2, a / 1.4, b / 1.4, 0.3, 0, 7); c.fill(); }); c.fillStyle = '#fde047'; for (let i = 0; i < 9; i++) { c.beginPath(); c.ellipse(375 + i * 9, 150 + (i % 3) * 5, 6, 3, 0, 0, 7); c.fill(); } c.fillStyle = '#111827'; c.font = 'bold 16px sans-serif'; c.fillText('INDONESIA', 360, 188); });
+            wp(mapT, 8, 4, 0, 3.6, hd - 0.15, Math.PI); const gl = new THREE.Mesh(new THREE.SphereGeometry(1.2, 16, 12), new THREE.MeshStandardMaterial({ map: mapT })); gl.position.set(7.5, 2.3, 5.5); g.add(gl); CY(0.1, 0.1, 1.2, 0x64748b, 7.5, 0.6, 5.5, 6); V11.spin.push([gl, 0.6]); R.col(7.5, 5.5, 1, 1);
+            [[-8.5, 6.5, 0xb45309], [-5, 6.8, 0x92400e]].forEach(([x, z, c]) => { B(2.4, 1.4, 1.8, c, x, 0.7, z); mkCone(2.1, 1.5, 0x78350f, x, 2.1, z, g, 4).rotation.y = Math.PI / 4; R.col(x, z, 1.3, 1); signPlane(['RUMAH ADAT'], 2, 0.4, '#7c2d12', '#fff', g, x, 0.5, z - 0.92, Math.PI); });
+            signPlane(['LINIMASA', '1945  Proklamasi', '1949  Kedaulatan', '1950  NKRI'], 5, 2.4, '#7c2d12', '#fde68a', g, hw - 0.2, 3.4, 2, -Math.PI / 2);
+            CY(0.1, 0.1, 5, 0xe2e8f0, 9, 2.5, -7, 6); B(2.4, 0.8, 0.05, 0xdc2626, 10.2, 4.6, -7); B(2.4, 0.8, 0.05, 0xf8fafc, 10.2, 3.8, -7);
+        } else if (id === 'pkn') {
+            const gar = canvasTex(256, 300, (c, w, h) => { c.fillStyle = '#7f1d1d'; c.fillRect(0, 0, w, h); c.fillStyle = '#fde68a'; c.fillRect(8, 8, w - 16, h - 16); c.font = '120px sans-serif'; c.textAlign = 'center'; c.fillText('🦅', w / 2, 110); c.fillStyle = '#111827'; c.fillRect(w / 2 - 55, 130, 110, 100); c.font = '34px sans-serif'; c.fillText('⭐ 🔗', w / 2, 168); c.fillText('🌳 🐂', w / 2, 200); c.fillText('🌾', w / 2, 228); c.font = 'bold 15px sans-serif'; c.fillStyle = '#7f1d1d'; c.fillText('BHINNEKA TUNGGAL IKA', w / 2, 270); });
+            wp(gar, 3.4, 4, 0, 4.2, hd - 0.2, Math.PI);
+            ['⭐ Sila 1', '🔗 Sila 2', '🌳 Sila 3', '🐂 Sila 4', '🌾 Sila 5'].forEach((t, i) => signPlane(t.split(' '), 1.5, 1.2, ['#fbbf24', '#ef4444', '#16a34a', '#2563eb', '#7c3aed'][i], '#fff', g, -4.8 + i * 2.4, 1.6, 8.9, Math.PI));
+            [-9.5, 9.5].forEach(x => { CY(0.1, 0.1, 6, 0xe2e8f0, x, 3, 6, 6); B(0.05, 0.9, 1.8, 0xdc2626, x, 5.5, 6.9); B(0.05, 0.9, 1.8, 0xf8fafc, x, 4.6, 6.9); });
+            B(1.6, 1.8, 1.2, 0xdc2626, 8, 0.9, -5); B(0.9, 0.1, 0.1, 0x111827, 8, 1.85, -5.62); signPlane(['KOTAK', 'SUARA'], 1.3, 0.9, '#7f1d1d', '#fff', g, 8, 1.0, -5.62, 0); R.col(8, -5, 1, 0.8);
+            signPlane(['BHINNEKA TUNGGAL IKA', 'Berbeda-beda tetapi tetap satu'], 8, 1.6, '#0f766e', '#fff', g, 0, 6.2, hd - 0.35, Math.PI);
+        } else if (id === 'seni') {
+            [[-8, 6.5], [-3, 7], [3, 7], [8, 6.5]].forEach(([x, z], i) => { [[-0.6, 0.3], [0.6, 0.3], [0, -0.5]].forEach(([a, b]) => B(0.1, 3.2, 0.1, 0x92400e, x + a, 1.6, z + b)); const t = canvasTex(128, 96, (c, w, h) => { c.fillStyle = '#f8fafc'; c.fillRect(0, 0, w, h); for (let k = 0; k < 9; k++) { c.fillStyle = ['#ef4444', '#facc15', '#3b82f6', '#22c55e', '#ec4899'][(k + i) % 5]; c.beginPath(); c.arc((k * 41 + i * 23) % w, (k * 29 + i * 11) % h, 10 + k % 4 * 5, 0, 7); c.fill(); } }); wp(t, 2.2, 1.7, x, 2.4, z + 0.2, Math.PI); R.col(x, z, 1.2, 0.8); });
+            B(1.8, 1.2, 1.4, 0x78350f, -9.5, 0.6, -5); B(1.8, 1.2, 1.4, 0x78350f, -9.5, 0.6, -2.8); mkCyl(1.2, 1.2, 0.04, 0xffffff, 0, 0.04, -6.5, g, 24); ['#ef4444', '#facc15', '#3b82f6', '#22c55e', '#ec4899', '#f97316'].forEach((c, i) => { const m = mkCyl(0.28, 0.28, 0.06, parseInt(c.slice(1), 16), Math.cos(i * 1.05) * 0.8, 0.08, -6.5 + Math.sin(i * 1.05) * 0.8, g, 12); });
+            B(0.1, 2.8, 0.1, 0x92400e, 9.3, 1.4, -5); for (let i = 0; i < 8; i++) CY(0.14, 0.14, 1.6 - i * 0.12, 0xfde68a, 8 + i * 0.4 - 0.4, 2.2 - (i * 0.06), -5.3, 6);
+            signPlane(['ANGKLUNG 🎶'], 2.6, 0.6, '#92400e', '#fff', g, 9, 3.6, -5.6, 0); CY(0.7, 0.7, 0.9, 0xdc2626, 0, 0.5, -3.2, 14); mkCyl(0.72, 0.72, 0.06, 0xf8fafc, 0, 0.98, -3.2, g, 14);
+            [[-4, 0xef4444], [4, 0x3b82f6]].forEach(([x, c]) => { CY(0.5, 0.4, 0.8, c, x, 0.4, -7.5, 10); mkCyl(0.8, 0.8, 0.03, c, x + 0.9, 0.03, -7.1, g, 12); });
+        } else if (lib) {
+            /* ===== PERPUSTAKAAN 2 LANTAI + LIFT ===== */
+            const UP = FLOOR_UP, sx0 = 9.4, sx1 = 12.8, sz0 = 5.6, sz1 = 9.0, upCol = (lx, lz, w, d) => boxColliders.push({ x: cx + lx, z: cz + lz, rot: 0, hw: w, hd: d, lvl: 'up' }), loCol = (lx, lz, w, d) => boxColliders.push({ x: cx + lx, z: cz + lz, rot: 0, hw: w, hd: d, lvl: 'low' });
+            /* lantai 2: pelat dengan lubang lift */
+            B(26, 0.3, 11.5, 0xb45309, 0, UP - 0.15, 4.75 - 0.0); const hole = new THREE.Mesh(gBox(3.4, 0.5, 3.4), cm(0x1f2937)); /* lubang ditutup oleh kabin */
+            g.children[g.children.length - 1].scale.set(1, 1, 1);
+            mkPlane(25.6, 11.1, 0xe7d3b0, 0, UP + 0.01, 4.75, g);
+            /* hilangkan pelat di atas lubang lift: tumpuk potongan tertutup lantai gelap tipis */
+            B(3.5, 0.34, 3.5, 0x1e293b, (sx0 + sx1) / 2, UP - 0.14, (sz0 + sz1) / 2, { emissive: 0x000000 }).visible = false;
+            B(26, 0.12, 0.3, 0x78350f, 0, UP - 0.4, -1.0);
+            B(18, 0.1, 0.1, 0x78350f, -3.8, UP + 1.05, -1.0); for (let i = 0; i < 10; i++) B(0.1, 1.05, 0.1, 0x78350f, -12.6 + i * 1.8, UP + 0.52, -1.0); upCol(-3.8, -1.0, 9.2, 0.12);
+            /* tangga tidak ada: hanya lift */
+            /* rak buku lantai 1 (di bawah lantai 2) dan lantai 2 */
+            const shelfRow = (x, z, w, lvlY, up) => { B(w, 2.6, 0.7, 0x78350f, x, lvlY + 1.3, z); [0.5, 1.2, 1.9].forEach((y, t) => { for (let i = 0; i < Math.floor(w / 0.6); i++) B(0.45, 0.55, 0.5, [0xef4444, 0x3b82f6, 0x16a34a, 0xfacc15, 0xec4899, 0x8b5cf6][(i + t + Math.round(x)) % 6], x - w / 2 + 0.4 + i * 0.6, lvlY + y, z + 0.0); }); (up ? upCol : loCol)(x, z, w / 2, 0.5); };
+            [-8, -2].forEach(x => shelfRow(x, -9.7, 5.2, 0, false)); [-hw + 0.8].forEach(x => { [-6, 0].forEach(z => { const sh = B(0.7, 2.6, 5, 0x78350f, x, 1.3, z); [0.5, 1.2, 1.9].forEach((y, t) => { for (let i = 0; i < 8; i++) B(0.5, 0.55, 0.45, [0xef4444, 0x3b82f6, 0x16a34a, 0xfacc15, 0xec4899][(i + t) % 5], x, y, z - 2.2 + i * 0.6); }); loCol(x, z, 0.5, 2.6); }); });
+            [-9, -3, 3].forEach(x => shelfRow(x, 9.9, 5.4, UP, true)); [-hw + 0.8].forEach(x => { [3, 7].forEach(z => { B(0.7, 2.6, 3.2, 0x78350f, x, UP + 1.3, z); upCol(x, z, 0.5, 1.7); [0.5, 1.2, 1.9].forEach((y, t) => { for (let i = 0; i < 5; i++) B(0.5, 0.55, 0.45, [0x2563eb, 0xdc2626, 0x16a34a, 0xf59e0b][(i + t) % 4], x, UP + y, z - 1.3 + i * 0.6); }); }); });
+            /* meja baca lantai 1 */
+            [[-4, 0], [4, 0]].forEach(([x, z], i) => { B(4.4, 0.18, 1.8, 0xd6a65a, x, 1.2, z); [[-1.9, -0.7], [1.9, -0.7], [-1.9, 0.7], [1.9, 0.7]].forEach(([a, b]) => B(0.14, 1.2, 0.14, 0x475569, x + a, 0.6, z + b)); B(0.9, 0.1, 0.6, 0xef4444, x - 1, 1.34, z); B(0.9, 0.1, 0.6, 0x3b82f6, x + 1, 1.34, z); R.col(x, z, 2.3, 1); [-1.2, 1.2].forEach(a => { sit(x + a, z - 1.4, 0, 0.62); B(0.9, 0.1, 0.9, 0x2563eb, x + a, 0.55, z - 1.4); B(0.9, 0.8, 0.1, 0x2563eb, x + a, 0.95, z - 1.85); }); });
+            /* meja pustakawan */
+            B(4.2, 1.2, 1.4, 0x92400e, -9, 0.6, -6.9); B(4.4, 0.12, 1.6, 0xd6a65a, -9, 1.26, -6.9); B(0.9, 0.7, 0.1, 0x111827, -9.6, 1.75, -7); R.col(-9, -6.9, 2.2, 0.8); tp.root.position.set(-9, 0, -8.4); tp.root.rotation.y = 0;
+            signPlane(['PUSTAKAWAN'], 3, 0.7, '#78350f', '#fde68a', g, -9, 3.1, -9.55, 0);
+            /* kursi baca & sofa di lantai 2 */
+            [[3, 4.5], [-6, 4.5]].forEach(([x, z]) => { B(2.4, 0.6, 1.2, 0xdc2626, x, UP + 0.3, z); B(2.4, 1.0, 0.3, 0xb91c1c, x, UP + 0.8, z + 0.55); upCol(x, z, 1.3, 0.7); addSit(true, cx + x, cz + z - 0.1, 0, UP + 0.0 + 0.6, UP, 'Duduk & Baca 📖', 2.2); });
+            addAct(true, cx - 3, cz + 7.5, UP, 4, 'Baca di Lantai 2 📖', () => { player.setPose('dance', clock.elapsedTime, 0.01); homeReward('baca2', 25, 9, '+9 XP 📖 Membaca di lantai atas'); });
+            const sgn = new THREE.Mesh(new THREE.PlaneGeometry(6, 1.2), new THREE.MeshBasicMaterial({ map: canvasTex(512, 100, (c, w, h) => { c.fillStyle = '#78350f'; c.fillRect(0, 0, w, h); c.fillStyle = '#fde68a'; c.font = 'bold 56px sans-serif'; c.textAlign = 'center'; c.fillText('LANTAI 2 – BACA TENANG', w / 2, 68); }) })); sgn.position.set(-3.8, UP + 4.6, -0.9); g.add(sgn);
+            /* ===== LIFT ===== */
+            const lx = (sx0 + sx1) / 2, lz = (sz0 + sz1) / 2, cab = new THREE.Group(); cab.position.set(lx, 0, lz); g.add(cab);
+            const gl = (w, h, d, x, y, z) => { const m = new THREE.Mesh(gBox(w, h, d), cm(0x93c5fd, { transparent: true, opacity: 0.35, roughness: 0.1 })); m.position.set(x, y, z); cab.add(m); };
+            mkBox(3.3, 0.18, 3.3, 0x64748b, 0, 0.09, 0, cab, { metalness: 0.6 }); mkBox(3.3, 0.16, 3.3, 0xe2e8f0, 0, 3.0, 0, cab); gl(3.3, 2.9, 0.08, 0, 1.55, 1.65); gl(0.08, 2.9, 3.3, 1.65, 1.55, 0); gl(3.3, 2.9, 0.08, 0, 1.55, -1.65);
+            [[-1.6, -1.6], [-1.6, 1.6], [1.6, -1.6], [1.6, 1.6]].forEach(([a, b]) => mkBox(0.14, 3.0, 0.14, 0x475569, a, 1.5, b, cab));
+            mkBox(0.12, 0.8, 0.5, 0x111827, -1.55, 1.5, 1.2, cab); mkSph(0.07, 0x22c55e, -1.5, 1.7, 1.2, cab, { emissive: 0x22c55e, emissiveIntensity: 1 }, 5); mkSph(0.07, 0xef4444, -1.5, 1.45, 1.2, cab, { emissive: 0xef4444, emissiveIntensity: 1 }, 5);
+            const lt = mkGlow(0xfff7c2, 0.8, 1.2); mkBox(1.2, 0.06, 1.2, 0xffffff, 0, 2.9, 0, cab).material = lt;
+            [[sx0 - 0.15, sz0 - 0.15], [sx0 - 0.15, sz1 + 0.15], [sx1 + 0.15, sz0 - 0.15], [sx1 + 0.15, sz1 + 0.15]].forEach(([a, b]) => mkBox(0.22, 7.0, 0.22, 0x64748b, a, 3.5, b, g, { metalness: 0.5 }));
+            [[(sx0 + sx1) / 2, sz1 + 0.15, 3.6, 0.1], [(sx0 + sx1) / 2, sz0 - 0.15, 3.6, 0.1]].forEach(([a, b, w, d]) => { const m = new THREE.Mesh(gBox(w, 6.6, d), cm(0xbfdbfe, { transparent: true, opacity: 0.18 })); m.position.set(a, 3.3, b); g.add(m); });
+            signPlane(['LIFT 🛗'], 2.4, 0.7, '#1e3a8a', '#fff', g, sx0 - 0.3, 4.6, (sz0 + sz1) / 2, -Math.PI / 2);
+            LIFT.g = cab; LIFT.cx = cx + lx; LIFT.cz = cz + lz; LIFT.y = 0; LIFT.target = 0;
+            addAct(true, cx + lx, cz + lz, 0, 2.6, '', () => { }); const liIt = interactables[interactables.length - 1]; liIt.label = () => LIFT.ride ? '' : (LIFT.y < 1.7 ? 'Naik Lift ke Lantai 2 ⬆️' : 'Turun Lift ke Lantai 1 ⬇️'); liIt.hideIf = () => LIFT.ride || Math.abs(LIFT.y - playerGroup.position.y) > 1.2;
+            liIt.fn = () => { if (LIFT.ride) return; playerGroup.position.set(LIFT.cx, LIFT.y, LIFT.cz); LIFT.ride = true; LIFT.target = LIFT.y < 1.7 ? FLOOR_UP : 0; tone(660, 0.12, 'sine', 0.08); floatText('🛗 Pintu tertutup…', '#93c5fd'); };
+            liIt.ly = true; roomRec.lift = liIt;
+            [[0, cx + 7.4, cz + 7.3, 'Panggil Lift 🔔 (lantai 1)'], [FLOOR_UP, cx + 7.4, cz + 7.3, 'Panggil Lift 🔔 (lantai 2)']].forEach(([y, wx, wz, lb]) => addAct(true, wx, wz, y, 3, lb, () => { if (LIFT.ride || Math.abs(LIFT.y - y) < 0.05) { floatText('🛗 Lift sudah ada di sini', '#fde047'); return; } LIFT.target = y; tone(500, 0.1, 'sine', 0.06); floatText('🛗 Lift datang…', '#93c5fd'); }));
+            FLOORS.perpus = null;
+            FLOORS[key] = (x, z, y) => { const ax = x - cx, az = z - cz; if (ax >= sx0 && ax <= sx1 && az >= sz0 && az <= sz1) return y >= LIFT.y - 0.6 ? LIFT.y : 0; if (ax >= -13 && ax <= 13 && az >= -1 && az <= 10.5) return y >= 3.2 ? FLOOR_UP : 0; return 0; };
+        }
+    });
+    /* kursi kosong di kelas SD: pemain boleh duduk di sini */
+    [-14, 0, 14].forEach((ccx, k) => [0.5, 3.5, 6.5].forEach((z, ri) => [-4, 0, 4].forEach((dx, ci) => { if ((ri * 3 + ci + k) % 5 !== 4) return; const x = ccx + dx * (dx ? 0.95 : 1); addSit(true, 1000 + x, 600 + z - 1.0, 0, 1.06, 0, 'Duduk di Bangku Kelas 🎒', 2.0); })));
+})();
+/* ===== v11: layer per-frame (loteng, orang tua, TV, lift, guru standby) ===== */
+(function () {
+    const _uw2 = updateWorld;
+    updateWorld = function (dt, k, t, p) {
+        _uw2(dt, k, t, p);
+        const home = inHouse && !curRoom && curHouse;
+        homeLoft.visible = !!(home && curFloorKey() === 'home');
+        parents.visible = !!(home && curHouse === PH);
+        if (home) { drawTV(t); if (parents.visible) { animPerson(dad, t, 'tv', 1); animPerson(mom, t, 'cook', 1); } }
+        /* lift */
+        if (LIFT.g) {
+            const d = LIFT.target - LIFT.y;
+            if (Math.abs(d) > 0.01) { LIFT.y += Math.sign(d) * Math.min(Math.abs(d), 2.0 * dt); LIFT.g.position.y = LIFT.y; if (LIFT.ride) { playerGroup.position.y = LIFT.y; playerVelY = 0; } }
+            else if (LIFT.ride) { LIFT.ride = false; LIFT.y = LIFT.target; tone(880, 0.15, 'sine', 0.08); floatText('🛗 Ting! Lantai ' + (LIFT.y > 1 ? 2 : 1), '#86efac'); }
+        }
+        V11.spin.forEach(s => { s[0].rotation.y += s[1] * dt; });
+        /* guru standby di setiap gedung */
+        if (inHouse && curRoom) V11.rooms.forEach(r => { if (Math.abs(r.cx - curRoom.x) < 1) animPerson(r.teacher, t + r.cx, 'idle', 1); });
+        /* XP kecil saat duduk di kelas */
+        if (inHouse && curRoom && player.pose === 'sit' && SCHOOL_HOURS(gameHour) && Math.abs(curRoom.x - 1000) < 1 && t - (V11.lastXP || 0) > 20) { V11.lastXP = t; homeReward('kelas', 20, 3, '+3 XP 🎒 Rajin belajar di kelas'); }
     };
 })();
 /* ===== v10: render jarak pandang (distance culling) — objek jauh tidak digambar sama sekali ===== */
