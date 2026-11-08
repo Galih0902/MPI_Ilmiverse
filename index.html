@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Ilmiverse – Dunia Belajar 3D</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -49,6 +49,36 @@
         .sp-1 { animation: sp-up .9s ease-out both; } .sp-2 { animation: sp-up .9s .55s ease-out both; } .sp-3 { animation: sp-up .9s 1.1s ease-out both; }
         .sp-title { animation: sp-glow 3s ease-in-out infinite; letter-spacing: .02em; }
         .lbl { font-size: 11px; font-weight: 800; color: #94a3b8; margin: 8px 0 3px; display: block; }
+
+        /* ===== v12: tampilan luas untuk HP & tablet ===== */
+        html, body { height: 100%; }
+        #webgl-container { width: 100%; height: 100vh; height: 100dvh; position: fixed; inset: 0; }
+        [id$="-modal"] > div { max-height: 94vh; max-height: 94dvh; overflow-y: auto; }
+        body.compact #hud > .fixed.top-3 { top: calc(env(safe-area-inset-top, 0px) + 5px) !important; left: calc(env(safe-area-inset-left, 0px) + 6px) !important; right: calc(env(safe-area-inset-right, 0px) + 6px) !important; }
+        body.compact #hud > .fixed.top-3 > .flex.flex-col { gap: 4px !important; transform: scale(.78); transform-origin: top left; }
+        body.compact #player-name { display: none; }
+        body.compact #avatar-icon { width: 30px !important; height: 30px !important; font-size: 15px !important; }
+        body.compact #hud .w-24 { width: 70px !important; }
+        body.compact #minimap { width: 96px !important; height: 96px !important; border-width: 2px !important; opacity: .92; }
+        body.compact #hud > .fixed.top-3 > .flex.items-center { gap: 4px !important; flex-wrap: nowrap !important; transform: scale(.85); transform-origin: top right; }
+        body.compact #hud > .fixed.top-3 > .flex.items-center > button { width: 34px !important; height: 34px !important; flex-shrink: 0; font-size: 14px !important; border-radius: 12px !important; }
+        body.compact #hud > .fixed.top-3 > .flex.items-center > div { padding: 4px 10px !important; }
+        body.compact .emote-btn { width: 32px !important; height: 32px !important; font-size: 15px !important; opacity: .85; }
+        body.compact #hud > .fixed.top-1\/2 { right: calc(env(safe-area-inset-right, 0px) + 6px) !important; gap: 5px !important; top: 52% !important; }
+        body.compact .joystick-base { width: 108px !important; height: 108px !important; left: calc(env(safe-area-inset-left, 0px) + 16px) !important; bottom: calc(env(safe-area-inset-bottom, 0px) + 20px) !important; }
+        body.compact .joystick-thumb { width: 46px !important; height: 46px !important; top: 25px !important; left: 25px !important; }
+        body.compact #btn-jump-mobile { width: 56px !important; height: 56px !important; right: calc(env(safe-area-inset-right, 0px) + 16px) !important; bottom: calc(env(safe-area-inset-bottom, 0px) + 22px) !important; }
+        body.compact #btn-interact-mobile { right: calc(env(safe-area-inset-right, 0px) + 18px) !important; bottom: calc(env(safe-area-inset-bottom, 0px) + 86px) !important; }
+        body.compact #interaction-prompt { bottom: calc(env(safe-area-inset-bottom, 0px) + 92px) !important; padding: 8px 16px !important; max-width: 72vw; }
+        body.compact.land #hud > .fixed.top-3 > .flex.flex-col { transform: scale(.7); }
+        body.compact.land #minimap { width: 84px !important; height: 84px !important; }
+        body.compact.land #clock-chip { display: none; }
+        body.compact.land .emote-btn { width: 28px !important; height: 28px !important; font-size: 13px !important; }
+        body.compact.land #hud > .fixed.top-1\/2 { flex-direction: row !important; top: auto !important; bottom: calc(env(safe-area-inset-bottom, 0px) + 6px) !important; right: 50% !important; transform: translateX(50%) !important; }
+        body.tablet #minimap { width: 140px !important; height: 140px !important; }
+        @media (pointer: coarse) { #touch-controls { display: block !important; } #hud > .fixed.bottom-4 { display: none !important; } }
+        body.compact #hud > .fixed.bottom-4 { display: none !important; }
+        body.is-fs #btn-fullscreen { background: #047857 !important; }
     </style>
 </head>
 <body class="bg-slate-900 text-white overflow-hidden">
@@ -866,57 +896,116 @@ const HLAMP = mkGlow(0xfef08a, 0.25, 2.4);
    5c. PEMBUAT ORANG, SEPEDA, KENDARAAN, GEROBAK
    ========================================== */
 const SK = [0xffdbac, 0xf1c27d, 0xc68642, 0x8d5524], HR = [0x0f0f0f, 0x1f1308, 0x3b2314];
-/* ===== Karakter bergaya Minecraft (kotak 8x8x8 kepala, badan 8x12x4, lengan/kaki 4x12x4) ===== */
-const MCU = 0.078, MCH = 12 * MCU; /* 1 piksel Minecraft, tinggi pinggul */
-function buildPerson(o) {
+/* ===== Karakter 3D chibi v15: rig bersendi lengkap (pelvis, tulang belakang, lutut, siku, pergelangan kaki) ===== */
+const MCU = 0.078, MCH = 12 * MCU; /* satuan model & tinggi pinggul (dipakai animasi) */
+const _DS = THREE.DoubleSide;
+const capGeo = (r, th, s) => { const k = 'p' + r + ',' + th + ',' + s; return _gc[k] || (_gc[k] = new THREE.SphereGeometry(r, s || 20, 12, 0, Math.PI * 2, 0, th)); };
+function _put(q, par, x, y, z, shadow) { q.position.set(x, y, z); if (shadow) q.castShadow = true; par.add(q); return q; }
+/* bola / elipsoid: r,x,y,z dalam satuan dunia; sx,sy,sz = skala elipsoid */
+function sph(par, r, m, x, y, z, sx, sy, sz, seg, shadow) { const q = new THREE.Mesh(gSph(r, seg || 12), m); q.scale.set(sx || 1, sy || 1, sz || 1); return _put(q, par, x, y, z, shadow); }
+function cylm(par, rt, rb, h, m, x, y, z, seg, shadow, sz) { const q = new THREE.Mesh(gCyl(rt, rb, h, seg || 14), m); if (sz) q.scale.z = sz; return _put(q, par, x, y, z, shadow); }
+/* tempurung bola (topi/rambut/helm) */
+function capm(par, r, th, m, x, y, z, seg) { return _put(new THREE.Mesh(capGeo(r, th, seg), m), par, x, y, z, true); }
+const _faceZ = (U, x, y) => 5.24 * U * Math.sqrt(Math.max(0, 1 - (x / 5.4) ** 2 - ((y - 1.5) / 5.13) ** 2)); /* permukaan wajah */
+/* kepala chibi: wajah bulat, mata besar (bisa kedip & melirik), pipi, mulut, rambut (bagian belakang berpivot untuk gerak sekunder) */
+function chibiHead(head, U, skinM, hairM, o) {
     o = o || {};
-    const U = MCU, root = new THREE.Group(), body = new THREE.Group(); root.add(body);
-    const skin = cm(o.skin || pick(SK)), hair = cm(o.hair || pick(HR)), shirt = cm(o.shirt || 0x2563eb), pants = cm(o.pants || 0x1e293b), shoe = cm(0x111827);
-    const add = (geo, m, x, y, z, par) => { const q = new THREE.Mesh(geo, m); q.position.set(x, y, z); (par || body).add(q); return q; };
-    const bx = (w, h, d) => gBox(w * U, h * U, d * U);
-    const legs = [-2, 2].map(sx => {
-        const hip = new THREE.Group(); hip.position.set(sx * U, 12 * U, 0); body.add(hip);
-        if (o.shorts) { add(bx(4, 6, 4), pants, 0, -3 * U, 0, hip); add(bx(4, 6, 4), skin, 0, -9 * U, 0, hip); add(bx(4.2, 2, 4.2), shoe, 0, -11 * U, 0, hip); }
-        else { add(bx(4, 10, 4), pants, 0, -5 * U, 0, hip); add(bx(4.1, 2, 4.1), shoe, 0, -11 * U, 0, hip); }
-        return hip;
+    const R = { eyes: [], pupils: [], sec: [] };
+    const eW = new THREE.MeshBasicMaterial({ color: 0xffffff }), eB = new THREE.MeshBasicMaterial({ color: 0x1f2937 }), bl = new THREE.MeshBasicMaterial({ color: 0xfda4af }), mo = new THREE.MeshBasicMaterial({ color: 0x9a3412 });
+    sph(head, 5.4 * U, skinM, 0, 1.5 * U, 0, 1, 0.95, 0.97, 22, true);
+    [-1, 1].forEach(s => {
+        sph(head, 1.1 * U, skinM, s * 5.2 * U, 0.8 * U, 0, 0.6, 1, 0.9, 8);
+        const w = sph(head, 1.35 * U, eW, s * 2.2 * U, 0.5 * U, 4.55 * U, 1, 1.3, 0.35, 10);
+        const p = sph(head, 0.85 * U, eB, s * 2.1 * U, 0.4 * U, 4.95 * U, 1, 1.35, 0.35, 10);
+        const h = sph(head, 0.3 * U, eW, (s * 2.1 + 0.35) * U, 0.95 * U, 5.2 * U, 1, 1, 0.5, 6);
+        R.eyes.push({ m: w, sy: 1.3 }, { m: p, sy: 1.35 }, { m: h, sy: 1 });
+        R.pupils.push({ m: p, x0: p.position.x }, { m: h, x0: h.position.x });
+        sph(head, 1.1 * U, bl, s * 3.6 * U, -0.9 * U, 3.0 * U, 1, 0.6, 0.3, 8);
+        if (!o.hijab) sph(head, 0.75 * U, hairM, s * 2.2 * U, 2.5 * U, 4.65 * U, 2.0, 0.3, 0.4, 8);
     });
-    if (o.skirt) add(bx(8.6, 7, 5), pants, 0, 10.5 * U, 0);
-    add(bx(8, 12, 4), shirt, 0, 18 * U, 0).castShadow = true;
-    const arms = [-6, 6].map(sx => {
-        const sh = new THREE.Group(); sh.position.set(sx * U, 24 * U, 0); body.add(sh);
-        const full = o.longSleeve;
-        add(bx(4, full ? 12 : 5, 4), shirt, 0, full ? -6 * U : -2.5 * U, 0, sh);
-        if (!full) add(bx(4, 7, 4), skin, 0, -8.5 * U, 0, sh);
-        return sh;
-    });
-    const head = new THREE.Group(); head.position.set(0, 28 * U, 0); body.add(head);
-    add(bx(8, 8, 8), skin, 0, 0, 0, head);
-    [-2, 2].forEach(ex => { add(bx(1.6, 1.4, 0.3), cm(0xffffff), ex * U, 0.4 * U, 4.05 * U, head); add(bx(0.9, 1.1, 0.3), cm(0x1f2937), (ex + (ex > 0 ? -0.35 : 0.35)) * U, 0.4 * U, 4.2 * U, head); });
-    add(bx(2.4, 0.6, 0.3), cm(0x9a3412), 0, -2.3 * U, 4.05 * U, head);
+    sph(head, 0.9 * U, mo, 0, -1.9 * U, 3.95 * U, 1.4, 0.4, 0.35, 8);
     if (o.hijab) {
-        const hj = cm(o.hijab);
-        add(bx(9, 9.5, 1.6), hj, 0, 0, -3.8 * U, head); add(bx(1.6, 9.5, 8.6), hj, -4.1 * U, 0, 0, head); add(bx(1.6, 9.5, 8.6), hj, 4.1 * U, 0, 0, head);
-        add(bx(9, 1.8, 9), hj, 0, 4.4 * U, 0, head); add(bx(8.4, 1.6, 1.2), hj, 0, 3.0 * U, 4.1 * U, head);
-        add(bx(10, 4, 6), hj, 0, -5.2 * U, -0.4 * U, head);
-    } else if (o.hat !== 'caping' && o.hat !== 'helm') {
-        add(bx(8.5, 2.2, 8.5), hair, 0, 3.6 * U, 0, head); add(bx(8.5, 6, 1.2), hair, 0, 0.5 * U, -3.7 * U, head);
-        add(bx(8.5, 1.4, 1.1), hair, 0, 3.1 * U, 3.9 * U, head);
-        if (o.skirt || o.longHair) { add(bx(8.5, 6, 1.2), hair, 0, -4 * U, -3.9 * U, head); }
+        const hj = o.hijab;
+        sph(head, 6.1 * U, hj, 0, 1.6 * U, -0.9 * U, 1, 1, 1, 22, true);
+        capm(head, 5.75 * U, 1.15, hj, 0, 1.75 * U, -0.2 * U);
+        const dp = new THREE.Group(); dp.position.set(0, -1.5 * U, -2.5 * U); head.add(dp);
+        sph(dp, 5.3 * U, hj, 0, -3.1 * U, 1.8 * U, 1.12, 0.95, 0.9, 16, true);
+        R.sec.push({ n: dp, kind: 'drape', wind: 0.14, x: 0, v: 0 });
+    } else if (!o.noHair) {
+        capm(head, 5.7 * U, 1.2, hairM, 0, 1.7 * U, -0.3 * U);
+        for (let i = -2; i <= 2; i++) { const x = i * 1.9, y = 3.6; sph(head, 1.35 * U, hairM, x * U, y * U, _faceZ(U, x, y) - 0.3 * U, 1, 1, 0.8, 8); }
+        const hp = new THREE.Group(); hp.position.set(0, 4.2 * U, -3.8 * U); head.add(hp);
+        sph(hp, 5.6 * U, hairM, 0, -3.6 * U, 2.5 * U, 1, 1, 0.95, 18, true);
+        if (o.longHair) sph(hp, 4.6 * U, hairM, 0, -7.4 * U, 0.4 * U, 1.05, 1.5, 0.6, 14, true);
+        R.sec.push({ n: hp, kind: 'hair', wind: 0.3, x: 0, v: 0 });
     }
-    if (o.hat === 'peci') add(bx(8.6, 3, 8.6), cm(0x111827), 0, 5 * U, 0, head);
-    else if (o.hat === 'caping') { add(bx(15, 0.8, 15), cm(0xfde68a), 0, 4.3 * U, 0, head); add(bx(8, 2.4, 8), cm(0xfde68a), 0, 5.8 * U, 0, head); }
-    else if (o.hat === 'helm') { add(bx(9.2, 5.5, 9.2), cm(o.helm || 0xdc2626), 0, 2.6 * U, 0, head); add(bx(8.6, 0.8, 2), cm(0x111827), 0, 3.4 * U, 4.8 * U, head); }
-    else if (o.hat === 'topi') { add(bx(8.8, 3, 8.8), cm(o.topi || 0x2563eb), 0, 4.6 * U, 0, head); add(bx(8, 0.8, 3), cm(o.topi || 0x2563eb), 0, 3.4 * U, 5.4 * U, head); }
-    return { root, body, legs, arms, head, ph: Math.random() * 6, kickUntil: 0, seat: 0.55 };
+    return R;
+}
+const _dsM = (c) => cm(c, { side: _DS });
+/* Pembuat rig bersama untuk NPC dan avatar pemain.
+   Hierarki: body > pelvis > { paha > betis > pergelangan, chest > { ribs, bahu > lengan atas > siku > hand, head } } */
+function makeRig(M, o, asBody) {
+    o = o || {};
+    const U = MCU, root = new THREE.Group(), body = asBody ? root : new THREE.Group(); if (!asBody) root.add(body);
+    const pelvis = new THREE.Group(); pelvis.position.y = 12 * U; body.add(pelvis);
+    const chest = new THREE.Group(); chest.position.y = 1.5 * U; pelvis.add(chest);
+    const ribs = new THREE.Group(); chest.add(ribs);
+    const hips = [], knees = [], ankles = [], sh = [], els = [], hands = [], sec = [];
+    [-1, 1].forEach(s => {
+        const hip = new THREE.Group(); hip.position.set(s * 2.2 * U, 0, 0); pelvis.add(hip); hips.push(hip);
+        sph(hip, 2.3 * U, M.pants, 0, 0, 0, 1, 1, 1, 10, true);
+        cylm(hip, 2.3 * U, 2.05 * U, 6 * U, M.pants, 0, -3 * U, 0, 12, true);
+        const kn = new THREE.Group(); kn.position.y = -6 * U; hip.add(kn); knees.push(kn);
+        const low = o.shorts ? M.skin : M.pants;
+        sph(kn, 2.05 * U, low, 0, 0, 0, 1, 1, 1, 10);
+        cylm(kn, 2.05 * U, 1.85 * U, 4.6 * U, low, 0, -2.3 * U, 0, 12, true);
+        const an = new THREE.Group(); an.position.y = -4.57 * U; kn.add(an); ankles.push(an);
+        sph(an, 2.2 * U, M.shoe, 0, 0, 0.8 * U, 1, 0.65, 1.5, 12, true);
+        if (M.sole) sph(an, 2.3 * U, M.sole, 0, -1.25 * U, 0.8 * U, 1, 0.18, 1.55, 10);
+    });
+    let skirt = null;
+    if (o.skirt) { skirt = new THREE.Group(); skirt.position.y = 2 * U; pelvis.add(skirt); cylm(skirt, 4.4 * U, 6.4 * U, 7 * U, M.pants, 0, -3.5 * U, 0, 18, false, 0.9); sec.push({ n: skirt, kind: 'skirt' }); }
+    else cylm(pelvis, 3.95 * U, 3.8 * U, 2.4 * U, M.pants, 0, 0.9 * U, 0, 16, false, 0.85);
+    cylm(ribs, 4.4 * U, 3.9 * U, 10.4 * U, M.shirt, 0, 5.1 * U, 0, 16, true, 0.85);
+    sph(ribs, 4.4 * U, M.shirt, 0, 10.3 * U, 0, 1, 0.5, 0.85, 14, true);
+    sph(ribs, 3.9 * U, M.shirt, 0, 0.1 * U, 0, 1, 0.5, 0.85, 12);
+    [-1, 1].forEach(s => {
+        const shd = new THREE.Group(); shd.position.set(s * 5.7 * U, 10 * U, 0); chest.add(shd); sh.push(shd);
+        sph(shd, 2.2 * U, M.shirt, 0, 0, 0, 1, 1, 1, 10, true);
+        const long = !!o.longSleeve, am = long ? M.shirt : M.skin;
+        if (o.upperShirt) cylm(shd, 2.0 * U, 1.85 * U, 5.2 * U, M.shirt, 0, -2.6 * U, 0, 12, true);
+        else { cylm(shd, 1.85 * U, 1.7 * U, 5.2 * U, am, 0, -2.6 * U, 0, 12, true); if (!long) cylm(shd, 2.0 * U, 1.9 * U, 3.6 * U, M.shirt, 0, -1.8 * U, 0, 12, true); }
+        const el = new THREE.Group(); el.position.y = -5.2 * U; shd.add(el); els.push(el);
+        sph(el, 1.7 * U, o.upperShirt ? M.skin : am, 0, 0, 0, 1, 1, 1, 8);
+        cylm(el, 1.7 * U, 1.5 * U, 4.6 * U, o.upperShirt ? M.skin : am, 0, -2.3 * U, 0, 12, true);
+        const hd = new THREE.Group(); hd.position.y = -4.7 * U; el.add(hd); hands.push(hd);
+        sph(hd, 1.75 * U, M.skin, 0, 0, 0, 1, 1, 1, 10, true);
+    });
+    const head = new THREE.Group(); head.position.set(0, 14.5 * U, 0); chest.add(head);
+    const H = chibiHead(head, U, M.skin, M.hair, { hijab: o.hijab || null, longHair: o.longHair, noHair: o.noHair });
+    H.sec.forEach(s => sec.push(s));
+    return Object.assign(H, { root, body, pelvis, chest, ribs, head, hips, knees, ankles, sh, els, hands, sec, skirt,
+        legs: hips, arms: sh, ph: Math.random() * 6, kickUntil: 0, seat: 0.55 });
+}
+function buildPerson3D(o) {
+    o = o || {};
+    const U = MCU, skin = cm(o.skin || pick(SK)), hair = cm(o.hair || pick(HR)), shirt = cm(o.shirt || 0x2563eb), pants = cm(o.pants || 0x1e293b), shoe = cm(0x111827);
+    const r = makeRig({ skin, hair, shirt, pants, shoe }, { shorts: o.shorts, skirt: o.skirt, longSleeve: o.longSleeve, hijab: o.hijab ? cm(o.hijab) : null, longHair: o.skirt || o.longHair, noHair: o.hat === 'caping' || o.hat === 'helm' });
+    const head = r.head;
+    if (o.hat === 'peci') cylm(head, 4.5 * U, 4.8 * U, 3.4 * U, cm(0x111827), 0, 7.0 * U, 0, 18, true);
+    else if (o.hat === 'caping') cylm(head, 0.6 * U, 8.5 * U, 3.6 * U, cm(0xfde68a), 0, 7.4 * U, 0, 24, true);
+    else if (o.hat === 'helm') { capm(head, 6.2 * U, 1.4, _dsM(o.helm || 0xdc2626), 0, 1.7 * U, -0.2 * U); sph(head, 3 * U, cm(0x111827), 0, 2.7 * U, 5.5 * U, 1.5, 0.2, 1, 10); }
+    else if (o.hat === 'topi') { const tm = _dsM(o.topi || 0x2563eb); capm(head, 5.9 * U, 1.25, tm, 0, 1.8 * U, -0.15 * U); sph(head, 3.2 * U, tm, 0, 3.3 * U, 5.0 * U, 1.4, 0.2, 1.3, 10); }
+    return r;
 }
 /* ---- gerakan sholat (dipakai orang & pemain) ---- */
 const PRAY_KEYS = {
-    stand: { th: 0, hy: MCH, psi: 0, ax: 0.05, az: 0.08, hd: 0 },
-    takbir: { th: 0, hy: MCH, psi: 0, ax: -2.9, az: 0.15, hd: 0 },
-    qiyam: { th: 0, hy: MCH, psi: 0, ax: -1.0, az: 0.45, hd: 0.12 },
-    ruku: { th: 1.5, hy: MCH, psi: 0, ax: 0, az: 0.05, hd: -0.2 },
-    sujud: { th: 1.85, hy: 0.62, psi: 0.72, ax: -1.45, az: 0.1, hd: 0 },
-    sit: { th: 0.04, hy: 0.4, psi: 1.1, ax: -0.55, az: 0.05, hd: 0.1 }
+    stand: { th: 0, hy: MCH, psi: 0, ax: 0.05, az: 0.08, hd: 0, kt: 0, kk: 0, ka: 0 },
+    takbir: { th: 0, hy: MCH, psi: 0, ax: -2.9, az: 0.15, hd: 0, kt: 0, kk: 0, ka: 0 },
+    qiyam: { th: 0, hy: MCH, psi: 0, ax: -1.0, az: 0.45, hd: 0.12, kt: 0, kk: 0, ka: 0 },
+    ruku: { th: 1.5, hy: MCH, psi: 0, ax: 0, az: 0.05, hd: -0.2, kt: 0, kk: 0, ka: 0 },
+    sujud: { th: 1.85, hy: 0.62, psi: 0.72, ax: -1.45, az: 0.1, hd: 0, kt: 0.12, kk: 1.55, ka: 0 },
+    sit: { th: 0.04, hy: 0.22, psi: 1.1, ax: -0.55, az: 0.05, hd: 0.1, kt: -1.35, kk: 2.65, ka: 1.25 }
 };
 const PRAY_SEQ = [['takbir', 1.4], ['qiyam', 3.2], ['ruku', 2.2], ['stand', 1.3], ['sujud', 2.4], ['sit', 1.4], ['sujud', 2.4], ['qiyam', 2.4], ['ruku', 2.0], ['stand', 1.2], ['sujud', 2.4], ['sit', 1.4], ['sujud', 2.4], ['sit', 3.6], ['sit', 1.6]];
 const PRAY_LEN = PRAY_SEQ.reduce((a, s) => a + s[1], 0);
@@ -930,51 +1019,485 @@ function prayFrame(tt) {
     f.name = PRAY_SEQ[i][0]; f.salam = i >= PRAY_SEQ.length - 1 ? Math.sin(tt * 3) * 0.7 : 0;
     return f;
 }
+/* ===== MESIN ANIMASI v15 (dipakai NPC & avatar pemain) =====
+   - siklus jalan/lari analitik: lutut & pergelangan kaki, kontak kaki ke tanah (badan naik-turun alami)
+   - fase langkah mengikuti JARAK tempuh nyata (kaki tidak meluncur), dengan batas kadensi
+   - crossfade antar gerakan (tanpa lompatan pose), gerak sekunder (rambut, hijab, rok, ransel)
+   - napas, kedip, lirikan mata & toleh kepala, idle berpindah tumpuan */
+const RIG = (function () {
+    const U = MCU, PI = Math.PI, TAU = PI * 2;
+    const BX = 0, BY = 1, BZ = 2, BRX = 3, BRY = 4, BRZ = 5, PRX = 6, PRY = 7, PRZ = 8, CRX = 9, CRY = 10, CRZ = 11, HRX = 12, HRY = 13, HRZ = 14;
+    const HX = [15, 17], HZ = [16, 18], KN = [19, 20], AN = [21, 22], SX = [23, 26], SY = [24, 27], SZ = [25, 28], EL = [29, 30], N = 31;
+    const LT = 6, LS = 4.57; /* panjang paha & betis (satuan U) */
+    const cl = (v, a, b) => v < a ? a : v > b ? b : v;
+    const sm = u => { u = cl(u, 0, 1); return u * u * (3 - 2 * u); };
+    const mix = (a, b, u) => a + (b - a) * u;
+    const bump = (x, c, w) => { let d = (x - c) % TAU; d = Math.abs(d > PI ? d - TAU : d < -PI ? d + TAU : d); return d >= w ? 0 : 1 - d / w; };
+    const KNOWN = new Set(['swim', 'bike', 'motor', 'splash', 'cheer', 'sit', 'write', 'read', 'eatsit', 'tv', 'eat', 'drink', 'wave', 'stretch', 'phone', 'clap', 'cook', 'sweep', 'dance', 'pray', 'salute', 'laugh', 'love', 'air']);
+    const GAZE = { sit: 0.5, write: 0.08, read: 0.08, eatsit: 0.25, tv: 0.15, eat: 0.3, drink: 0.2, wave: 0.7, stretch: 0.3, phone: 0.05, clap: 0.6, cook: 0.2, sweep: 0.15, dance: 0.3, cheer: 0.4, splash: 0.3, salute: 0.2, laugh: 0.2, love: 0.3, swim: 0.1, bike: 0.2, motor: 0.2, pray: 0, air: 0.2 };
+    const Tt = new Float64Array(N), Tm = new Float64Array(N);
+    /* titik terendah telapak kaki relatif pinggul (FK bidang sagital) */
+    const footLow = (th, kn, an) => { const a2 = th + kn, a3 = a2 + an, s = Math.sin(a3), c = Math.cos(a3); return -(LT * Math.cos(th) + LS * Math.cos(a2)) - 0.8 * s - Math.sqrt(10.89 * s * s + 2.045 * c * c); };
+    const ground = T => { T[BY] += -(12 + Math.min(footLow(T[HX[0]], T[KN[0]], T[AN[0]]), footLow(T[HX[1]], T[KN[1]], T[AN[1]]))) * U; };
+    const flat = (T, i) => { T[AN[i]] = -(T[HX[i]] + T[KN[i]]); };
+    function idle(T, t, ph) {
+        const w = Math.sin(t * 0.55 + ph), a = Math.max(0, w), b = Math.max(0, -w);
+        T[PRZ] = 0.035 * w; T[CRZ] = -0.03 * w; T[HRZ] = -0.012 * w; T[CRX] = 0.025 + 0.015 * Math.sin(t * 0.5 + ph); T[HRX] = -0.01;
+        T[KN[0]] = 0.07 + 0.12 * a; T[KN[1]] = 0.07 + 0.12 * b; T[HX[0]] = -0.03 - 0.06 * a; T[HX[1]] = -0.03 - 0.06 * b; T[HZ[0]] = -0.03; T[HZ[1]] = 0.03;
+        flat(T, 0); flat(T, 1);
+        for (let s = 0; s < 2; s++) { const q = t * 1.1 + ph + s * 2.1; T[SX[s]] = 0.03 + 0.05 * Math.sin(q); T[SZ[s]] = s ? 0.09 : -0.09; T[EL[s]] = -0.15 - 0.05 * Math.sin(q + 1); }
+    }
+    function gait(T, ph, A, rw, v) {
+        const K = mix(1.5 * A + 0.15, 1.25 * A + 0.95, rw), Aa = A * mix(0.95, 1.1, rw), E0 = mix(0.2, 1.45, rw), E1 = mix(0.35, 0.3, rw), lean = mix(0.05, 0.22 + 0.12 * cl((v - 8) / 20, 0, 1), rw);
+        for (let s = 0; s < 2; s++) {
+            const f = ph + s * PI, sf = Math.sin(f);
+            const th = -A * sf - 0.08 * rw;
+            const kn = K * Math.pow(Math.max(0, Math.cos((f - 0.2) * 1.35)), 1.2) + 0.25 * K * bump(f, 1.45 * PI, 0.3 * PI) + 0.2 * K * (1 - rw) * bump(f, PI / 2 + 0.35, 0.5) + rw * 0.45 * bump(f, PI + 0.2, 0.7);
+            const wf = -0.28 * bump(f, PI / 2, 0.55) + (0.7 - 0.2 * rw) * bump(f, 1.45 * PI, 0.32 * PI) - 0.12 * bump(f, 0.3, 0.7);
+            T[HX[s]] = th; T[KN[s]] = kn; T[AN[s]] = wf - (th + kn); T[HZ[s]] = s ? 0.03 : -0.03;
+            T[SX[s]] = Aa * sf + 0.05; T[SZ[s]] = (s ? 1 : -1) * (0.06 + 0.06 * rw); T[EL[s]] = -(E0 + E1 * (1 + rw) * Math.max(0, -sf));
+        }
+        const py = 0.13 * (A / 0.45) * Math.sin(ph);
+        T[PRY] = py; T[PRZ] = 0.045 * Math.cos(ph) * (1 - 0.5 * rw); T[CRY] = -1.6 * py; T[CRZ] = -0.7 * T[PRZ]; T[CRX] = lean;
+        T[HRX] = -0.75 * lean + 0.025 * Math.cos(2 * ph); T[HRY] = -0.7 * (T[PRY] + T[CRY]); T[HRZ] = -0.6 * (T[PRZ] + T[CRZ]);
+    }
+    const sit = (T, seat) => { T[BY] = -(MCH - seat); for (let i = 0; i < 2; i++) { T[HX[i]] = -1.5; T[KN[i]] = 1.48; T[AN[i]] = 0.02; T[HZ[i]] = (i ? 1 : -1) * 0.07; } T[CRX] = 0.04; };
+
+    function anim(r, mode, t, spd, X) {
+        X = X || {}; spd = spd || 1;
+        const now = performance.now() / 1000, first = !r._out;
+        const dt = first ? 0 : cl(now - r._rt, 0, 0.1); r._rt = now; r._ck = (r._ck || 0) + dt;
+        const ck = r._ck, ph = r.ph || 0, pt = X.pt !== undefined ? X.pt : t;
+        /* kecepatan terukur dari pergerakan node */
+        const node = X.node || r.root, rp = node.position;
+        if (r._lx === undefined) { r._lx = rp.x; r._lz = rp.z; r._vs = 0; }
+        else if (dt > 0.004) {
+            const d = Math.hypot(rp.x - r._lx, rp.z - r._lz) / Math.max(0.2, node.scale ? node.scale.x : 1);
+            r._lx = rp.x; r._lz = rp.z; if (d < 6) r._vs += (d / dt - r._vs) * Math.min(1, dt * 14);
+            if (r._vs > 0.4) r._moved = true;
+        }
+        const T = Tt; T.fill(0);
+        let gs = false, hop = 0, fl = 0, gw = 0.6;
+        const seat = X.seat !== undefined ? X.seat : (r.seat || 0.55);
+        const mk = KNOWN.has(mode) ? mode : 'loco';
+        switch (mk) {
+            case 'swim': { const sw = pt * 5 * spd + ph, k = Math.sin(pt * 16 + ph) * 0.45; T[BRX] = 1.45; T[BY] = 0.6 + Math.sin(pt * 3 + ph) * 0.05;
+                T[SX[0]] = sw; T[SX[1]] = sw + PI; T[EL[0]] = -(0.15 + 0.8 * Math.max(0, -Math.cos(sw))); T[EL[1]] = -(0.15 + 0.8 * Math.max(0, Math.cos(sw)));
+                T[HX[0]] = k; T[HX[1]] = -k; T[KN[0]] = 0.15 + Math.max(0, -k) * 0.9; T[KN[1]] = 0.15 + Math.max(0, k) * 0.9; T[AN[0]] = T[AN[1]] = 0.5; T[HRX] = -0.7; break; }
+            case 'bike': { const w = pt * 9 * spd; for (let i = 0; i < 2; i++) { const s = Math.sin(w + i * PI); T[HX[i]] = -0.95 + 0.45 * s; T[KN[i]] = 1.1 - 0.55 * s; T[AN[i]] = -(T[HX[i]] + T[KN[i]]); T[SX[i]] = -1.0; T[EL[i]] = -0.3; }
+                T[BRX] = 0.1; T[CRX] = 0.12; T[HRX] = -0.15; break; }
+            case 'motor': for (let i = 0; i < 2; i++) { T[HX[i]] = -1.2; T[KN[i]] = 1.5; T[AN[i]] = -0.3; T[SX[i]] = -1.15; T[EL[i]] = -0.2; } T[CRX] = 0.1; T[HRX] = -0.1; break;
+            case 'sit': sit(T, seat); T[SX[0]] = T[SX[1]] = -0.45; T[EL[0]] = T[EL[1]] = -1.0; T[HRY] = Math.sin(pt * 0.7 + ph) * 0.35; break;
+            case 'write': sit(T, seat); T[CRX] = 0.2; T[HRX] = 0.35; T[SX[0]] = -1.0; T[EL[0]] = -1.0; T[SX[1]] = -1.15; T[EL[1]] = -0.95 + Math.sin(pt * 7 + ph) * 0.1; T[SZ[1]] = 0.15 + Math.sin(pt * 3.5 + ph) * 0.12; break;
+            case 'read': sit(T, seat); T[HRX] = 0.4; T[CRX] = 0.1; T[SX[0]] = T[SX[1]] = -1.05; T[EL[0]] = T[EL[1]] = -1.3; T[SZ[0]] = -0.25; T[SZ[1]] = 0.25; break;
+            case 'eatsit': { sit(T, seat); const e = Math.sin(pt * 2.4 + ph); T[SX[0]] = -1.0; T[EL[0]] = -1.0; T[SX[1]] = e > 0 ? -1.0 - 0.3 * e : -1.0; T[EL[1]] = e > 0 ? -1.9 - 0.3 * e : -1.0 + e * 0.15; T[HRX] = e > 0 ? 0.15 : 0; break; }
+            case 'tv': { sit(T, seat); T[SX[0]] = T[SX[1]] = -0.5; T[EL[0]] = T[EL[1]] = -0.5; T[HRX] = -0.05; if (Math.sin(pt * 0.9 + ph) > 0.85) { T[SX[1]] = -1.5; T[EL[1]] = -1.8; T[HRX] = -0.15; } break; }
+            case 'pray': { const f = prayFrame(pt), th = f.th, kneel = f.name === 'qiyam' || f.name === 'takbir';
+                T[BRX] = th; T[BY] = f.hy - MCH * Math.cos(th); T[BZ] = -MCH * Math.sin(th);
+                T[HX[0]] = T[HX[1]] = f.kt - th; T[KN[0]] = T[KN[1]] = f.kk; T[AN[0]] = T[AN[1]] = f.ka; T[SX[0]] = T[SX[1]] = f.ax - th; T[SZ[0]] = f.az; T[SZ[1]] = -f.az; T[EL[0]] = T[EL[1]] = kneel ? -1.1 : -0.12; T[HRX] = f.hd; T[HRY] = f.salam; break; }
+            case 'air': T[SX[0]] = T[SX[1]] = -2.5; T[SZ[0]] = 0.35; T[SZ[1]] = -0.35; T[EL[0]] = T[EL[1]] = -0.3; T[HX[0]] = -0.5; T[HX[1]] = 0.35; T[KN[0]] = 0.7; T[KN[1]] = 0.15; T[AN[0]] = 0.4; T[AN[1]] = 0.2; T[CRX] = -0.05; break;
+            default: {
+                idle(T, ck, ph); gs = true; gw = 0.6;
+                if (mk === 'loco') {
+                    const nominal = (mode === 'walk' || mode === 'run') && !r._moved, vg = nominal ? (mode === 'run' ? 6.5 : 2.6) : r._vs, mvw = sm((vg - 0.12) / 0.8);
+                    gw = 0.9 * (1 - mvw) + 0.15 * mvw;
+                    if (mvw > 0.001) {
+                        const rw = sm((vg - 3.8) / 5), A = mix(0.3 + 0.14 * cl(vg / 3.4, 0, 1), 0.62 + 0.26 * cl((vg - 6) / 14, 0, 1), rw) * (0.55 + 0.45 * sm(vg / 1.8));
+                        const w = nominal ? (mode === 'run' ? 15 : 10) * spd : Math.min(1.5708 * vg / (0.82 * Math.sin(A)), mix(12.5, 17, rw));
+                        r._gp = (r._gp || 0) + w * dt;
+                        Tm.set(T); gait(Tm, r._gp, A, rw, vg);
+                        for (let i = 0; i < N; i++) T[i] += (Tm[i] - T[i]) * mvw;
+                        fl = 0.07 * rw * mvw * Math.max(0, -Math.cos(2 * r._gp));
+                    }
+                    break;
+                }
+                gw = GAZE[mk] === undefined ? 0.3 : GAZE[mk];
+                switch (mk) {
+                    case 'wave': T[SX[1]] = -2.75; T[SZ[1]] = -0.3 + Math.sin(pt * 9 + ph) * 0.2; T[EL[1]] = -0.4 + Math.sin(pt * 11 + ph) * 0.35; T[SX[0]] = 0.05; break;
+                    case 'salute': T[SX[1]] = -1.3; T[SZ[1]] = -0.55; T[EL[1]] = -2.2; T[CRX] = 0; T[HRX] = -0.04; break;
+                    case 'laugh': T[HRZ] = Math.sin(pt * 22) * 0.1; T[CRX] = 0.1 + 0.08 * Math.sin(pt * 16); T[SX[0]] = T[SX[1]] = -0.5; T[EL[0]] = T[EL[1]] = -1.6; hop = Math.abs(Math.sin(pt * 16)) * 0.035; break;
+                    case 'love': T[SX[0]] = T[SX[1]] = -2.3; T[SZ[0]] = -0.9; T[SZ[1]] = 0.9; T[EL[0]] = T[EL[1]] = -0.9; hop = Math.sin(pt * 6) * 0.015; break;
+                    case 'dance': { const e = Math.sin(pt * 8.5 + ph), c = Math.max(0, -e), d = Math.max(0, e); T[HX[0]] = e * 0.5; T[HX[1]] = -e * 0.5; T[KN[0]] = 0.15 + c * 0.7; T[KN[1]] = 0.15 + d * 0.7; flat(T, 0); flat(T, 1);
+                        T[SX[0]] = -2.5 + e * 0.6; T[SX[1]] = -2.5 - e * 0.6; T[SZ[0]] = 0.4; T[SZ[1]] = -0.4; T[EL[0]] = T[EL[1]] = -0.5; T[BRY] = Math.sin(pt * 4.25 + ph) * 0.5; T[PRY] = e * 0.3; T[CRY] = -e * 0.2; T[PRZ] = Math.sin(pt * 4.25 + ph) * 0.08; hop = Math.abs(e) * 0.1; break; }
+                    case 'cheer': { const s = Math.abs(Math.sin(pt * 6 + ph)); T[SX[0]] = T[SX[1]] = -2.9; T[SZ[0]] = 0.25; T[SZ[1]] = -0.25; T[EL[0]] = T[EL[1]] = -0.15; T[KN[0]] = T[KN[1]] = 0.1 + 0.5 * s; T[HX[0]] = T[HX[1]] = -0.25 * s; flat(T, 0); flat(T, 1); hop = s * 0.3; break; }
+                    case 'splash': { const k = Math.sin(pt * 8 + ph); T[SX[0]] = -2.6 + Math.sin(pt * 9 + ph) * 0.5; T[SX[1]] = -2.6 + Math.cos(pt * 9 + ph) * 0.5; T[SZ[0]] = 0.3; T[SZ[1]] = -0.3; T[EL[0]] = T[EL[1]] = -0.3; T[HX[0]] = k * 0.3; T[HX[1]] = -k * 0.3; T[KN[0]] = 0.1 + Math.max(0, -k) * 0.5; T[KN[1]] = 0.1 + Math.max(0, k) * 0.5; flat(T, 0); flat(T, 1); hop = Math.abs(Math.sin(pt * 5 + ph)) * 0.25; break; }
+                    case 'stretch': { const e = (Math.sin(pt * 1.6 + ph) + 1) / 2; T[SX[0]] = T[SX[1]] = -3.0 * e; T[SZ[0]] = 0.3 * e; T[SZ[1]] = -0.3 * e; T[EL[0]] = T[EL[1]] = -0.1 * e; T[CRX] = -0.12 * e; T[HRX] = -0.12 * e; break; }
+                    case 'phone': T[HRX] = 0.4; T[CRX] = 0.06; T[SX[1]] = -0.9; T[EL[1]] = -1.95; T[SZ[1]] = -0.15; break;
+                    case 'clap': { const c = Math.abs(Math.sin(pt * 8 + ph)); T[SX[0]] = T[SX[1]] = -1.0; T[EL[0]] = T[EL[1]] = -1.0; T[SZ[0]] = 0.2 + 0.35 * c; T[SZ[1]] = -(0.2 + 0.35 * c); hop = Math.abs(Math.sin(pt * 4)) * 0.02; break; }
+                    case 'cook': { const e = Math.sin(pt * 4 + ph); T[CRX] = 0.1; T[SX[0]] = -0.9; T[EL[0]] = -0.8; T[SX[1]] = -1.0 + e * 0.25; T[EL[1]] = -1.1 + e * 0.35; T[SZ[1]] = e * 0.2; T[HRY] = Math.sin(pt * 0.8) * 0.3; break; }
+                    case 'sweep': { const e = Math.sin(pt * 3 + ph); T[CRX] = 0.3; T[CRY] = e * 0.18; T[SX[0]] = T[SX[1]] = -0.9 + e * 0.25; T[EL[0]] = T[EL[1]] = -0.5; T[HX[0]] = e * 0.2; T[HX[1]] = -e * 0.2; T[KN[0]] = 0.12 + Math.max(0, -e) * 0.2; T[KN[1]] = 0.12 + Math.max(0, e) * 0.2; flat(T, 0); flat(T, 1); break; }
+                    case 'eat': { const e = Math.sin(pt * 2.6 + ph); T[SX[0]] = -0.4; T[EL[0]] = -0.6; T[SX[1]] = e > 0 ? -0.9 - e * 0.2 : -0.5 - e * 0.3; T[EL[1]] = e > 0 ? -1.8 - e * 0.35 : -1.0 + e * 0.2; T[HRX] = e > 0 ? 0.18 : -0.02; break; }
+                    case 'drink': { const e = (Math.sin(pt * 1.2 + ph) + 1) / 2; T[SX[1]] = -0.3 - 1.0 * e; T[EL[1]] = -0.3 - 1.7 * e; T[SZ[1]] = -0.1; T[HRX] = -0.35 * e; break; }
+                }
+            }
+        }
+        /* tendangan bola */
+        if (r.kickUntil > t && mk === 'loco') { const kk = Math.min(1, (r.kickUntil - t) * 6); T[HX[1]] = -1.4 * kk + T[HX[1]] * (1 - kk); T[KN[1]] = 0.3 * kk + T[KN[1]] * (1 - kk); T[AN[1]] = 0.4 * kk; T[CRX] -= 0.12 * kk; T[CRY] += 0.2 * kk; }
+        if (gs) { ground(T); T[BY] += fl; }
+        T[BY] += hop;
+        /* lirikan & toleh kepala */
+        if (r._gt === undefined) { r._gt = 0; r._gpt = 0; r._gy = 0; r._gpp = 0; r._ex = 0; r._gn = ck + Math.random() * 2; }
+        if (ck > r._gn) { r._gn = ck + 1.4 + Math.random() * 3.6; r._gt = Math.random() < 0.4 ? 0 : (Math.random() - 0.5) * 1.2; r._gpt = (Math.random() - 0.5) * 0.28; }
+        const gk = Math.min(1, dt * 4.5);
+        r._gy += (r._gt - r._gy) * gk; r._gpp += (r._gpt - r._gpp) * gk;
+        T[HRY] += r._gy * gw; T[HRX] += r._gpp * gw;
+        /* crossfade antar gerakan */
+        if (first) { r._out = new Float64Array(N); r._from = new Float64Array(N); r._out.set(T); r._key = mk; r._bt = 9; }
+        else {
+            if (mk !== r._key) { r._from.set(r._out); r._bt = 0; r._key = mk; }
+            if (r._bt < 0.25) { r._bt += dt; const w = sm(r._bt / 0.25); for (let i = 0; i < N; i++) r._out[i] = r._from[i] + (T[i] - r._from[i]) * w; }
+            else r._out.set(T);
+        }
+        const o = r._out, b = r.body;
+        if (r.is2D) {
+            /* 2D: hanya rotasi di bidang layar (sumbu X rig); arah hadap diatur billboard */
+            if (r.asBody) { b.position.y = o[BY]; r._bz = o[BZ]; if (o[BRX] !== 0 || r._rxs) { b.rotation.x = o[BRX]; r._rxs = o[BRX] !== 0; } }
+            else { b.position.set(o[BX], o[BY], o[BZ]); b.rotation.x = o[BRX]; }
+            r.pelvis.rotation.x = o[PRX]; r.chest.rotation.x = o[CRX]; r.head.rotation.x = o[HRX];
+            for (let i = 0; i < 2; i++) { r.hips[i].rotation.x = o[HX[i]]; r.knees[i].rotation.x = o[KN[i]]; r.ankles[i].rotation.x = o[AN[i]]; r.sh[i].rotation.x = o[SX[i]]; r.els[i].rotation.x = o[EL[i]]; }
+        } else {
+        b.position.set(o[BX], o[BY], o[BZ]);
+        if (r.keepRX) { b.rotation.y = o[BRY]; b.rotation.z = o[BRZ]; if (o[BRX] !== 0 || r._rxs) { b.rotation.x = o[BRX]; r._rxs = o[BRX] !== 0; } }
+        else b.rotation.set(o[BRX], o[BRY], o[BRZ]);
+        r.pelvis.rotation.set(o[PRX], o[PRY], o[PRZ]); r.chest.rotation.set(o[CRX], o[CRY], o[CRZ]); r.head.rotation.set(o[HRX], o[HRY], o[HRZ]);
+        for (let i = 0; i < 2; i++) {
+            r.hips[i].rotation.x = o[HX[i]]; r.hips[i].rotation.z = o[HZ[i]]; r.knees[i].rotation.x = o[KN[i]]; r.ankles[i].rotation.x = o[AN[i]];
+            r.sh[i].rotation.set(o[SX[i]], o[SY[i]], o[SZ[i]]); r.els[i].rotation.x = o[EL[i]];
+        }
+        }
+        /* napas */
+        const bs = 0.013 * Math.sin(ck * 2.1 + ph) + (r._vs > 1 ? 0.01 * Math.sin(ck * 9) : 0);
+        r.ribs.scale.set(1 - 0.5 * bs, 1 + bs, 1 - 0.5 * bs);
+        /* kedip & arah pandang mata */
+        if (r._bk === undefined) { r._bk = ck + 1 + Math.random() * 3; r._bl = 0; }
+        if (r._bl > 0) { r._bl -= dt; if (r._bl <= 0) { r._bl = 0; r._bk = ck + 2 + Math.random() * 4.5; } }
+        else if (ck > r._bk) r._bl = 0.16;
+        const bv = r._bl > 0 ? Math.sin(PI * (1 - r._bl / 0.16)) : 0, ey = 1 - 0.92 * bv;
+        for (const e of r.eyes) e.m.scale.y = e.sy * ey;
+        r._ex += (cl(r._gt, -0.6, 0.6) * 1.1 * (gw > 0.05 ? 1 : 0) - r._ex) * Math.min(1, dt * 14);
+        for (const p of r.pupils) p.m.position.x = p.x0 + r._ex * U;
+        /* gerak sekunder: rambut, hijab, ransel (pegas) dan rok (mengembang saat melangkah) */
+        if (dt > 0) {
+            const vy = (o[BY] - (r._lby === undefined ? o[BY] : r._lby)) / dt; r._lby = o[BY];
+            const cp = o[CRX] + o[HRX], pr = (cp - (r._lcp === undefined ? cp : r._lcp)) / dt; r._lcp = cp;
+            const vN = cl(r._vs / 12, 0, 1), spread = Math.abs(o[HX[0]] - o[HX[1]]);
+            for (const s of r.sec) {
+                if (s.kind === 'skirt') { s.n.scale.set(1 + 0.12 * spread, 1, 1 + 0.35 * spread); s.n.rotation.x = 0.18 * (o[HX[0]] + o[HX[1]]); continue; }
+                const tg = (s.wind || 0) * vN - vy * 0.25 - pr * 0.04;
+                s.v += ((tg - s.x) * 90 - s.v * 9) * dt; s.x += s.v * dt; s.x = cl(s.x, -0.7, 0.9); s.n.rotation.x = s.x;
+            }
+        }
+    }
+    /* Billboard 2D: bidang boneka selalu menghadap kamera; kiri/kanan dipilih dari arah hadap karakter */
+    const sprites = [];
+    function billboards(cam) {
+        const ce = cam.matrixWorld.elements, cx = ce[12], cz = ce[14];
+        for (let i = 0; i < sprites.length; i++) {
+            const r = sprites[i], hr = r.asBody ? r.root.parent : r.root;
+            if (!hr || !r.root.visible) continue;
+            const e = hr.matrixWorld.elements, dx = cx - e[12], dz = cz - e[14], len = Math.hypot(dx, dz); if (len < 1e-4) continue;
+            const rx = dz / len, rz = -dx / len, hl = Math.hypot(e[8], e[10]) || 1, dot = (e[8] * rx + e[10] * rz) / hl;
+            if (dot > 0.12) r._fr = true; else if (dot < -0.12) r._fr = false; else if (r._fr === undefined) r._fr = true;
+            let d = Math.atan2(rx, rz) - Math.atan2(e[8], e[10]); d = Math.atan2(Math.sin(d), Math.cos(d));
+            r.bb.rotation.y = d; r.bb.scale.z = r._fr ? 1 : -1;
+            if (r.asBody) { const bz = r._bz || 0; r.root.position.x = bz * Math.sin(d); r.root.position.z = bz * Math.cos(d); }
+        }
+    }
+    return { anim, sprites, billboards };
+})();
 function animPerson(p, t, mode, spd) {
-    spd = spd || 1;
-    const L = p.legs, A = p.arms, b = p.body, H = p.head; b.rotation.set(0, 0, 0); b.position.set(0, 0, 0); H.rotation.set(0, 0, 0);
-    A[0].rotation.set(0, 0, 0); A[1].rotation.set(0, 0, 0); L[0].rotation.set(0, 0, 0); L[1].rotation.set(0, 0, 0);
     if (mode === 'eat' || mode === 'eatsit' || mode === 'drink') {
-        if (!p.prop) { p.prop = new THREE.Mesh(gBox(0.2, 0.14, 0.2), cm(0xf59e0b)); p.prop.position.set(0, -0.95, 0.2); A[1].add(p.prop); }
+        if (!p.prop) { p.prop = new THREE.Mesh(gBox(0.2, 0.14, 0.2), cm(0xf59e0b)); p.prop.position.set(0, -0.06, 0.17); p.hands[1].add(p.prop); }
         p.prop.visible = true; p.prop.scale.y = mode === 'drink' ? 2.4 : 1; p.prop.material = cm(mode === 'drink' ? 0x38bdf8 : 0xf59e0b);
     } else if (p.prop) p.prop.visible = false;
-    let w = t * 10 * spd, s = Math.sin(w);
-    if (mode === 'walk') { L[0].rotation.x = s * 0.8; L[1].rotation.x = -s * 0.8; A[0].rotation.x = -s * 0.7; A[1].rotation.x = s * 0.7; b.position.y = Math.abs(s) * 0.08; }
-    else if (mode === 'run') { w = t * 15 * spd + p.ph; s = Math.sin(w); L[0].rotation.x = s * 1.15; L[1].rotation.x = -s * 1.15; A[0].rotation.x = -s * 1.25; A[1].rotation.x = s * 1.25; b.rotation.x = 0.2; b.position.y = Math.abs(s) * 0.18; }
-    else if (mode === 'swim') { b.rotation.x = 1.45; b.position.y = 0.6 + Math.sin(t * 3 + p.ph) * 0.05; const sw = t * 5 * spd + p.ph; A[0].rotation.x = sw; A[1].rotation.x = sw + Math.PI; const k = Math.sin(t * 16 + p.ph) * 0.45; L[0].rotation.x = k; L[1].rotation.x = -k; }
-    else if (mode === 'bike') { w = t * 9 * spd; L[0].rotation.x = -0.95 + Math.sin(w) * 0.5; L[1].rotation.x = -0.95 - Math.sin(w) * 0.5; A[0].rotation.x = A[1].rotation.x = -1.0; b.rotation.x = 0.1; }
-    else if (mode === 'motor') { L[0].rotation.x = L[1].rotation.x = -1.2; A[0].rotation.x = A[1].rotation.x = -1.15; }
-    else if (mode === 'splash') { b.position.y = Math.abs(Math.sin(t * 5 + p.ph)) * 0.25; A[0].rotation.x = -2.6 + Math.sin(t * 9 + p.ph) * 0.5; A[1].rotation.x = -2.6 + Math.cos(t * 9 + p.ph) * 0.5; A[0].rotation.z = 0.3; A[1].rotation.z = -0.3; L[0].rotation.x = Math.sin(t * 8 + p.ph) * 0.3; L[1].rotation.x = -L[0].rotation.x; }
-    else if (mode === 'cheer') { b.position.y = Math.abs(Math.sin(t * 6 + p.ph)) * 0.3; A[0].rotation.x = A[1].rotation.x = -2.9; }
-    else if (mode === 'sit' || mode === 'write' || mode === 'read' || mode === 'eatsit') {
-        const sd = MCH - p.seat; b.position.y = -sd; L[0].rotation.x = L[1].rotation.x = -1.5;
-        if (mode === 'sit') { A[0].rotation.x = -0.35; A[1].rotation.x = -0.35; H.rotation.y = Math.sin(t * 0.7 + p.ph) * 0.35; }
-        else if (mode === 'write') { b.rotation.x = 0.12; H.rotation.x = 0.35; A[0].rotation.x = -1.2; A[1].rotation.x = -1.25 + Math.sin(t * 7 + p.ph) * 0.12; A[1].rotation.z = 0.15 + Math.sin(t * 3.5 + p.ph) * 0.12; }
-        else if (mode === 'read') { H.rotation.x = 0.4; A[0].rotation.x = A[1].rotation.x = -1.25; A[0].rotation.z = -0.25; A[1].rotation.z = 0.25; }
-        else { const e = Math.sin(t * 2.4 + p.ph); A[0].rotation.x = -1.2; A[1].rotation.x = e > 0 ? -2.0 + e * 0.3 : -1.2 - e * 0.15; H.rotation.x = e > 0 ? 0.15 : 0; }
-    }
-    else if (mode === 'eat') { const e = Math.sin(t * 2.6 + p.ph); A[0].rotation.x = -0.4; A[1].rotation.x = e > 0 ? -2.15 + e * 0.35 : -1.0 - e * 0.5; H.rotation.x = e > 0 ? 0.18 : -0.02; b.position.y = Math.abs(e) * 0.01; }
-    else if (mode === 'drink') { const e = (Math.sin(t * 1.2 + p.ph) + 1) / 2; A[1].rotation.x = -2.1 * e - 0.3; A[1].rotation.z = -0.1; H.rotation.x = -0.35 * e; }
-    else if (mode === 'wave') { A[1].rotation.x = -2.9; A[1].rotation.z = -0.3 + Math.sin(t * 9 + p.ph) * 0.4; A[0].rotation.x = 0.05; }
-    else if (mode === 'stretch') { const e = (Math.sin(t * 1.6 + p.ph) + 1) / 2; A[0].rotation.x = A[1].rotation.x = -3.0 * e; A[0].rotation.z = 0.3 * e; A[1].rotation.z = -0.3 * e; b.rotation.x = -0.12 * e; }
-    else if (mode === 'phone') { H.rotation.x = 0.4; A[1].rotation.x = -1.35; A[1].rotation.z = -0.2; A[0].rotation.x = 0.05; b.position.y = Math.sin(t * 2 + p.ph) * 0.01; }
-    else if (mode === 'clap') { const c = Math.abs(Math.sin(t * 8 + p.ph)); A[0].rotation.x = A[1].rotation.x = -1.35; A[0].rotation.z = 0.5 - c * 0.35; A[1].rotation.z = -0.5 + c * 0.35; b.position.y = Math.abs(Math.sin(t * 4)) * 0.03; }
-    else if (mode === 'cook') { const e = Math.sin(t * 4 + p.ph); b.rotation.x = 0.1; A[0].rotation.x = -0.9; A[1].rotation.x = -1.0 + e * 0.25; A[1].rotation.z = e * 0.2; H.rotation.y = Math.sin(t * 0.8) * 0.3; }
-    else if (mode === 'tv') { const sd = MCH - p.seat; b.position.y = -sd; L[0].rotation.x = L[1].rotation.x = -1.5; A[0].rotation.x = A[1].rotation.x = -0.5; H.rotation.x = -0.05; if (Math.sin(t * 0.9 + p.ph) > 0.85) { A[1].rotation.x = -2.3; H.rotation.x = -0.15; } }
-    else if (mode === 'sweep') { const e = Math.sin(t * 3 + p.ph); b.rotation.x = 0.25; A[0].rotation.x = A[1].rotation.x = -0.9 + e * 0.25; b.rotation.y = e * 0.18; L[0].rotation.x = e * 0.2; L[1].rotation.x = -e * 0.2; }
-    else if (mode === 'dance') { const e = Math.sin(t * 8 + p.ph); b.position.y = Math.abs(e) * 0.1; b.rotation.y = e * 0.4; A[0].rotation.x = -2.5 + e * 0.6; A[1].rotation.x = -2.5 - e * 0.6; A[0].rotation.z = 0.4; A[1].rotation.z = -0.4; L[0].rotation.x = e * 0.5; L[1].rotation.x = -e * 0.5; }
-    else if (mode === 'pray') {
-        const f = prayFrame(t * spd + p.ph * 0), th = f.th;
-        b.rotation.x = th; b.position.set(0, f.hy - MCH * Math.cos(th), -MCH * Math.sin(th));
-        L[0].rotation.x = L[1].rotation.x = f.psi - th;
-        A[0].rotation.x = A[1].rotation.x = f.ax - th; A[0].rotation.z = f.az; A[1].rotation.z = -f.az;
-        H.rotation.x = f.hd; H.rotation.y = f.salam;
-        return;
-    }
-    else { L[0].rotation.x = L[1].rotation.x = 0; A[0].rotation.x = Math.sin(t * 1.5 + p.ph) * 0.06; A[1].rotation.x = -A[0].rotation.x; b.position.y = Math.sin(t * 2 + p.ph) * 0.02; }
-    if (p.kickUntil > t) L[1].rotation.x = -1.4 * Math.min(1, (p.kickUntil - t) * 6);
-    if (mode !== 'sit' && mode !== 'write' && mode !== 'read' && mode !== 'eatsit' && mode !== 'tv') b.position.y *= 0.45;
+    RIG.anim(p, mode, t, spd);
 }
+/* ===== GAYA 2D: boneka kertas datar (cut-out) bergaris tepi, selalu menghadap kamera =====
+   Rig & mesin animasi sama dengan versi 3D; setiap bagian tubuh berupa bentuk datar di bidang layar.
+   Urutan tumpuk memakai polygonOffset (lapisan L), tambah ?gaya=3d di URL untuk kembali ke model 3D. */
+const GAYA = ((location.search.match(/[?&]gaya=(\w+)/) || [])[1] || 'roblox').toLowerCase(), STYLE2D = GAYA === '2d';
+const _g2c = {};
+function _rr(w, h, r) { const x = -w / 2, y = -h / 2, s = new THREE.Shape(); r = Math.max(0.0001, Math.min(r, w / 2, h / 2));
+    s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r); s.lineTo(x + w, y + h - r); s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    s.lineTo(x + r, y + h); s.quadraticCurveTo(x, y + h, x, y + h - r); s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y); return s; }
+function _el(rx, ry) { const s = new THREE.Shape(); s.absellipse(0, 0, Math.max(0.0001, rx), Math.max(0.0001, ry), 0, Math.PI * 2, false, 0); return s; }
+function _pl(pts) { const s = new THREE.Shape(); pts.forEach((p, i) => i ? s.lineTo(p[0], p[1]) : s.moveTo(p[0], p[1])); return s; }
+/* pabrik bentuk (ukuran dalam satuan U; inf = penebalan untuk garis tepi) */
+const F2 = {
+    cap: (w, h) => inf => _rr((w + 2 * inf) * MCU, (h + 2 * inf) * MCU, (w / 2 + inf) * MCU),
+    rr: (w, h, r) => inf => _rr((w + 2 * inf) * MCU, (h + 2 * inf) * MCU, (r + inf) * MCU),
+    el: (rx, ry) => inf => _el((rx + inf) * MCU, (ry + inf) * MCU),
+    poly: pts => inf => { let c = 0; pts.forEach(p => c += Math.hypot(p[0], p[1])); c /= pts.length; const k = 1 + inf / Math.max(c, 1); return _pl(pts.map(p => [p[0] * k * MCU, p[1] * k * MCU])); },
+    dome: (r, a0, a1) => inf => { const s = new THREE.Shape(), q = (r + inf) * MCU; s.absarc(0, 0, q, a0, a1, false); s.closePath(); return s; }
+};
+function _g2(key, mk, inf) {
+    const k = key + '|' + inf; if (_g2c[k]) return _g2c[k];
+    const g = new THREE.ShapeGeometry(mk(inf), 14); g.rotateY(-Math.PI / 2);
+    const n = g.attributes.position.count, nr = new Float32Array(n * 3); for (let i = 0; i < n; i++) nr[i * 3 + 1] = 1; /* normal ke atas: shading seragam & ikut siang/malam */
+    g.setAttribute('normal', new THREE.BufferAttribute(nr, 3)); return (_g2c[k] = g);
+}
+/* material per lapisan: warna dibagi dengan material dasar supaya kustomisasi warna avatar tetap jalan */
+const _ly = (m, L) => {
+    const c = m._ly || (m._ly = {}); if (c[L]) return c[L];
+    const v = Object.assign(new THREE.MeshLambertMaterial({ polygonOffset: true, polygonOffsetFactor: -16 * L, polygonOffsetUnits: -16 * L }), { color: m.color });
+    /* redam sedikit hasil pencahayaan (normal menghadap atas terlalu terang) */
+    v.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <dithering_fragment>', 'gl_FragColor.rgb *= 0.6;\n#include <dithering_fragment>'); };
+    v.customProgramCacheKey = () => 'spr2d'; return (c[L] = v);
+};
+const _omc = {}, _bmc = {};
+const _om = L => _omc[L] || (_omc[L] = new THREE.MeshBasicMaterial({ color: 0x1b2030, polygonOffset: true, polygonOffsetFactor: -(16 * L - 4), polygonOffsetUnits: -(16 * L - 4) }));
+const _bm = (c, L) => { const k = c + '|' + L; return _bmc[k] || (_bmc[k] = new THREE.MeshBasicMaterial({ color: c, polygonOffset: true, polygonOffsetFactor: -16 * L, polygonOffsetUnits: -16 * L })); };
+/* satu bagian datar: isi + garis tepi. u = arah depan (z), v = atas (y), satuan U */
+function fl2(par, key, mk, m, L, u, v, ol, shadow, basic) {
+    const mesh = new THREE.Mesh(_g2(key, mk, 0), basic ? _bm(m, L) : _ly(m, L)); mesh.position.set(0, v * MCU, u * MCU); if (shadow) mesh.castShadow = true; par.add(mesh);
+    if (ol) { const o = new THREE.Mesh(_g2(key, mk, ol), _om(L)); o.position.set(0, v * MCU, u * MCU); par.add(o); }
+    return mesh;
+}
+/* kepala 2D: wajah, mata (kedip), pipi, mulut, rambut, hijab */
+function chibiHead2D(head, M, o) {
+    o = o || {};
+    const R = { eyes: [], pupils: [], sec: [] }, T = 0.5, P = (par, key, mk, m, L, u, v, ol, sh, bas) => fl2(par, key, mk, m, L, u, v, ol, sh, bas);
+    if (!o.hijab && !o.noHair) {
+        const hp = new THREE.Group(); hp.position.set(0, 4.2 * MCU, -3.8 * MCU); head.add(hp);
+        P(hp, 'bkhair', F2.el(5.0, 5.4), M.hair, 10.5, 2.0, -3.6, T, true);
+        if (o.longHair) P(hp, 'lghair', F2.el(3.3, 6.6), M.hair, 2.0, 0.4, -7.4, T, true);
+        R.sec.push({ n: hp, kind: 'hair', wind: 0.3, x: 0, v: 0 });
+    }
+    P(head, 'face', F2.el(5.4, 5.4), M.skin, 11.0, 0, 1.5, T, true);
+    P(head, 'nose', F2.el(0.8, 0.8), M.skin, 10.5, 5.3, -0.2, 0.4);
+    P(head, 'ear', F2.el(1.0, 1.35), M.skin, 11.5, -1.3, 0.4, 0.4);
+    const eye = P(head, 'eyew', F2.el(1.3, 1.75), 0xffffff, 13.0, 3.0, 0.8, 0, false, true);
+    const pup = P(head, 'eyep', F2.el(0.85, 1.3), 0x1f2937, 13.5, 3.35, 0.7, 0, false, true);
+    const hl = P(head, 'eyeh', F2.el(0.4, 0.45), 0xffffff, 14.0, 3.6, 1.4, 0, false, true);
+    R.eyes.push({ m: eye, sy: 1 }, { m: pup, sy: 1 }, { m: hl, sy: 1 });
+    P(head, 'blush', F2.el(1.1, 0.7), 0xfda4af, 12.5, 2.3, -1.6, 0, false, true);
+    P(head, 'mouth', F2.el(0.9, 0.4), 0x9a3412, 12.5, 3.6, -1.9, 0, false, true);
+    if (o.hijab) {
+        const hj = o.hijab, K = MCU;
+        const hs = inf => { const s = _el((6.2 + inf) * K, (6.2 + inf) * K), h = new THREE.Path(); h.absellipse(3.2 * K, -1.5 * K, Math.max(0.001, (3.3 - inf) * K), Math.max(0.001, (3.8 - inf) * K), 0, Math.PI * 2, true, 0); s.holes.push(h); return s; };
+        P(head, 'hijab', hs, hj, 12.0, -0.9, 1.7, 0.55, true);
+        const dp = new THREE.Group(); dp.position.set(0, -1.5 * K, -2.5 * K); head.add(dp);
+        P(dp, 'drape', F2.el(5.6, 4.4), hj, 10.0, 3.0, -4.6, T, true);
+        R.sec.push({ n: dp, kind: 'drape', wind: 0.14, x: 0, v: 0 });
+    } else if (!o.noHair) {
+        const hs = inf => { const K = MCU, k = 1 + inf / 6, s = new THREE.Shape(), r = 6 * K * k;
+            s.moveTo(5.06 * K * k, 3.14 * K * k); s.absarc(0, 0, r, 0.55, 3.94, false);
+            s.lineTo(-2.8 * K * k, -2.9 * K * k); s.quadraticCurveTo(-0.9 * K * k, -0.7 * K * k, 1.2 * K * k, 0.2 * K * k);
+            s.quadraticCurveTo(2.8 * K * k, 0.1 * K * k, 4.0 * K * k, 1.2 * K * k); s.quadraticCurveTo(5.0 * K * k, 1.7 * K * k, 5.06 * K * k, 3.14 * K * k); return s; };
+        P(head, 'hair', hs, M.hair, 12.0, -0.6, 1.9, 0.5, true);
+        P(head, 'brow', F2.el(1.1, 0.3), M.hair, 14.0, 3.0, 2.8, 0);
+    }
+    return R;
+}
+function makeRig2D(M, o, asBody) {
+    o = o || {};
+    const U = MCU, root = new THREE.Group(), T = 0.5;
+    let bb = root, body = root; if (!asBody) { bb = new THREE.Group(); root.add(bb); body = new THREE.Group(); bb.add(body); }
+    const P = (par, key, mk, m, L, u, v, ol, sh) => fl2(par, key, mk, m, L, u, v, ol, sh);
+    const pelvis = new THREE.Group(); pelvis.position.y = 12 * U; body.add(pelvis);
+    const chest = new THREE.Group(); chest.position.y = 1.5 * U; pelvis.add(chest);
+    const ribs = new THREE.Group(); chest.add(ribs);
+    const hips = [], knees = [], ankles = [], sh = [], els = [], hands = [], sec = [];
+    [0, 1].forEach(s => { /* s=0 sisi jauh (di belakang badan), s=1 sisi dekat (di depan badan) */
+        const near = s === 1, lb = near ? 6.5 : 4.5, ab = near ? 15.5 : 2.5;
+        const hip = new THREE.Group(); hip.position.set(0, 0, 0); pelvis.add(hip); hips.push(hip);
+        P(hip, 'thigh', F2.cap(4.4, 7.6), M.pants, lb, 0, -3.0, T, true);
+        const kn = new THREE.Group(); kn.position.y = -6 * U; hip.add(kn); knees.push(kn);
+        P(kn, o.shorts ? 'shinS' : 'shin', F2.cap(3.9, 6.0), o.shorts ? M.skin : M.pants, lb + 0.5, 0, -2.2, T, true);
+        const an = new THREE.Group(); an.position.y = -4.57 * U; kn.add(an); ankles.push(an);
+        if (M.sole) P(an, 'sole', F2.el(3.4, 0.5), M.sole, lb + 1.0, 0.8, -1.15, 0.4);
+        P(an, 'shoe', F2.el(3.3, 1.5), M.shoe, lb + 1.5, 0.8, 0, 0.45, true);
+        const shd = new THREE.Group(); shd.position.set(0, 10 * U, 0); chest.add(shd); sh.push(shd);
+        const long = !!o.longSleeve, am = long ? M.shirt : M.skin;
+        const el = new THREE.Group(); el.position.y = -5.2 * U; shd.add(el); els.push(el);
+        if (o.upperShirt) P(shd, 'uaS', F2.cap(3.8, 6.4), M.shirt, ab, 0, -2.4, T, true);
+        else { P(shd, 'ua', F2.cap(3.5, 6.4), am, ab, 0, -2.4, T, true); if (!long) P(shd, 'slv', F2.cap(3.9, 4.2), M.shirt, ab + 0.5, 0, -1.6, T); }
+        P(el, 'fa', F2.cap(3.2, 6.0), o.upperShirt || !long ? M.skin : M.shirt, ab + 1.0, 0, -2.0, T, true);
+        const hd = new THREE.Group(); hd.position.y = -4.7 * U; el.add(hd); hands.push(hd);
+        P(hd, 'hand', F2.el(1.8, 1.8), M.skin, ab + 1.5, 0.3, 0, 0.45, true);
+    });
+    let skirt = null;
+    if (o.skirt) { skirt = new THREE.Group(); skirt.position.y = 2 * U; pelvis.add(skirt); P(skirt, 'skirt', F2.poly([[-4.4, 3.6], [4.4, 3.6], [6.4, -3.6], [-6.4, -3.6]]), M.pants, 9.0, 0, -3.6, T, true); sec.push({ n: skirt, kind: 'skirt' }); }
+    else P(pelvis, 'waist', F2.rr(7.6, 3.0, 1.2), M.pants, 9.0, 0, 0.9, T);
+    P(ribs, 'torso', F2.rr(7.8, 11.2, 3.4), M.shirt, 8.5, 0, 5.2, T, true);
+    const head = new THREE.Group(); head.position.set(0, 14.5 * U, 0); chest.add(head);
+    const H = chibiHead2D(head, M, { hijab: o.hijab || null, longHair: o.longHair, noHair: o.noHair });
+    H.sec.forEach(s => sec.push(s));
+    const r = Object.assign(H, { root, bb, body, pelvis, chest, ribs, head, hips, knees, ankles, sh, els, hands, sec, skirt, is2D: true, asBody: !!asBody,
+        legs: hips, arms: sh, ph: Math.random() * 6, kickUntil: 0, seat: 0.55 });
+    RIG.sprites.push(r); return r;
+}
+function buildPerson2D(o) {
+    o = o || {};
+    const skin = cm(o.skin || pick(SK)), hair = cm(o.hair || pick(HR)), shirt = cm(o.shirt || 0x2563eb), pants = cm(o.pants || 0x1e293b), shoe = cm(0x111827);
+    const r = makeRig2D({ skin, hair, shirt, pants, shoe }, { shorts: o.shorts, skirt: o.skirt, longSleeve: o.longSleeve, hijab: o.hijab ? cm(o.hijab) : null, longHair: o.skirt || o.longHair, noHair: o.hat === 'caping' || o.hat === 'helm' });
+    const head = r.head, P = (key, mk, c, L, u, v, ol) => fl2(head, key, mk, cm(c), L, u, v, ol, true);
+    if (o.hat === 'peci') P('peci', F2.rr(8.4, 3.4, 0.9), 0x111827, 14.5, 0.2, 7.0, 0.45);
+    else if (o.hat === 'caping') P('caping', F2.poly([[-8.5, -1.5], [8.5, -1.5], [0.4, 2.2]]), 0xfde68a, 14.5, 0, 7.4, 0.5);
+    else if (o.hat === 'helm') { P('helm', F2.dome(6.2, 0.12, Math.PI - 0.12), o.helm || 0xdc2626, 14.5, 0, 1.6, 0.5); P('visor', F2.el(3.2, 0.7), 0x111827, 15.0, 5.2, 2.4, 0.3); }
+    else if (o.hat === 'topi') { const c = o.topi || 0x2563eb; P('topi', F2.dome(5.9, 0.25, Math.PI - 0.25), c, 14.5, 0, 1.8, 0.5); P('brim', F2.el(3.4, 0.75), c, 15.0, 5.4, 3.3, 0.4); }
+    return r;
+}
+function buildAvatar2D(opts) {
+    const U = MCU;
+    const skinM = mat(opts.skin, { roughness: 0.8 }), hairM = mat(opts.hair, { roughness: 0.9 }), shirtM = mat(opts.shirt, { roughness: 0.7 });
+    const pantsM = mat(opts.pants || 0x1e3a8a, { roughness: 0.8 }), shoeM = mat(0xf8fafc), soleM = mat(0x475569), beltM = mat(0x0f172a);
+    const rig = makeRig2D({ skin: skinM, hair: hairM, shirt: shirtM, pants: pantsM, shoe: shoeM, sole: soleM }, { upperShirt: true }, true);
+    rig.keepRX = true;
+    const g = rig.root, T = 0.5, gold = mat(0xfacc15), P = (par, key, mk, m, L, u, v, ol) => fl2(par, key, mk, m, L, u, v, ol, true);
+    P(rig.pelvis, 'belt', F2.rr(7.9, 1.1, 0.5), beltM, 9.5, 0, 1.9, 0.35);
+    P(rig.pelvis, 'buckle', F2.rr(1.3, 0.9, 0.3), gold, 10.0, 3.5, 1.9, 0.25);
+    P(rig.ribs, 'badge', F2.el(1.0, 1.0), gold, 10.0, 3.0, 8.0, 0.3);
+    P(rig.ribs, 'collar', F2.rr(5.5, 1.4, 0.7), mat(0xf8fafc), 10.0, 0.4, 10.3, 0.35);
+    P(rig.ribs, 'strap', F2.rr(1.1, 9.0, 0.5), mat(0xb45309), 9.5, 2.4, 5.2, 0.3);
+    const pack = new THREE.Group(); pack.position.set(0, 9 * U, -3.5 * U); rig.chest.add(pack);
+    P(pack, 'pack', F2.rr(5.0, 8.6, 2.2), mat(0xf59e0b), 1.5, -0.8, -3.5, T);
+    rig.sec.push({ n: pack, kind: 'pack', wind: 0, x: 0, v: 0 });
+    const head = rig.head, hatGroup = new THREE.Group(); head.add(hatGroup);
+    const legs = rig.hips.map((hip, i) => ({ hip, knee: rig.knees[i], ankle: rig.ankles[i] }));
+    const arms = rig.sh.map((sh, i) => ({ sh, el: rig.els[i], hand: rig.hands[i] }));
+    const H = (key, mk, c, u, v, ol, L) => fl2(hatGroup, key, mk, mat(c), L || 14.5, u, v, ol === undefined ? 0.45 : ol, true);
+    const av = {
+        group: g, legs, arms, head, shirtM, skinM, hairM, hatGroup, torso: rig.ribs, rig, pose: null, poseUntil: 0, poseStart: 0,
+        setHat(id) {
+            while (hatGroup.children.length) hatGroup.remove(hatGroup.children[0]);
+            if (id === 'cap') { H('capd', F2.dome(5.95, 0.2, Math.PI - 0.2), 0xef4444, 0, 1.7); H('capb', F2.el(3.3, 0.8), 0xdc2626, 5.4, 3.2, 0.4, 15.0); }
+            else if (id === 'grad') { H('gradd', F2.dome(5.8, 0.55, Math.PI - 0.55), 0x1e293b, 0, 1.9); H('gradb', F2.rr(15, 0.9, 0.3), 0x0f172a, 0, 7.6, 0.45, 15.0); H('gradt', F2.rr(0.5, 4, 0.2), 0xfacc15, 6.2, 5.6, 0.3, 15.5); H('gradk', F2.el(0.9, 0.9), 0xfacc15, 6.2, 3.3, 0.3, 16.0); }
+            else if (id === 'wizard') { H('wizb', F2.el(7.4, 0.9), 0x6d28d9, 0, 6.2); H('wizc', F2.poly([[-4.6, -5], [4.6, -5], [0.5, 5]]), 0x7c3aed, 0, 11.4, 0.45, 15.0); H('wizg', F2.el(0.8, 0.8), 0xfde047, 4.0, 7.2, 0.3, 15.5); }
+            else if (id === 'crown') { H('crb', F2.rr(9.6, 2.4, 0.5), 0xfacc15, 0, 6.8); [-4, -2, 0, 2, 4].forEach((x, i) => H('crp', F2.poly([[-0.95, -1.3], [0.95, -1.3], [0, 1.5]]), 0xfde047, x, 9.2, 0.35, 15.0 + (i % 2) * 0.5)); H('crg', F2.el(0.9, 0.9), 0xef4444, 4.6, 6.8, 0.3, 16.0); }
+        },
+        setPose(p, t, dur) { this.pose = p; this.poseUntil = t + dur; this.poseStart = t; },
+        animate(t, moving, speedMul = 1, air = false) {
+            if (this.pose && t > this.poseUntil) this.pose = null;
+            const mode = air ? 'air' : this.pose ? this.pose : (moving ? 'run' : 'idle');
+            RIG.anim(rig, mode, t, speedMul, { pt: t - this.poseStart, seat: this.sitH || 0.55, node: g.parent || g });
+        }
+    };
+    av.setHat(opts.hat || 'none');
+    return av;
+}
+/* ===== GAYA ROBLOX: badan, lengan, kaki berbentuk balok; kepala silinder dengan wajah senyum ===== */
+const _rbFace = (() => { /* tekstur senyum (decal) melengkung di depan kepala */
+    const c = document.createElement('canvas'); c.width = 256; c.height = 128; const x = c.getContext('2d');
+    x.strokeStyle = '#1f2937'; x.lineWidth = 11; x.lineCap = 'round'; x.beginPath(); x.moveTo(64, 36); x.quadraticCurveTo(128, 112, 192, 36); x.stroke();
+    const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t;
+})();
+const _rbFaceM = new THREE.MeshBasicMaterial({ map: _rbFace, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+const _rbPart = (r, th0, th1, h, s) => { const k = 'rbp' + r + ',' + th0 + ',' + th1 + ',' + h; return _gc[k] || (_gc[k] = new THREE.CylinderGeometry(r, r, h, s || 28, 1, true, th0, th1)); };
+function _rbBox(par, w, h, d, m, x, y, z, sh) { const q = new THREE.Mesh(gBox(w * MCU, h * MCU, d * MCU), m); q.position.set(x * MCU, y * MCU, z * MCU); if (sh) q.castShadow = true; par.add(q); return q; }
+function _rbHead(head, M, o) {
+    const U = MCU, R = { eyes: [], pupils: [], sec: [] }, eB = new THREE.MeshBasicMaterial({ color: 0x1f2937 });
+    const skull = cylm(head, 3.8 * U, 3.8 * U, 7.2 * U, M.skin, 0, -0.2 * U, 0, 28, true);
+    sph(head, 3.8 * U, M.skin, 0, 3.4 * U, 0, 1, 0.16, 1, 20, true);
+    [-1, 1].forEach(s => { const e = sph(head, 0.62 * U, eB, s * 1.5 * U, 0.7 * U, 3.52 * U, 1, 1.9, 0.3, 10); R.eyes.push({ m: e, sy: 1.9 }); });
+    const mouth = new THREE.Mesh(_rbPart(3.96 * U, -0.62, 1.24, 3.4 * U, 20), _rbFaceM); mouth.position.set(0, -1.0 * U, 0); head.add(mouth);
+    const dsm = (m) => m; /* material rambut/hijab: dua sisi */
+    if (o.hijab) {
+        const hj = o.hijab, hjd = cm(o.hijabC, { side: _DS });
+        const w = new THREE.Mesh(_rbPart(4.45 * U, 0.95, Math.PI * 2 - 1.9, 8.2 * U, 28), hjd); w.position.y = 0; w.castShadow = true; head.add(w);
+        cylm(head, 4.45 * U, 4.45 * U, 0.5 * U, hj, 0, 4.1 * U, 0, 28, true);
+        const dp = new THREE.Group(); dp.position.set(0, -3.0 * U, -2.0 * U); head.add(dp);
+        _rbBox(dp, 11.4, 4.2, 6.8, hj, 0, -2.4, 2.0, true);
+        R.sec.push({ n: dp, kind: 'drape', wind: 0.14, x: 0, v: 0 });
+    } else if (!o.noHair) {
+        const hm = M.hairD || M.hair;
+        cylm(head, 4.1 * U, 4.1 * U, 1.7 * U, M.hair, 0, 3.7 * U, 0, 28, true);
+        _rbBox(head, 7.4, 1.5, 1.0, M.hair, 0, 2.6, 3.4, true);
+        const hp = new THREE.Group(); hp.position.set(0, 3.4 * U, 0); head.add(hp);
+        const w = new THREE.Mesh(_rbPart(4.12 * U, 0.85, Math.PI * 2 - 1.7, 6.4 * U, 28), hm); w.position.y = -2.9 * U; w.castShadow = true; hp.add(w);
+        if (o.longHair) _rbBox(hp, 8.4, 8.6, 1.8, M.hair, 0, -6.6, -3.7, true);
+        R.sec.push({ n: hp, kind: 'hair', wind: 0.3, x: 0, v: 0 });
+    }
+    return R;
+}
+function makeRigRB(M, o, asBody) {
+    o = o || {};
+    const U = MCU, root = new THREE.Group(), body = asBody ? root : new THREE.Group(); if (!asBody) root.add(body);
+    const pelvis = new THREE.Group(); pelvis.position.y = 12 * U; body.add(pelvis);
+    const chest = new THREE.Group(); chest.position.y = 1.5 * U; pelvis.add(chest);
+    const ribs = new THREE.Group(); chest.add(ribs);
+    const hips = [], knees = [], ankles = [], sh = [], els = [], hands = [], sec = [];
+    [-1, 1].forEach(s => {
+        const hip = new THREE.Group(); hip.position.set(s * 2.6 * U, 0, 0); pelvis.add(hip); hips.push(hip);
+        _rbBox(hip, 5.0, 6.2, 5.0, M.pants, 0, -3.0, 0, true);
+        const kn = new THREE.Group(); kn.position.y = -6 * U; hip.add(kn); knees.push(kn);
+        _rbBox(kn, 4.8, 4.8, 4.8, o.shorts ? M.skin : M.pants, 0, -2.4, 0, true);
+        const an = new THREE.Group(); an.position.y = -4.57 * U; kn.add(an); ankles.push(an);
+        _rbBox(an, 5.0, 2.0, 6.2, M.shoe, 0, -0.43, 0.6, true);
+        if (M.sole) _rbBox(an, 5.1, 0.45, 6.3, M.sole, 0, -1.2, 0.6);
+    });
+    if (o.skirt) { const sk = new THREE.Group(); sk.position.y = 2 * U; pelvis.add(sk); cylm(sk, 5.6 * U, 7.8 * U, 7 * U, M.pants, 0, -3.5 * U, 0, 24, true); sec.push({ n: sk, kind: 'skirt' }); }
+    _rbBox(pelvis, 10.4, 3.6, 5.4, M.pants, 0, 1.7, 0, true);
+    _rbBox(ribs, 10.4, 8.8, 5.4, M.shirt, 0, 6.1, 0, true);
+    [-1, 1].forEach(s => {
+        const shd = new THREE.Group(); shd.position.set(s * 7.7 * U, 10 * U, 0); chest.add(shd); sh.push(shd);
+        const long = !!o.longSleeve, fa = long ? M.shirt : M.skin;
+        _rbBox(shd, 4.8, 5.4, 4.8, M.shirt, 0, -2.4, 0, true);
+        const el = new THREE.Group(); el.position.y = -5.2 * U; shd.add(el); els.push(el);
+        _rbBox(el, 4.6, 4.4, 4.6, fa, 0, -2.2, 0, true);
+        const hd = new THREE.Group(); hd.position.y = -4.7 * U; el.add(hd); hands.push(hd);
+        _rbBox(hd, 4.4, 2.4, 4.4, M.skin, 0, 0, 0, true);
+    });
+    const head = new THREE.Group(); head.position.set(0, 14.5 * U, 0); chest.add(head);
+    const H = _rbHead(head, M, { hijab: o.hijab ? M.hijab : null, hijabC: o.hijabC, longHair: o.longHair, noHair: o.noHair });
+    H.sec.forEach(s => sec.push(s));
+    return Object.assign(H, { root, body, pelvis, chest, ribs, head, hips, knees, ankles, sh, els, hands, sec,
+        legs: hips, arms: sh, ph: Math.random() * 6, kickUntil: 0, seat: 0.55 });
+}
+function buildPersonRB(o) {
+    o = o || {};
+    const U = MCU, skin = cm(o.skin || pick(SK)), hair = cm(o.hair || pick(HR)), shirt = cm(o.shirt || 0x2563eb), pants = cm(o.pants || 0x1e293b), shoe = cm(0x111827);
+    const hm = cm(o.hair ? o.hair : hair.color.getHex(), { side: _DS });
+    const r = makeRigRB({ skin, hair, hairD: hm, shirt, pants, shoe, hijab: o.hijab ? cm(o.hijab) : null }, { shorts: o.shorts, skirt: o.skirt, longSleeve: o.longSleeve, hijab: !!o.hijab, hijabC: o.hijab, longHair: o.skirt || o.longHair, noHair: o.hat === 'caping' || o.hat === 'helm' });
+    const head = r.head;
+    if (o.hat === 'peci') cylm(head, 4.0 * U, 4.2 * U, 2.8 * U, cm(0x111827), 0, 4.9 * U, 0, 24, true);
+    else if (o.hat === 'caping') cylm(head, 0.4 * U, 8.4 * U, 3.2 * U, cm(0xfde68a), 0, 5.4 * U, 0, 28, true);
+    else if (o.hat === 'helm') { capm(head, 4.7 * U, 1.5, _dsM(o.helm || 0xdc2626), 0, 0.5 * U, -0.1 * U); _rbBox(head, 7.4, 0.7, 2.4, cm(0x111827), 0, 2.4, 4.3); }
+    else if (o.hat === 'topi') { const tm = _dsM(o.topi || 0x2563eb); capm(head, 4.45 * U, 1.45, tm, 0, 0.8 * U, -0.1 * U); _rbBox(head, 6.2, 0.6, 3.4, tm, 0, 2.5, 4.6); }
+    return r;
+}
+function buildAvatarRB(opts) {
+    const U = MCU;
+    const skinM = mat(opts.skin, { roughness: 0.55 }), hairM = mat(opts.hair, { roughness: 0.7 }), shirtM = mat(opts.shirt, { roughness: 0.5 });
+    const pantsM = mat(opts.pants || 0x1e3a8a, { roughness: 0.6 }), shoeM = mat(0xf8fafc), soleM = mat(0x475569), beltM = mat(0x0f172a);
+    const hairD = mat(opts.hair, { roughness: 0.7, side: THREE.DoubleSide }); hairD.color = hairM.color; /* satu warna untuk kustomisasi */
+    const rig = makeRigRB({ skin: skinM, hair: hairM, hairD, shirt: shirtM, pants: pantsM, shoe: shoeM, sole: soleM }, {}, true);
+    rig.keepRX = true;
+    const g = rig.root;
+    _rbBox(rig.pelvis, 10.7, 1.0, 5.7, beltM, 0, 3.4, 0);
+    _rbBox(rig.pelvis, 1.6, 1.0, 0.5, mat(0xfacc15, { metalness: 0.6 }), 0, 3.4, 2.9);
+    _rbBox(rig.ribs, 1.8, 1.8, 0.4, mat(0xfacc15), 3.0, 7.6, 2.75);
+    [-1, 1].forEach(sx => _rbBox(rig.ribs, 1.0, 8.9, 5.7, mat(0xb45309), sx * 3.2, 6.1, 0));
+    const pack = new THREE.Group(); pack.position.set(0, 9.5 * U, -2.7 * U); rig.chest.add(pack);
+    _rbBox(pack, 7.4, 9.0, 3.2, mat(0xf59e0b), 0, -4.0, -1.6, true);
+    rig.sec.push({ n: pack, kind: 'pack', wind: 0, x: 0, v: 0 });
+    const head = rig.head, hatGroup = new THREE.Group(); head.add(hatGroup);
+    const legs = rig.hips.map((hip, i) => ({ hip, knee: rig.knees[i], ankle: rig.ankles[i] }));
+    const arms = rig.sh.map((sh, i) => ({ sh, el: rig.els[i], hand: rig.hands[i] }));
+    const dm = c => mat(c, { side: THREE.DoubleSide });
+    const av = {
+        group: g, legs, arms, head, shirtM, skinM, hairM, hatGroup, torso: rig.ribs, rig, pose: null, poseUntil: 0, poseStart: 0,
+        setHat(id) {
+            while (hatGroup.children.length) hatGroup.remove(hatGroup.children[0]);
+            const bxh = (w, h, d, c, x, y, z) => { const m = new THREE.Mesh(gBox(w * U, h * U, d * U), mat(c)); m.position.set(x * U, y * U, z * U); m.castShadow = true; hatGroup.add(m); return m; };
+            if (id === 'cap') { capm(hatGroup, 4.5 * U, 1.45, dm(0xef4444), 0, 0.7 * U, -0.1 * U); bxh(6.2, 0.6, 3.6, 0xdc2626, 0, 2.6, 4.6); }
+            else if (id === 'grad') { cylm(hatGroup, 4.2 * U, 4.2 * U, 2.2 * U, mat(0x1e293b), 0, 3.9 * U, 0, 24, true); bxh(11.5, 0.8, 11.5, 0x0f172a, 0, 5.3, 0); bxh(0.5, 4, 0.5, 0xfacc15, 5.4, 3.3, 5.4); bxh(1.1, 1.1, 1.1, 0xfacc15, 5.4, 1.1, 5.4); }
+            else if (id === 'wizard') { cylm(hatGroup, 7.2 * U, 7.2 * U, 0.6 * U, mat(0x6d28d9), 0, 4.0 * U, 0, 28, true); cylm(hatGroup, 0.3 * U, 4.4 * U, 9.5 * U, mat(0x7c3aed), 0, 9.0 * U, 0, 24, true); bxh(1.2, 1.2, 1.2, 0xfde047, 0, 5.0, 4.6); }
+            else if (id === 'crown') { cylm(hatGroup, 4.3 * U, 4.3 * U, 2.2 * U, mat(0xfacc15, { metalness: 0.5 }), 0, 4.9 * U, 0, 24, true); for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; cylm(hatGroup, 0.05 * U, 0.9 * U, 2.4 * U, mat(0xfde047), Math.sin(a) * 3.9 * U, 7.1 * U, Math.cos(a) * 3.9 * U, 6, true); } bxh(1.2, 1.2, 0.5, 0xef4444, 0, 5.0, 4.5); }
+        },
+        setPose(p, t, dur) { this.pose = p; this.poseUntil = t + dur; this.poseStart = t; },
+        animate(t, moving, speedMul = 1, air = false) {
+            if (this.pose && t > this.poseUntil) this.pose = null;
+            const mode = air ? 'air' : this.pose ? this.pose : (moving ? 'run' : 'idle');
+            RIG.anim(rig, mode, t, speedMul, { pt: t - this.poseStart, seat: this.sitH || 0.55, node: g.parent || g });
+        }
+    };
+    av.setHat(opts.hat || 'none');
+    return av;
+}
+function buildPerson(o) { return GAYA === '2d' ? buildPerson2D(o) : GAYA === 'chibi' || GAYA === '3d' ? buildPerson3D(o) : buildPersonRB(o); }
+function buildAvatar(opts) { return GAYA === '2d' ? buildAvatar2D(opts) : GAYA === 'chibi' || GAYA === '3d' ? buildAvatar3D(opts) : buildAvatarRB(opts); }
+
 const SCV = 0.85, SCB = 0.9;
 function buildBike(color, basket, raw) {
     const g = new THREE.Group(), dk = cm(0x1f2937), fr = cm(color || 0xef4444);
@@ -1003,7 +1526,18 @@ function addWheel(g, wheels, x, z, r) {
     const t = new THREE.Mesh(gCyl(r, r, 0.4, 10), cm(0x111827)); t.rotation.z = Math.PI / 2; w.add(t);
     w.add(new THREE.Mesh(gBox(0.44, 0.14, r * 1.3), cm(0x9ca3af))); wheels.push(w);
 }
+function buildTrukBesar(color) {
+    const g = new THREE.Group(), wheels = [], Wd = 2.5;
+    mkBox(Wd, 2.5, 2.6, color, 0, 2.15, 5.2, g); mkBox(Wd - 0.3, 1.0, 0.1, 0x1e3a5f, 0, 2.7, 6.52, g, { roughness: 0.1 }); mkBox(Wd + 0.1, 0.4, 0.5, 0x111827, 0, 0.9, 6.5, g);
+    mkBox(Wd - 0.3, 0.5, 12.4, 0x1f2937, 0, 0.95, 0.4, g);
+    mkBox(Wd + 0.15, 3.3, 8.6, 0xf1f5f9, 0, 3.0, -1.9, g); mkBox(Wd + 0.2, 0.5, 8.62, color, 0, 3.8, -1.9, g); mkBox(Wd + 0.2, 0.5, 8.62, color, 0, 2.2, -1.9, g);
+    [-1, 1].forEach(s => { place(new THREE.Mesh(gBox(0.5, 0.3, 0.1), HEADMAT), s * 0.8, 1.3, 6.55, g); place(new THREE.Mesh(gBox(0.4, 0.28, 0.1), TAILMAT), s * 0.85, 1.3, -6.0, g); });
+    [[5.2], [-2.0], [-3.7]].forEach(([z]) => [-1, 1].forEach(sx => addWheel(g, wheels, sx * (Wd / 2 + 0.05), z, 0.75)));
+    g.scale.setScalar(0.95);
+    return { g, wheels, wr: 0.75 * 0.95 };
+}
 function buildCar(type, color) {
+    if (type === 'trukbesar') return buildTrukBesar(color);
     const g = new THREE.Group(), wheels = [], Wd = 2.3;
     let L = 4.6, wz = 1.45;
     if (type === 'sedan') {
@@ -1582,123 +2116,41 @@ for (let i = 0; i < 14 && flowerSpots.length; i++) {
 /* ==========================================
    6. AVATAR
    ========================================== */
-function buildAvatar(opts) {
-    const g = new THREE.Group(), U = MCU;
+function buildAvatar3D(opts) {
+    const U = MCU;
     const skinM = mat(opts.skin, { roughness: 0.8 }), hairM = mat(opts.hair, { roughness: 0.9 }), shirtM = mat(opts.shirt, { roughness: 0.7 });
     const pantsM = mat(opts.pants || 0x1e3a8a, { roughness: 0.8 }), shoeM = mat(0xf8fafc), soleM = mat(0x475569), beltM = mat(0x0f172a);
-    const bx = (w, h, d) => gBox(w * U, h * U, d * U);
-    const add = (geo, m, x, y, z, parent = g) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = true; parent.add(o); return o; };
-    /* Kaki: paha + betis (tetap kotak ala Minecraft, bisa menekuk) */
-    const legs = [-2, 2].map(x => {
-        const hip = new THREE.Group(); hip.position.set(x * U, 12 * U, 0); g.add(hip);
-        add(bx(4, 6, 4), pantsM, 0, -3 * U, 0, hip);
-        const knee = new THREE.Group(); knee.position.y = -6 * U; hip.add(knee);
-        add(bx(4, 4.2, 4), pantsM, 0, -2.1 * U, 0, knee);
-        add(bx(4.2, 1.8, 4.6), shoeM, 0, -5.1 * U, 0.3 * U, knee);
-        add(bx(4.3, 0.3, 4.7), soleM, 0, -6 * U + 0.15 * U, 0.3 * U, knee);
-        return { hip, knee };
-    });
-    /* Badan */
-    const torso = add(bx(8, 12, 4), shirtM, 0, 18 * U, 0);
-    add(bx(8.1, 1, 4.1), beltM, 0, 12.8 * U, 0);
-    add(bx(1.4, 0.9, 0.3), mat(0xfacc15, { metalness: 0.6 }), 0, 12.8 * U, 2.1 * U);
-    add(bx(2, 2, 0.3), mat(0xfacc15), 2.2 * U, 21.5 * U, 2.1 * U);
-    add(bx(3.6, 0.8, 2.4), mat(0xf8fafc), 0, 24.2 * U, 0.4 * U);
-    /* Ransel */
-    add(bx(6.6, 8, 2.6), mat(0xf59e0b), 0, 19 * U, -3.4 * U);
-    [-2, 2].forEach(sx => add(bx(1, 10, 0.4), mat(0xb45309), sx * U, 19.5 * U, 2.1 * U));
-    /* Lengan: lengan atas, siku, lengan bawah, tangan */
-    const arms = [-6, 6].map(x => {
-        const sh = new THREE.Group(); sh.position.set(x * U, 24 * U, 0); g.add(sh);
-        add(bx(4, 6, 4), shirtM, 0, -3 * U, 0, sh);
-        const el = new THREE.Group(); el.position.y = -6 * U; sh.add(el);
-        add(bx(4, 4.2, 4), skinM, 0, -2.1 * U, 0, el);
-        const hand = new THREE.Group(); hand.position.y = -6 * U; el.add(hand);
-        add(bx(4, 1.8, 4), skinM, 0, 0.1 * U, 0, el);
-        return { sh, el, hand };
-    });
-    /* Kepala kotak 8x8x8 */
-    const head = new THREE.Group(); head.position.set(0, 28 * U, 0); g.add(head);
-    add(bx(8, 8, 8), skinM, 0, 0, 0, head);
-    const eyeWhite = new THREE.MeshBasicMaterial({ color: 0xffffff }), eyeBlack = new THREE.MeshBasicMaterial({ color: 0x1f2937 });
-    [-2, 2].forEach(s => {
-        add(bx(1.8, 1.5, 0.3), eyeWhite, s * U, 0.4 * U, 4.05 * U, head);
-        add(bx(1, 1.3, 0.3), eyeBlack, (s + (s > 0 ? -0.4 : 0.4)) * U, 0.4 * U, 4.2 * U, head);
-        add(bx(2, 0.5, 0.3), hairM, s * 1.05 * U, 1.9 * U, 4.1 * U, head);
-        add(bx(1.2, 0.8, 0.2), new THREE.MeshBasicMaterial({ color: 0xfda4af }), s * 3 * U, -1.4 * U, 4.05 * U, head);
-    });
-    add(bx(2.6, 0.7, 0.3), new THREE.MeshBasicMaterial({ color: 0x9a3412 }), 0, -2.4 * U, 4.1 * U, head);
-    /* Rambut kotak */
-    add(bx(8.6, 2.4, 8.6), hairM, 0, 3.6 * U, 0, head);
-    add(bx(8.6, 6.5, 1.4), hairM, 0, 0.3 * U, -3.6 * U, head);
-    [-1, 1].forEach(s => add(bx(1, 3.5, 4), hairM, s * 4.1 * U, 2.2 * U, -1.2 * U, head));
-    add(bx(8.6, 1.5, 1.2), hairM, 0, 3.2 * U, 3.9 * U, head);
-    const hatGroup = new THREE.Group(); hatGroup.position.y = 4.4 * U; head.add(hatGroup);
-
-    const HY = 28 * U;
+    const rig = makeRig({ skin: skinM, hair: hairM, shirt: shirtM, pants: pantsM, shoe: shoeM, sole: soleM }, { upperShirt: true }, true);
+    rig.keepRX = true; /* rotasi X badan dikendalikan kode luar (naik sepeda / berenang) */
+    const g = rig.root, bx = (w, h, d) => gBox(w * U, h * U, d * U);
+    /* Aksesori: sabuk, lencana, kerah, tali & ransel (ransel berayun lewat pegas) */
+    cylm(rig.pelvis, 4.0 * U, 4.0 * U, 1 * U, beltM, 0, 1.9 * U, 0, 18, false, 0.86);
+    sph(rig.pelvis, 0.9 * U, mat(0xfacc15, { metalness: 0.6 }), 0, 1.9 * U, 3.5 * U, 1.3, 0.9, 0.35, 8);
+    sph(rig.ribs, 1.1 * U, mat(0xfacc15), 2.2 * U, 8 * U, 3.45 * U, 1, 1, 0.3, 8);
+    sph(rig.ribs, 2.7 * U, mat(0xf8fafc), 0, 10.1 * U, 0.3 * U, 1.15, 0.3, 0.95, 12);
+    [-1, 1].forEach(sx => { const q = new THREE.Mesh(bx(1, 10, 0.5), mat(0xb45309)); q.position.set(sx * 2.1 * U, 5.7 * U, 3.3 * U); rig.ribs.add(q); });
+    const pack = new THREE.Group(); pack.position.set(0, 9 * U, -3.5 * U); rig.chest.add(pack);
+    sph(pack, 3.6 * U, mat(0xf59e0b), 0, -3.5 * U, -0.8 * U, 1, 1.2, 0.7, 12, true);
+    rig.sec.push({ n: pack, kind: 'pack', wind: 0, x: 0, v: 0 });
+    const head = rig.head, hatGroup = new THREE.Group(); head.add(hatGroup);
+    const legs = rig.hips.map((hip, i) => ({ hip, knee: rig.knees[i], ankle: rig.ankles[i] }));
+    const arms = rig.sh.map((sh, i) => ({ sh, el: rig.els[i], hand: rig.hands[i] }));
     const av = {
-        group: g, legs, arms, head, shirtM, skinM, hairM, hatGroup, torso, pose: null, poseUntil: 0, poseStart: 0,
+        group: g, legs, arms, head, shirtM, skinM, hairM, hatGroup, torso: rig.ribs, rig, pose: null, poseUntil: 0, poseStart: 0,
         setHat(id) {
             while (hatGroup.children.length) hatGroup.remove(hatGroup.children[0]);
+            const dm = c => mat(c, { side: THREE.DoubleSide });
             const put = (w, h, d, c, x, y, z) => { const m = new THREE.Mesh(bx(w, h, d), mat(c)); m.position.set(x * U, y * U, z * U); m.castShadow = true; hatGroup.add(m); return m; };
-            if (id === 'cap') { put(9, 3, 9, 0xef4444, 0, 0.5, 0); put(8, 0.9, 4, 0xdc2626, 0, -0.5, 5.6); }
-            else if (id === 'grad') { put(8.8, 3, 8.8, 0x1e293b, 0, 0.4, 0); put(14, 0.8, 14, 0x0f172a, 0, 2.4, 0); put(0.5, 4, 0.5, 0xfacc15, 6, 0.5, 6); put(1.2, 1.2, 1.2, 0xfacc15, 6, -1.8, 6); }
-            else if (id === 'wizard') { put(14, 0.8, 14, 0x6d28d9, 0, -0.2, 0); put(9, 3, 9, 0x7c3aed, 0, 1.7, 0); put(6.5, 3, 6.5, 0x7c3aed, 0, 4.7, 0); put(4, 3, 4, 0x7c3aed, 0, 7.7, 0); put(2, 3, 2, 0x7c3aed, 0, 10.7, 0); put(1.4, 1.4, 1.4, 0xfde047, 0, 1.2, 4.6); }
-            else if (id === 'crown') { put(9, 3, 9, 0xfacc15, 0, 0.5, 0); [[-3.5, -3.5], [0, -3.5], [3.5, -3.5], [-3.5, 3.5], [0, 3.5], [3.5, 3.5], [-3.5, 0], [3.5, 0]].forEach(([x, z]) => put(1.8, 2.4, 1.8, 0xfde047, x, 3.2, z)); put(1.6, 1.6, 0.5, 0xef4444, 0, 0.8, 4.7); }
+            if (id === 'cap') { capm(hatGroup, 5.95 * U, 1.4, dm(0xef4444), 0, 1.7 * U, -0.1 * U); sph(hatGroup, 3.2 * U, mat(0xdc2626), 0, 3.0 * U, 5.0 * U, 1.3, 0.18, 1.35, 10); }
+            else if (id === 'grad') { capm(hatGroup, 5.8 * U, 1.0, dm(0x1e293b), 0, 1.9 * U, 0); put(14, 0.8, 14, 0x0f172a, 0, 7.6, 0); put(0.5, 4, 0.5, 0xfacc15, 6, 5.8, 6); sph(hatGroup, 0.9 * U, mat(0xfacc15), 6 * U, 3.6 * U, 6 * U, 1, 1, 1, 8); }
+            else if (id === 'wizard') { cylm(hatGroup, 7.3 * U, 7.3 * U, 0.7 * U, mat(0x6d28d9), 0, 6.2 * U, 0, 24, true); cylm(hatGroup, 0.3 * U, 4.6 * U, 10 * U, mat(0x7c3aed), 0, 11.4 * U, 0, 16, true); sph(hatGroup, 0.8 * U, mat(0xfde047), 0, 7.4 * U, 4.6 * U, 1, 1, 1, 8); }
+            else if (id === 'crown') { cylm(hatGroup, 4.9 * U, 5.1 * U, 2.4 * U, mat(0xfacc15, { metalness: 0.5 }), 0, 6.8 * U, 0, 20, true); for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; cylm(hatGroup, 0.05 * U, 1.0 * U, 2.6 * U, mat(0xfde047), Math.sin(a) * 4.7 * U, 9.2 * U, Math.cos(a) * 4.7 * U, 6, true); } sph(hatGroup, 0.9 * U, mat(0xef4444), 0, 6.8 * U, 5.1 * U, 1, 1, 0.5, 8); }
         },
         setPose(p, t, dur) { this.pose = p; this.poseUntil = t + dur; this.poseStart = t; },
         animate(t, moving, speedMul = 1, air = false) {
             if (this.pose && t > this.poseUntil) this.pose = null;
-            const w = t * 11 * speedMul, s = moving ? Math.sin(w) : 0;
-            const L = legs, A = arms;
-            L[0].hip.rotation.x = s * 0.85; L[1].hip.rotation.x = -s * 0.85;
-            L[0].knee.rotation.x = moving ? Math.max(0, -Math.cos(w)) * 0.7 : 0;
-            L[1].knee.rotation.x = moving ? Math.max(0, Math.cos(w)) * 0.7 : 0;
-            A[0].sh.rotation.x = -s * 0.8; A[1].sh.rotation.x = s * 0.8;
-            A[0].sh.rotation.z = 0; A[1].sh.rotation.z = 0;
-            A[0].el.rotation.x = moving ? -0.3 - Math.max(0, -s) * 0.5 : -0.05;
-            A[1].el.rotation.x = moving ? -0.3 - Math.max(0, s) * 0.5 : -0.05;
-            g.position.set(0, 0, 0); g.rotation.y = 0; head.rotation.set(0, 0, 0);
-            if (this._prayRot && this.pose !== 'pray') { g.rotation.x = 0; this._prayRot = false; }
-            let hb = moving ? Math.abs(Math.sin(w)) * 0.05 : Math.sin(t * 2) * 0.012;
-            torso.scale.y = moving ? 1 : 1 + Math.sin(t * 2) * 0.012;
-            if (air) {
-                A[0].sh.rotation.x = -2.5; A[1].sh.rotation.x = -2.5; A[0].sh.rotation.z = 0.35; A[1].sh.rotation.z = -0.35;
-                L[0].hip.rotation.x = -0.5; L[1].hip.rotation.x = 0.35; L[0].knee.rotation.x = 0.7; L[1].knee.rotation.x = 0.15;
-            } else if (this.pose === 'wave') {
-                A[1].sh.rotation.x = -2.7; A[1].sh.rotation.z = -0.25; A[1].el.rotation.x = -0.4 + Math.sin(t * 13) * 0.6;
-            } else if (this.pose === 'salute') {
-                A[1].sh.rotation.x = -1.3; A[1].sh.rotation.z = -0.55; A[1].el.rotation.x = -2.2; hb = 0;
-            } else if (this.pose === 'laugh') {
-                head.rotation.z = Math.sin(t * 22) * 0.1; hb = Math.abs(Math.sin(t * 16)) * 0.07;
-                A[0].sh.rotation.x = -0.5; A[1].sh.rotation.x = -0.5; A[0].el.rotation.x = -1.6; A[1].el.rotation.x = -1.6;
-            } else if (this.pose === 'love') {
-                A[0].sh.rotation.x = -2.3; A[1].sh.rotation.x = -2.3; A[0].sh.rotation.z = -0.9; A[1].sh.rotation.z = 0.9;
-                A[0].el.rotation.x = -0.9; A[1].el.rotation.x = -0.9; hb = Math.sin(t * 6) * 0.03;
-            } else if (this.pose === 'dance') {
-                const b = Math.sin(t * 9);
-                g.position.y = Math.abs(b) * 0.18; g.rotation.y = Math.sin(t * 4.5) * 0.7;
-                A[0].sh.rotation.x = -2.4 + b * 0.6; A[1].sh.rotation.x = -2.4 - b * 0.6;
-                A[0].sh.rotation.z = 0.4; A[1].sh.rotation.z = -0.4;
-                L[0].hip.rotation.x = b * 0.5; L[1].hip.rotation.x = -b * 0.5; L[0].knee.rotation.x = Math.max(0, -b) * 0.6; L[1].knee.rotation.x = Math.max(0, b) * 0.6;
-            } else if (this.pose === 'eat') {
-                const e = Math.sin((t - this.poseStart) * 5.5);
-                A[0].sh.rotation.x = -0.3; A[1].sh.rotation.x = e > 0 ? -1.2 : -0.6; A[1].el.rotation.x = e > 0 ? -1.9 : -0.9; A[1].sh.rotation.z = -0.1;
-                head.rotation.x = e > 0 ? 0.15 : 0; hb = 0;
-            } else if (this.pose === 'drink') {
-                const e = (Math.sin((t - this.poseStart) * 3) + 1) / 2;
-                A[1].sh.rotation.x = -1.2 * e - 0.2; A[1].el.rotation.x = -1.9 * e; head.rotation.x = -0.3 * e; hb = 0;
-            } else if (this.pose === 'sit') {
-                g.position.y = -(MCH - (this.sitH || 0.55)); L[0].hip.rotation.x = L[1].hip.rotation.x = -1.5; L[0].knee.rotation.x = L[1].knee.rotation.x = 0; A[0].sh.rotation.x = A[1].sh.rotation.x = -0.4; hb = 0;
-            } else if (this.pose === 'pray') {
-                const f = prayFrame(t - this.poseStart), th = f.th; this._prayRot = true;
-                g.rotation.x = th; g.position.y = f.hy - MCH * Math.cos(th); g.position.z = -MCH * Math.sin(th);
-                L[0].hip.rotation.x = L[1].hip.rotation.x = f.psi - th; L[0].knee.rotation.x = L[1].knee.rotation.x = 0;
-                A[0].sh.rotation.x = A[1].sh.rotation.x = f.ax - th; A[0].sh.rotation.z = f.az; A[1].sh.rotation.z = -f.az;
-                A[0].el.rotation.x = A[1].el.rotation.x = f.name === 'qiyam' || f.name === 'takbir' ? -0.9 : -0.1;
-                head.rotation.x = f.hd; head.rotation.y = f.salam; hb = 0;
-            }
-            head.position.y = HY + hb;
+            const mode = air ? 'air' : this.pose ? this.pose : (moving ? 'run' : 'idle');
+            RIG.anim(rig, mode, t, speedMul, { pt: t - this.poseStart, seat: this.sitH || 0.55, node: g.parent || g });
         }
     };
     av.setHat(opts.hat || 'none');
@@ -1909,7 +2361,13 @@ function updateNpcs(dt, k, t, p) {
 /* ==========================================
    9b. AKTOR DUNIA: kendaraan, pesepeda, atlet, pedagang
    ========================================== */
+const _loopCache = {};
 function makeLoop(pts) {
+    const key = pts.length + '|' + pts.map(q => q[0].toFixed(2) + ',' + q[1].toFixed(2)).join(';');
+    if (_loopCache[key]) return _loopCache[key];
+    return _loopCache[key] = makeLoop0(pts);
+}
+function makeLoop0(pts) {
     const cum = [0]; for (let i = 1; i <= pts.length; i++) { const a = pts[i - 1], b = pts[i % pts.length]; cum.push(cum[i - 1] + Math.hypot(b[0] - a[0], b[1] - a[1])); }
     return { pts, cum, len: cum[pts.length] };
 }
@@ -1936,28 +2394,41 @@ function trackLoop(cx, cz, a, r) {
 }
 const followers = [], dayOnly = [], wanderers = [], matches = [], lapSwimmers = [];
 const addDay = o => { dayOnly.push(o); return o; };
-function addFollower(f) { followers.push(f); scene.add(f.g); return f; }
+function addFollower(f) {
+    f.id = followers.length; followers.push(f); scene.add(f.g);
+    const bx = new THREE.Box3().setFromObject(f.g), sz = bx.getSize(new THREE.Vector3()); f.hw = Math.max(0.5, sz.x / 2); f.hl = Math.max(0.8, sz.z / 2); f.hh = sz.y;
+    return f;
+}
 
 /* ---- Lalu lintas: tiap petak jalan punya lajur melingkar sendiri (searah, tidak ada putar balik) ---- */
+function roundPts(cs, R) {
+    const n = cs.length, out = [];
+    for (let i = 0; i < n; i++) {
+        const C = cs[i], P = cs[(i + n - 1) % n], N = cs[(i + 1) % n], lp = Math.hypot(P[0] - C[0], P[1] - C[1]), ln = Math.hypot(N[0] - C[0], N[1] - C[1]), r = Math.min(R, lp / 2.05, ln / 2.05);
+        if (((P[0] - C[0]) * (N[0] - C[0]) + (P[1] - C[1]) * (N[1] - C[1])) / (lp * ln) < -0.3) { out.push(C); continue; }
+        const A = [C[0] + (P[0] - C[0]) / lp * r, C[1] + (P[1] - C[1]) / lp * r], B = [C[0] + (N[0] - C[0]) / ln * r, C[1] + (N[1] - C[1]) / ln * r];
+        for (let k = 0; k <= 8; k++) { const t = k / 8, u = 1 - t; out.push([u * u * A[0] + 2 * u * t * C[0] + t * t * B[0], u * u * A[1] + 2 * u * t * C[1] + t * t * B[1]]); }
+    }
+    return out;
+}
 function cellLoopPts(x0, x1, z0, z1, ins, arcR) {
     const cs = [[x0 + ins, z1 - ins], [x1 - ins, z1 - ins], [x1 - ins, z0 + ins], [x0 + ins, z0 + ins]];
-    if (!arcR) return cs;
+    if (!arcR) return roundPts(cs, 6);
     /* sudut yang menempel ke pusat bundaran diganti busur */
     let ci = 0, best = 1e9; cs.forEach((c, i) => { const d = Math.hypot(c[0], c[1]); if (d < best) { best = d; ci = i; } });
     const C = cs[ci], P = cs[(ci + 3) % 4], N = cs[(ci + 1) % 4], q = Math.sqrt(arcR * arcR - ins * ins);
     const on = (A) => (Math.abs(A[0] - C[0]) < 1e-6) ? [C[0], Math.sign(A[1]) * q] : [Math.sign(A[0]) * q, C[1]];
     const a0 = on(P), a1 = on(N), t0 = Math.atan2(a0[1], a0[0]); let dt = Math.atan2(a1[1], a1[0]) - t0; dt = Math.atan2(Math.sin(dt), Math.cos(dt));
     const arc = []; for (let i = 0; i <= 10; i++) { const t = t0 + dt * i / 10; arc.push([Math.cos(t) * arcR, Math.sin(t) * arcR]); }
-    const out = []; for (let i = 0; i < 4; i++) { if (i === ci) arc.forEach(p => out.push(p)); else out.push(cs[i]); } return out;
+    const out = []; for (let i = 0; i < 4; i++) { if (i === ci) arc.forEach(p => out.push(p)); else out.push(cs[i]); } return roundPts(out, 6);
 }
 const CELLS = [[0, 74, 0, 70, 1], [-74, 0, 0, 70, 1], [-74, 0, -70, 0, 1], [0, 74, -70, 0, 1], [74, 121, 0, 70, 0], [74, 121, -70, 0, 0], [-121, -74, 0, 70, 0], [-121, -74, -70, 0, 0]];
 const cellLoop = (k, ins, arcR) => { const c = CELLS[k]; return makeLoop(cellLoopPts(c[0], c[1], c[2], c[3], ins, c[4] ? arcR : 0)); };
 const ringA = ringLoop(22.5), ringB = ringLoop(26), ringM = ringLoop(30.2), ringC = ringLoop(32.6);
 const carDefs = [
-    [ringA, 'sedan', 0, 8], [ringA, 'sedan', 0.5, 8], [ringB, 'angkot', 0.25, 8], [ringB, 'truk', 0.75, 8],
-    [cellLoop(0, 2, 28.5), 'sedan', 0.1, 9], [cellLoop(0, 2, 28.5), 'angkot', 0.6, 9], [cellLoop(1, 2, 28.5), 'truk', 0.3, 9], [cellLoop(2, 2, 28.5), 'sedan', 0.2, 9],
-    [cellLoop(2, 2, 28.5), 'angkot', 0.7, 9], [cellLoop(3, 2, 28.5), 'sedan', 0.4, 9], [cellLoop(3, 2, 28.5), 'truk', 0.9, 9], [cellLoop(1, 2, 28.5), 'sedan', 0.8, 9],
-    [cellLoop(4, 2), 'sedan', 0.2, 8], [cellLoop(5, 2), 'angkot', 0.5, 8], [cellLoop(6, 2), 'sedan', 0.6, 8], [cellLoop(7, 2), 'truk', 0.1, 8]
+    [ringA, 'sedan', 0, 8], [ringA, 'sedan', 0.5, 8], [ringB, 'angkot', 0.25, 8], [ringB, 'trukbesar', 0.75, 8],
+    [cellLoop(0, 2, 28.5), 'sedan', 0.1, 9], [cellLoop(0, 2, 28.5), 'angkot', 0.6, 9], [cellLoop(1, 2, 28.5), 'trukbesar', 0.3, 9], [cellLoop(2, 2, 28.5), 'sedan', 0.2, 9],
+    [cellLoop(2, 2, 28.5), 'angkot', 0.7, 9], [cellLoop(3, 2, 28.5), 'sedan', 0.4, 9], [cellLoop(3, 2, 28.5), 'trukbesar', 0.9, 9], [cellLoop(1, 2, 28.5), 'sedan', 0.8, 9],
 ];
 carDefs.forEach(([lp, type, f, spd]) => {
     const c = buildCar(type, type === 'angkot' ? pick([0x2563eb, 0xf97316, 0x16a34a]) : pick(CAR_COLS));
@@ -1966,7 +2437,7 @@ carDefs.forEach(([lp, type, f, spd]) => {
 });
 [[ringM, 0], [ringM, 0.4], [ringM, 0.7]].forEach(([lp, f]) => { const m = buildMotor(pick(CAR_COLS), true); addFollower({ g: m.g, loop: lp, s: f * lp.len, speed: 11, wheels: m.wheels, wr: m.wr, honk: true, kind: 'car', cur: 11 }); });
 /* ---- Pesepeda ---- */
-const cycLoops = [[ringC, 0, 5.5], [ringC, 0.33, 5.5], [ringC, 0.66, 5.5], [cellLoop(0, 4, 31.5), 0.1, 6], [cellLoop(2, 4, 31.5), 0.5, 6], [cellLoop(4, 4), 0.3, 5.5], [cellLoop(7, 4), 0.6, 5.5], [cellLoop(6, 4), 0.2, 5.5]];
+const cycLoops = [[ringC, 0, 5.5], [ringC, 0.33, 5.5], [ringC, 0.66, 5.5], [cellLoop(0, 4, 31.5), 0.1, 6], [cellLoop(2, 4, 31.5), 0.5, 6]];
 cycLoops.forEach(([lp, f, spd], i) => {
     const bike = buildBike(pick([0xef4444, 0x2563eb, 0x16a34a, 0xf97316, 0xdb2777]), i % 2 === 0), per = buildPerson({ shirt: pick([0xf97316, 0x16a34a, 0x2563eb, 0xfacc15, 0xdb2777]), hat: i % 3 === 0 ? 'helm' : undefined, helm: 0x16a34a, hijab: i === 4 ? 0x7c3aed : undefined });
     per.root.scale.setScalar(1 / SCB); per.root.position.set(0, 0.42, -0.3); bike.add(per.root);
@@ -2070,7 +2541,7 @@ vendorSpots.forEach(sp => {
 });
 /* bakso keliling (bergerak) */
 (function () {
-    const v = buildGerobak('bakso'), lp = rectLoop(58, 18, 10, 12, false); scene.add(v.g);
+    const v = buildGerobak('bakso'), lp = rectLoop(55, 18, 7, 9, false); scene.add(v.g);
     const bub = makeBubble(); bub.sprite.position.set(0, 7.6, -1.9); v.g.add(bub.sprite);
     const rec = { v, bub, next: nowS() + 3, pos: v.g.position, moving: true }; vendors.push(rec);
     addFollower({ g: v.g, loop: lp, s: 0, speed: 2.2, wheels: v.wheels, wr: 0.75 * 0.65, rider: v.per, mode: 'walk', kind: 'cart' });
@@ -2442,13 +2913,27 @@ function openCongklak() {
     openMenu('🥜', 'Congklak', 'Permainan tradisional Nusantara! Pilih lubang keberuntunganmu.', [1, 2, 3].map(i => ({ emoji: '🕳️', name: 'Lubang ' + i, desc: 'Peluang menang 40%', price: 0, fn: play })));
 }
 /* ---- Lalu lintas: berhenti untuk penghalang ---- */
+function vehAhead(a, o, cross) {
+    const hx = Math.sin(a.g.rotation.y), hz = Math.cos(a.g.rotation.y), gx = a.g.position.x, gz = a.g.position.z, hw = a.hw || 1.2, hl = a.hl || 2.4;
+    const D = cross ? hl + 1.2 + (a.cur || 0) * 0.5 : hl + 2.5 + (a.cur || 0) * 0.9, ml = cross ? 0.15 : 0.9;
+    const oh = Math.sin(o.g.rotation.y), oz = Math.cos(o.g.rotation.y), ow = o.hw || 1, off = Math.max(0, (o.hl || 2) - ow), ks = off > 0.6 ? [-1, 0, 1] : [0];
+    for (const k of ks) { const dx = o.g.position.x + oh * off * k - gx, dz = o.g.position.z + oz * off * k - gz, fw = dx * hx + dz * hz; if (fw > 0.5 && fw < D + ow && Math.abs(dx * hz - dz * hx) < hw + ml + ow) return true; }
+    return false;
+}
 function blockedAhead(f, gx, gz, hx, hz, p) {
-    const chk = (ox, oz, r) => { const dx = ox - gx, dz = oz - gz, fw = dx * hx + dz * hz; return fw > 0.8 && fw < 9 && Math.abs(dx * hz - dz * hx) < 2.1 + r; };
-    if (!inHouse && !onTransit && !swimming && p.y < 2.5 && chk(p.x, p.z, 0)) return 2;
+    const hw = f.hw || 1.2, hl = f.hl || 2.4, D = hl + 2.5 + (f.cur || 0) * 0.9;
+    const chk = (ox, oz, r, ml, dd) => { const dx = ox - gx, dz = oz - gz, fw = dx * hx + dz * hz; return fw > 0.5 && fw < (dd || D) + r && Math.abs(dx * hz - dz * hx) < hw + (ml === undefined ? 0.9 : ml) + r; };
+    if (!inHouse && !onTransit && !swimming && p.y < 2.5 && chk(p.x, p.z, 0.3)) return 2;
     for (const r of npcList) if (!r.inside && chk(r.group.position.x, r.group.position.z, 0)) return 1;
     if (!nightNow) for (const w of wanderers) if (!w.still && chk(w.p.root.position.x, w.p.root.position.z, 0)) return 1;
     for (const a of animals) if (!a.indoor && chk(a.g.position.x, a.g.position.z, -0.5)) return 1;
-    for (const o of followers) if (o !== f && o.loop === f.loop && o.brake && chk(o.g.position.x, o.g.position.z, 0.3)) return 1;
+    for (const o of followers) {
+        if (o === f || !o.brake || (o.dayOnly && nightNow)) continue;
+        const cross = o.loop !== f.loop;
+        if (!vehAhead(f, o, cross)) continue;
+        if (cross && o.id > f.id && vehAhead(o, f, true)) continue;   /* saling hadang: id kecil jalan dulu */
+        return 3;
+    }
     return 0;
 }
 /* Pembaruan semua aktor dunia */
@@ -2460,7 +2945,7 @@ function updateWorld(dt, k, t, p) {
     followers.forEach(f => {
         if (f.dayOnly && nightNow) return;
         const g = f.g, ry = g.rotation.y; let tgt = f.speed, blocked = 0;
-        if (f.brake === undefined) f.brake = f.kind === 'car' || f.kind === 'bike';
+        if (f.brake === undefined) f.brake = f.kind === 'car' || f.kind === 'bike' || f.kind === 'cart';
         if (f.cur === undefined) f.cur = f.speed;
         if (f.brake) {
             blocked = blockedAhead(f, g.position.x, g.position.z, Math.sin(ry), Math.cos(ry), p); if (blocked) tgt = 0;
@@ -2474,7 +2959,11 @@ function updateWorld(dt, k, t, p) {
         if (f.rider) animPerson(f.rider, t * (f.mode === 'bike' ? f.cur / 5 : 1), f.mode, f.mode === 'run' ? f.speed / 5 : 1);
         if (f.honk && !inHouse && !onTransit) {
             const d = Math.hypot(p.x - a.x, p.z - a.z);
-            if (d < 1.7 && p.y < 1.5) { p.x += (p.x - a.x) / (d || 1) * (1.7 - d); p.z += (p.z - a.z) / (d || 1) * (1.7 - d); }
+            const hx = Math.sin(g.rotation.y), hz = Math.cos(g.rotation.y), ex = p.x - a.x, ez = p.z - a.z, fw = ex * hx + ez * hz, lt = ex * hz - ez * hx, BW = (f.hw || 1.2) + 0.45, BL = (f.hl || 2.4) + 0.45;
+            if (p.y < (f.hh || 2.2) - 0.3 && Math.abs(fw) < BL && Math.abs(lt) < BW) {
+                const pf = BL - Math.abs(fw), pl = BW - Math.abs(lt);
+                if (pl < pf) { const sg = lt >= 0 ? 1 : -1; p.x += hz * sg * pl; p.z -= hx * sg * pl; } else { const sg = fw >= 0 ? 1 : -1; p.x += hx * sg * pf; p.z += hz * sg * pf; }
+            }
         }
     });
     matches.forEach(m => m.update(dt, t));
@@ -2489,8 +2978,15 @@ function updateWorld(dt, k, t, p) {
         w.wait -= dt; let moving = false;
         if (w.wait <= 0) {
             const dx = w.tx - r.position.x, dz = w.tz - r.position.z, d = Math.hypot(dx, dz);
-            if (d < 0.8) { const ang = Math.random() * 6.28, rad = Math.random() * w.r; w.tx = w.cx + Math.cos(ang) * rad; w.tz = w.cz + Math.sin(ang) * rad; w.wait = 1 + Math.random() * 3.5; w.emote = Math.random() < 0.6 ? pick(['stretch', 'phone', 'wave', 'drink', 'clap', 'dance', 'eat']) : null; }
-            else { const sp = w.sp * (w.run ? 1.8 : 1) * dt; r.position.x += dx / d * sp; r.position.z += dz / d * sp; turnTo(r, Math.atan2(dx, dz), 0.2 * k); moving = true; }
+            const PR = window.pedRoad || inRoad;
+            if (d < 0.8) {
+                if (w.patrol) { const tt = (w.tx === w.a[0] && w.tz === w.a[1]) ? w.b : w.a; w.tx = tt[0]; w.tz = tt[1]; w.wait = 0.5 + Math.random() * 2.5; w.emote = Math.random() < 0.3 ? pick(['phone', 'stretch', 'drink']) : null; }
+                else { let n = 0; do { const ang = Math.random() * 6.28, rad = Math.random() * w.r; w.tx = w.cx + Math.cos(ang) * rad; w.tz = w.cz + Math.sin(ang) * rad; } while (PR(w.tx, w.tz, 0.8) && ++n < 12); if (n >= 12) { w.tx = r.position.x; w.tz = r.position.z; } w.wait = 1 + Math.random() * 3.5; w.emote = Math.random() < 0.6 ? pick(['stretch', 'phone', 'wave', 'drink', 'clap', 'dance', 'eat']) : null; }
+            } else {
+                const sp = w.sp * 0.72 * (w.run ? 1.8 : 1) * dt, nx = r.position.x + dx / d * sp, nz = r.position.z + dz / d * sp;
+                if (PR(nx, nz, 0.4) && !PR(r.position.x, r.position.z, 0.4)) { w.tx = r.position.x; w.tz = r.position.z; w.wait = 0.6 + Math.random() * 1.5; }
+                else { r.position.x = nx; r.position.z = nz; turnTo(r, Math.atan2(dx, dz), 0.2 * k); moving = true; }
+            }
         }
         animPerson(w.p, t, moving ? (w.run ? 'run' : 'walk') : (w.emote && w.wait > 0 ? w.emote : 'idle'), w.run ? 0.6 : 0.8);
     });
@@ -3312,7 +3808,7 @@ function updateDayNight(t) {
 /* ==========================================
    22. LOOP
    ========================================== */
-const SPEED = 0.34, GRAV = -0.021;
+const SPEED = 0.22, GRAV = -0.021;
 /* ===== lantai bertingkat (loft rumah, lantai 2 perpustakaan, lift) ===== */
 const FLOORS = {}, LIFT = { y: 0, target: 0, ride: false, g: null, cx: 0, cz: 0 };
 function curFloorKey() {
@@ -3450,19 +3946,19 @@ function update(dt) {
 let curRoom=null;
 (function(){
   /* bus */
-  const mkBus=c=>{const b=buildCar('angkot',c);b.g.scale.set(0.8,0.85,1.15);return b;};
+  const mkBus=c=>{const b=buildCar('angkot',c);b.g.scale.set(1.45,1.7,2.3);b.wr*=1.7;return b;};
   const stopS=(lp,x,z)=>{let best=0,bd=1e9;for(let s=0;s<lp.len;s+=0.5){const q=posAt(lp,s),d=Math.hypot(q.x-x,q.z-z);if(d<bd){bd=d;best=s;}}return best;};
   halte(81.5,-20,-Math.PI/2);halte(81.5,20,-Math.PI/2);halte(-81.5,-20,Math.PI/2);halte(-81.5,20,Math.PI/2);
-  const buses=[],east=rectLoop(97.5,0,20.3,66.8,true),west=rectLoop(-97.5,0,20.3,66.8,false);
+  const buses=[],east=makeLoop(roundPts(rectLoop(98.25,0,21.75,68,true).pts,8)),west=makeLoop(roundPts(rectLoop(-98.25,0,21.75,68,false).pts,8));
   [[east,81.5],[west,-81.5]].forEach(([lp,hx])=>{const st=[stopS(lp,hx,-20),stopS(lp,hx,20)];
     [0,0.5].forEach((f,i)=>{const b=mkBus(i?0xdc2626:0x1d4ed8);const fo=addFollower({g:b.g,loop:lp,s:f*lp.len,speed:8,wheels:b.wheels,wr:b.wr,honk:true,kind:'car',cur:8});fo.name='Bus';fo.boardable=true;fo.base=8;fo.stops=st;fo.hold=0;fo.last=-1;buses.push(fo);});});
   const _uw=updateWorld;updateWorld=function(dt,k,t,p){const now=nowS();
     buses.forEach(b=>{if(now<b.hold){b.speed=0;return;}b.speed=b.base;b.stops.forEach((sv,i)=>{const d=((b.s-sv)%b.loop.len+b.loop.len)%b.loop.len;if(d<1.2&&b.last!==i){b.last=i;b.hold=now+6;b.speed=0;}else if(d>8&&b.last===i)b.last=-1;});});
     _uw(dt,k,t,p);};
   /* terminal: bus berjejer */
-  const TX=100,TZ=20;mkBox(26,0.12,16,0x374151,TX,0.06,TZ,scene);
+  const TX=100,TZ=20;mkBox(28,0.12,19,0x374151,TX,0.06,TZ+1,scene);
   for(let i=0;i<5;i++)mkBox(0.2,0.04,12,0xfef3c7,TX-12+i*6,0.14,TZ,scene);
-  [0x1d4ed8,0xdc2626,0x16a34a,0xf59e0b].forEach((c,i)=>{const b=mkBus(c),x=TX-9+i*6;b.g.position.set(x,0,TZ+1);scene.add(b.g);boxCol(x,TZ+1,0,1.9,5);});
+  [0x1d4ed8,0xdc2626,0x16a34a,0xf59e0b].forEach((c,i)=>{const b=mkBus(c),x=TX-9+i*6;b.g.position.set(x,0,TZ+1);scene.add(b.g);boxCol(x,TZ+1,0,1.9,7.3);});
   signPlane(['TERMINAL BUS'],10,1.6,'#1d4ed8','#ffffff',scene,TX,6,TZ-7.6,0);mkCyl(0.2,0.2,6,0x64748b,TX-5,3,TZ-7.6,scene,6);mkCyl(0.2,0.2,6,0x64748b,TX+5,3,TZ-7.6,scene,6);reserve(TX,TZ,15,10);
   /* ===== ruangan ===== */
   const room={};window.ROOMS=room;
@@ -3616,7 +4112,7 @@ const V10X = { acts: [], prayStart: 0, prayOn: false, lastPos: new THREE.Vector3
     HALTE_LIST.forEach((h, i) => { if (i % 2) return; const c = toW(h, 1.0, -0.6); P(i % 4 ? { shirt: 0xdb2777, skirt: true, hijab: 0x0ea5e9, longSleeve: true } : { shirt: 0x16a34a, pants: 0x1e293b, hat: 'topi', topi: 0xdc2626 }, c.x, c.z, h.rot, 1, i % 4 ? 'phone' : 'sit', 1.0); });
     /* tukang sapu di taman */
     const sw = P({ shirt: 0xf59e0b, pants: 0x475569, hat: 'caping' }, -14, 36, 0.8, 1, 'sweep');
-    const br = new THREE.Group(); const hd = new THREE.Mesh(gCyl(0.03, 0.03, 1.5, 5), cm(0x92400e)); br.add(hd); const bh = new THREE.Mesh(gBox(0.5, 0.12, 0.2), cm(0xca8a04)); bh.position.y = -0.8; br.add(bh); br.position.set(0, -0.8, 0.35); br.rotation.x = 0.3; sw.p.arms[1].add(br);
+    const br = new THREE.Group(); const hd = new THREE.Mesh(gCyl(0.03, 0.03, 1.5, 5), cm(0x92400e)); br.add(hd); const bh = new THREE.Mesh(gBox(0.5, 0.12, 0.2), cm(0xca8a04)); bh.position.y = -0.8; br.add(bh); br.position.set(0, 0.05, 0.35); br.rotation.x = 0.3; sw.p.hands[1].add(br);
     /* pembeli makan di dekat pedagang */
     vendors.forEach((rec, i) => { if (rec.moving || i % 2) return; const o = rec.v.g, c = toW({ x: o.position.x, z: o.position.z, rot: o.rotation.y }, 0, 2.6);
         P({ shirt: pick([0x16a34a, 0xdb2777, 0x2563eb, 0xf59e0b]), shorts: i % 4 === 0, pants: 0x334155, skirt: i % 3 === 0, hijab: i % 3 === 0 ? 0x7c3aed : undefined, skin: pick(SK) }, c.x, c.z, o.rotation.y + Math.PI, 1, i % 4 === 2 ? 'drink' : 'eat'); });
@@ -3705,7 +4201,7 @@ const parents = new THREE.Group(); HG.add(parents);
 const dad = buildPerson({ shirt: 0x1d4ed8, pants: 0x1e293b, hat: 'peci', skin: 0xc68642 }); dad.seat = 1.1; dad.root.position.set(-8.3, 0, 7.6); dad.root.rotation.y = -Math.PI / 2; parents.add(dad.root);
 const mom = buildPerson({ shirt: 0xdb2777, hijab: 0x7c3aed, skirt: true, longSleeve: true, pants: 0x7c2d12, skin: 0xc68642 }); mom.root.position.set(10.6, 0, -8.5); mom.root.rotation.y = Math.PI / 2; parents.add(mom.root);
 [[dad, '👨 Ayah', -8.3, 7.6], [mom, '👩 Ibu', 10.6, -8.5]].forEach(([p, nm, x, z]) => { const tg = createTextSprite(nm, '#a16207'); tg.scale.set(5, 1.25, 1); tg.position.set(x, 3.9, z); parents.add(tg); });
-const spoon = new THREE.Mesh(gBox(0.08, 0.7, 0.08), cm(0x9ca3af)); spoon.position.set(0, -0.9, 0.3); mom.arms[1].add(spoon);
+const spoon = new THREE.Mesh(gBox(0.08, 0.7, 0.08), cm(0x9ca3af)); spoon.position.set(0, -0.05, 0.3); mom.hands[1].add(spoon);
 const PARENT_TALK = {
     ayah: ['Belajar yang rajin ya, Nak!', 'Ayah bangga sama kamu 👍', 'Nonton TV boleh, tapi jangan lupa PR.', 'Besok pagi kita olahraga bareng, ya!'],
     ibu: ['Sudah makan belum, Nak? 🍛', 'Hati-hati di jalan ya!', 'Ibu masak sayur asem kesukaanmu.', 'Cuci tangan dulu sebelum makan, ya 🧼']
@@ -4010,7 +4506,7 @@ let _tlState = '';
                 if (fw > half + 1.2 && fw < half + (st === 'y' ? 6 : 10) && lat < (ax === 'x' ? J.hz : J.hx) + 2) { r = 1; f._red = 1; break; }
             }
         }
-        if (r) { if (!f._bt) f._bt = now; if (r !== 2 && now - f._bt > (f._red ? 14 : 3.5)) { f._ign = now + 4; f._bt = 0; f._red = 0; return 0; } }
+        if (r) { if (!f._bt) f._bt = now; if (r !== 2 && now - f._bt > (f._red ? 14 : r === 3 ? 40 : 3.5)) { f._ign = now + 4; f._bt = 0; f._red = 0; return 0; } }
         else { f._bt = 0; f._red = 0; }
         return r;
     };
@@ -4028,28 +4524,30 @@ let _seed = 12345; const rnd = () => (_seed = (_seed * 16807) % 2147483647) / 21
 (function () {
     const I = WORLD.I, O = WORLD.O, SC = 5;
     /* tanah & batas */
-    ground.geometry.dispose(); ground.geometry = new THREE.PlaneGeometry(WORLD.H * 2 + 40, WORLD.H * 2 + 40);
+    ground.geometry.dispose(); ground.geometry = new THREE.PlaneGeometry(WORLD.H * 2 + 400, WORLD.H * 2 + 400);
     const dashT = (len, horiz) => canvasTex(horiz ? 64 : 8, horiz ? 8 : 64, (c, w, h) => { c.fillStyle = '#fef3c7'; if (horiz) c.fillRect(0, 3, 32, 2); else c.fillRect(3, 0, 2, 32); }, horiz ? [len / 8, 1] : [1, len / 8]);
     function roadSeg(x0, z0, x1, z1, w) {
         const horiz = Math.abs(z1 - z0) < 1e-6, len = horiz ? Math.abs(x1 - x0) : Math.abs(z1 - z0), cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
-        const r = new THREE.Mesh(new THREE.PlaneGeometry(horiz ? len : w, horiz ? w : len), roadMat); r.rotation.x = -Math.PI / 2; r.position.set(cx, 0.03, cz); r.receiveShadow = true; scene.add(r);
-        const d = new THREE.Mesh(new THREE.PlaneGeometry(horiz ? len : 0.4, horiz ? 0.4 : len), new THREE.MeshBasicMaterial({ map: dashT(len, horiz), transparent: true })); d.rotation.x = -Math.PI / 2; d.position.set(cx, 0.045, cz); scene.add(d);
+        const r = new THREE.Mesh(new THREE.PlaneGeometry(horiz ? len : w, horiz ? w : len), roadMat); r.rotation.x = -Math.PI / 2; r.position.set(cx, 0.09, cz); r.receiveShadow = true; scene.add(r);
+        const d = new THREE.Mesh(new THREE.PlaneGeometry(horiz ? len : 0.4, horiz ? 0.4 : len), new THREE.MeshBasicMaterial({ map: dashT(len, horiz), transparent: true })); d.rotation.x = -Math.PI / 2; d.position.set(cx, 0.1, cz); scene.add(d);
         RS.push([x0, z0, x1, z1, w]);
     }
     /* jalan: cincin dalam (±175), cincin luar (±225), jalur penghubung */
     [-O, -I, I, O].forEach(z => roadSeg(-O, z, O, z, 10)); [-O, O].forEach(x => roadSeg(x, -O, x, O, 10)); [-I, I].forEach(x => roadSeg(x, -I, x, I, 10));
     [-O + 0, O].forEach(() => 0);
     roadSeg(I, 0, O, 0, 12); roadSeg(-O, 0, -I, 0, 12); roadSeg(0, -O, 0, -I, 12); roadSeg(0, I, 0, O, 12);        /* spoke antar cincin */
-    roadSeg(121, 0, I, 0, 12); roadSeg(-I, 0, -121, 0, 12); [-70, 70].forEach(z => { roadSeg(126, z, I, z, 10); roadSeg(-I, z, -126, z, 10); }); /* penghubung kota */
+    roadSeg(121, 0, I, 0, 12); roadSeg(-I, 0, -121, 0, 12); [-70, 70].forEach(z => { roadSeg(121, z, I, z, 10); roadSeg(-I, z, -121, z, 10); }); /* penghubung kota */
     roadSeg(O, 0, 300, 0, 12); roadSeg(-O, 0, -292, 0, 12); roadSeg(0, -O, 0, -262, 12); roadSeg(0, O, 0, 262, 12);  /* jalan ke bandara, desa, kaki gunung, pantai */
     /* lampu merah di semua simpang baru */
     [[0, -I], [0, I], [0, -O], [0, O], [-I, 0], [I, 0], [-O, 0], [O, 0]].forEach(([x, z]) => TL.add(x, z, 6, 6));
     [-I, I, -O, O].forEach(x => [-I, I, -O, O].forEach(z => TL.add(x, z, 5, 5)));
     [-I, I].forEach(x => [-70, 70].forEach(z => TL.add(x, z, 5, 5)));
+    /* tambalan sudut luar jalan lingkar & Kota Baru agar tidak ada takik */
+    [[-I, -I], [I, -I], [-I, I], [I, I], [-O, -O], [O, -O], [-O, O], [O, O], [-O, -365], [O, -365]].forEach(([x, z]) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), roadMat); m.rotation.x = -Math.PI / 2; m.position.set(x, 0.09, z); scene.add(m); });
     /* sel jalur kendaraan: 8 sel di antara cincin dalam & luar -> tanpa ujung buntu */
     const CELL2 = [[-O, 0, -O, -I], [0, O, -O, -I], [-O, 0, I, O], [0, O, I, O], [-O, -I, -I, 0], [-O, -I, 0, I], [I, O, -I, 0], [I, O, 0, I]];
     CELL2.forEach(([x0, x1, z0, z1], i) => {
-        [[0.15, 'sedan', 12], [0.62, i % 2 ? 'truk' : 'angkot', 10]].forEach(([f, type, spd]) => {
+        [[0.15, 'sedan', 12], [0.62, i % 2 ? 'trukbesar' : 'angkot', 10]].forEach(([f, type, spd]) => {
             const lp = makeLoop(cellLoopPts(x0, x1, z0, z1, 2.6, 0));
             const c = buildCar(type, type === 'angkot' ? pick([0x2563eb, 0xf97316, 0x16a34a]) : pick(CAR_COLS));
             const fo = addFollower({ g: c.g, loop: lp, s: (f + i * 0.07) % 1 * lp.len, speed: spd, wheels: c.wheels, wr: c.wr, honk: true, kind: 'car', cur: spd });
@@ -4122,16 +4620,17 @@ let _seed = 12345; const rnd = () => (_seed = (_seed * 16807) % 2147483647) / 21
     }
     window.buildPlane = buildPlane;
     /* ---------- PEGUNUNGAN (utara) ---------- */
-    BLOCK.push([-520, 520, -520, -270]);
+    BLOCK.push([-520, 520, -520, -232]);
     [[-330, -340, 58, 90], [-220, -380, 66, 110], [-110, -345, 50, 74], [0, -390, 78, 130], [120, -355, 56, 90], [235, -385, 66, 105], [340, -340, 52, 78], [-430, -280, 50, 80], [430, -290, 54, 84], [-60, -300, 30, 40]].forEach(([x, z, r, h]) => {
+        if (Math.abs(x) < 260) z -= 110;
         const m = new THREE.Mesh(new THREE.ConeGeometry(r, h, 9), new THREE.MeshStandardMaterial({ color: h > 90 ? 0x6b7280 : 0x15803d, roughness: 1, flatShading: true })); m.position.set(x, h / 2, z); m.castShadow = false; scene.add(m);
         if (h > 85) { const sn = new THREE.Mesh(new THREE.ConeGeometry(r * 0.34, h * 0.3, 9), cm(0xffffff, { flatShading: true })); sn.position.set(x, h * 0.85, z); scene.add(sn); }
         circCol(x, z, r * 0.55);
     });
-    BIGF.push({ t: 'r', x: 0, z: -385, w: 1000, h: 110, c: '#4b5563', label: '⛰️ PEGUNUNGAN ILMI' });
+    BIGF.push({ t: 'r', x: 0, z: -480, w: 1000, h: 120, c: '#4b5563', label: '⛰️ PEGUNUNGAN ILMI' });
     /* danau */
     (function lake() {
-        const lx = -170, lz = -300, r = 38;
+        const lx = -170, lz = -420, r = 38;
         const sh = new THREE.Mesh(new THREE.CylinderGeometry(r + 4, r + 4, 0.06, 30), cm(0xe7d3a0)); sh.position.set(lx, 0.04, lz); scene.add(sh);
         const w = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.1, 30), cm(0x38bdf8, { roughness: 0.1, metalness: 0.2, emissive: 0x0369a1, emissiveIntensity: 0.25 })); w.position.set(lx, 0.1, lz); scene.add(w);
         circCol(lx, lz, r - 2); BLOCK.push([lx - r - 6, lx + r + 6, lz - r - 6, lz + r + 6]);
@@ -4177,11 +4676,11 @@ let _seed = 12345; const rnd = () => (_seed = (_seed * 16807) % 2147483647) / 21
             mkBox(2.6, 2.2, 2.6, 0xd6a65a, 24, 1.1, 22, fg); mkCone(2.6, 1.6, 0x92400e, 24, 3, 22, fg, 4).rotation.y = Math.PI / 4;
             const sc = new THREE.Group(); mkCyl(0.07, 0.07, 2.8, 0x92400e, 0, 1.4, 0, sc, 5); mkBox(1.6, 0.1, 0.1, 0x92400e, 0, 2.2, 0, sc); mkBox(0.8, 1, 0.1, 0xdc2626, 0, 1.6, 0.0, sc); sc.position.set(-10, 0, 5); fg.add(sc);
         });
-        BIGF.push({ t: 'r', x: -360, z: 0, w: 180, h: 80, c: '#d6a65a', label: '🏡 DESA SUKAMAJU' }); BIGF.push({ t: 'r', x: -385, z: -145, w: 140, h: 60, c: '#65a30d', label: '🌾 SAWAH' }); BIGF.push({ t: 'r', x: -385, z: 145, w: 140, h: 60, c: '#65a30d', label: '🌾 SAWAH' });
+        BIGF.push({ t: 'r', x: -365, z: 0, w: 220, h: 220, c: '#d6a65a', label: '🏡 DESA SUKAMAJU' }); BIGF.push({ t: 'r', x: -385, z: -145, w: 140, h: 60, c: '#65a30d', label: '🌾 SAWAH' }); BIGF.push({ t: 'r', x: -385, z: 145, w: 140, h: 60, c: '#65a30d', label: '🌾 SAWAH' });
         label3('🌾 Sawah Terasering', '#4d7c0f', -365, 10, -150, 12, 2.6);
         /* papan penunjuk di cincin luar */
         [['✈ Bandara →', 232, 8, '#0369a1'], ['← Desa Sukamaju', -232, 8, '#a16207']].forEach(([t, x, z, c]) => { mkCyl(0.12, 0.12, 4, 0x64748b, x, 2, z, scene, 6); signPlane([t], 7, 1.2, c, '#fff', scene, x, 4.4, z, x > 0 ? -Math.PI / 2 : Math.PI / 2); });
-        [['⛰️ Gunung ↑', 8, -232, '#4b5563'], ['🏖️ Pantai ↓', 8, 232, '#0ea5e9']].forEach(([t, x, z, c]) => { mkCyl(0.12, 0.12, 4, 0x64748b, x, 2, z, scene, 6); signPlane([t], 7, 1.2, c, '#fff', scene, x, 4.4, z, z < 0 ? 0 : Math.PI); });
+        [['🏙️ Kota Baru ↑', 8, -232, '#0e7490'], ['🏖️ Pantai ↓', 8, 232, '#0ea5e9']].forEach(([t, x, z, c]) => { mkCyl(0.12, 0.12, 4, 0x64748b, x, 2, z, scene, 6); signPlane([t], 7, 1.2, c, '#fff', scene, x, 4.4, z, z < 0 ? 0 : Math.PI); });
     })();
     /* ---------- rumah di sepanjang pita jalan lingkar ---------- */
     (function bands() {
@@ -4216,6 +4715,164 @@ let _seed = 12345; const rnd = () => (_seed = (_seed * 16807) % 2147483647) / 21
             g.add(tr); g.add(cn);
         });
     })();
+    /* ===== v18: TROTOAR, KOTA BARU, DESA DIPERLUAS ===== */
+    /* jalan Kota Baru (utara cincin luar) */
+    const KX = [-225, -110, 0, 110, 225], KZ = [-270, -335];
+    roadSeg(0, -262, 0, -365, 12);
+    [-225, -110, 110, 225].forEach(x => roadSeg(x, -225, x, -365, 10));
+    KZ.forEach(z => roadSeg(-225, z, 225, z, 10)); roadSeg(-225, -365, 225, -365, 10); [-110, 0, 110].forEach(x => TL.add(x, -365, 5, 5));
+    [-110, 110].forEach(x => TL.add(x, -225, 5, 5));
+    KX.forEach(x => KZ.forEach(z => TL.add(x, z, 5, 5)));
+    (function kbTraffic() {
+        const zs = [-365, -335, -270, -225];
+        for (let zi = 0; zi < 3; zi++) for (let xi = 0; xi < 4; xi++) {
+            const x0 = KX[xi], x1 = KX[xi + 1], z0 = zs[zi], z1 = zs[zi + 1], n = zi * 4 + xi;
+            const types = [['sedan', 11], [n % 2 ? 'trukbesar' : 'angkot', 9]]; if (n % 3 === 0) types.push(['trukbesar', 8]);
+            types.forEach(([type, spd], k) => {
+                const lp = makeLoop(cellLoopPts(x0, x1, z0, z1, 2.6, 0)), c = buildCar(type, type === 'angkot' ? pick([0x2563eb, 0xf97316, 0x16a34a]) : pick(CAR_COLS));
+                const fo = addFollower({ g: c.g, loop: lp, s: ((k * 0.37 + n * 0.11) % 1) * lp.len, speed: spd, wheels: c.wheels, wr: c.wr, honk: true, kind: 'car', cur: spd });
+                if (type === 'angkot') { fo.name = 'Angkot'; fo.boardable = true; fo.ngetem = { go: 12, stop: 7, ph: Math.random() * 19 }; }
+            });
+        }
+    })();
+    /* ---------- bangunan serbaguna ---------- */
+    const winTex = (base, w, h) => canvasTex(64, 64, (c, W, H) => {
+        c.fillStyle = base; c.fillRect(0, 0, W, H); c.fillStyle = '#60a5fa';
+        [[8, 10], [36, 10], [8, 38], [36, 38]].forEach(([x, y]) => { c.fillRect(x, y, 20, 18); c.fillStyle = 'rgba(255,255,255,.45)'; c.fillRect(x, y, 20, 5); c.fillStyle = '#60a5fa'; });
+    }, [Math.max(1, Math.round(w / 6)), Math.max(1, Math.round(h / 5))]);
+    function mkBld(o) {
+        const rot = o.rot || 0, g = new THREE.Group(); g.position.set(o.x, 0, o.z); g.rotation.y = rot; scene.add(g);
+        const sm = new THREE.MeshStandardMaterial({ map: winTex(o.col, o.w, o.h), roughness: 0.7 }), tm = cm(o.roof || 0xe5e7eb);
+        const m = new THREE.Mesh(gBox(o.w, o.h, o.d), [sm, sm, tm, tm, sm, sm]); m.position.y = o.h / 2; m.castShadow = m.receiveShadow = true; g.add(m);
+        mkBox(o.w + 0.8, 0.8, o.d + 0.8, o.trim || 0xf8fafc, 0, o.h + 0.4, 0, g);
+        mkBox(5, 4.4, 0.5, 0x334155, 0, 2.2, o.d / 2 + 0.2, g); mkBox(6.4, 0.5, 2, o.trim || 0xf8fafc, 0, 4.8, o.d / 2 + 0.9, g);
+        if (o.label) signPlane([o.label], Math.min(o.w - 2, 26), 2.6, o.bg || '#1d4ed8', '#ffffff', g, 0, Math.min(o.h - 1.6, 7.4), o.d / 2 + 0.2, 0);
+        boxCol(o.x, o.z, rot, o.w / 2 + 0.6, o.d / 2 + 0.6); reserve(o.x, o.z, o.w / 2 + 2, o.d / 2 + 2);
+        return g;
+    }
+    const mkAmb = (x, z, ry, col) => {
+        const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; scene.add(g);
+        mkBox(2.4, 2.2, 3.8, 0xf8fafc, 0, 1.7, -0.9, g); mkBox(2.4, 1.5, 1.8, col || 0xf8fafc, 0, 1.35, 1.9, g); mkBox(2.2, 0.7, 0.1, 0x1e3a5f, 0, 1.75, 2.8, g);
+        mkBox(2.45, 0.4, 5.65, 0xdc2626, 0, 1.0, 0.0, g); [-1, 1].forEach(s => { mkBox(0.06, 1.0, 0.3, 0xdc2626, s * 1.23, 2.1, -0.9, g); mkBox(0.06, 0.3, 1.0, 0xdc2626, s * 1.23, 2.1, -0.9, g); });
+        mkBox(0.8, 0.3, 0.5, 0xdc2626, -0.5, 2.9, 1.7, g, { emissive: 0xdc2626, emissiveIntensity: 0.8 }); mkBox(0.8, 0.3, 0.5, 0x2563eb, 0.5, 2.9, 1.7, g, { emissive: 0x2563eb, emissiveIntensity: 0.8 });
+        [[-1, 1.8], [1, 1.8], [-1, -1.8], [1, -1.8]].forEach(([sx, zz]) => mkCyl(0.5, 0.5, 0.35, 0x111827, sx * 1.15, 0.5, zz, g, 10).rotation.z = Math.PI / 2);
+        boxCol(x, z, ry, 1.3, 2.9);
+    };
+    /* ---------- baris A: layanan kota (z=-250, menghadap cincin) ---------- */
+    const AZ = -250;
+    const hosp = mkBld({ x: -167, z: AZ, w: 64, d: 20, h: 18, col: '#f1f5f9', roof: 0xf8fafc, trim: 0xef4444, label: '🏥 RUMAH SAKIT ILMI', bg: '#dc2626' });
+    mkBox(12, 12, 0.5, 0xf8fafc, 0, 12.5, 10.3, hosp); mkBox(2.8, 9, 0.6, 0xdc2626, 0, 12.5, 10.5, hosp); mkBox(9, 2.8, 0.6, 0xdc2626, 0, 12.5, 10.5, hosp);
+    [-26, 26].forEach(x => { mkBox(10, 3, 0.3, 0xef4444, x, 15.5, 10.2, hosp); });
+    mkBox(14, 0.3, 14, 0x475569, -18, 18.95, 0, hosp); mkBox(1.2, 0.35, 8, 0xf8fafc, -21, 19.2, 0, hosp); mkBox(1.2, 0.35, 8, 0xf8fafc, -15, 19.2, 0, hosp); mkBox(6, 0.35, 1.2, 0xf8fafc, -18, 19.2, 0, hosp);
+    mkAmb(-180, -236.2, Math.PI / 2); mkAmb(-155, -236.2, -Math.PI / 2, 0xf8fafc);
+    const bank = mkBld({ x: -55, z: AZ, w: 42, d: 20, h: 14, col: '#fde68a', roof: 0xfef3c7, trim: 0xb45309, label: '🏦 BANK ILMI', bg: '#92400e' });
+    for (let i = 0; i < 6; i++) mkCyl(0.7, 0.7, 7.5, 0xfef3c7, -12.5 + i * 5, 3.75, 12.2, bank, 12);
+    mkBox(34, 0.9, 4.6, 0xb45309, 0, 7.9, 12.2, bank); mkSph(1.5, 0xfacc15, 0, 11.2, 10.6, bank, { emissive: 0xfacc15, emissiveIntensity: 0.6 }, 12);
+    mkBox(2, 3, 1.6, 0x334155, 19, 1.6, 11.2, bank); mkBox(1.6, 1, 0.1, 0x38bdf8, 19, 2.3, 12.05, bank, { emissive: 0x0ea5e9, emissiveIntensity: 0.8 });
+    mkBld({ x: 55, z: AZ, w: 40, d: 20, h: 12, col: '#bfdbfe', roof: 0xdbeafe, trim: 0x1d4ed8, label: '🚓 KANTOR POLISI', bg: '#1d4ed8' });
+    mkBld({ x: 167, z: AZ, w: 44, d: 20, h: 12, col: '#fecaca', roof: 0xfee2e2, trim: 0xdc2626, label: '🚒 PEMADAM KEBAKARAN', bg: '#b91c1c' });
+    /* ---------- baris B: gedung besar (z=-302) ---------- */
+    mkBld({ x: -167, z: -302, w: 72, d: 36, h: 16, col: '#ddd6fe', roof: 0xede9fe, trim: 0x7c3aed, label: '🛍️ MALL ILMI', bg: '#7c3aed' });
+    [-70, -40].forEach((x, i) => mkBld({ x, z: -302, w: 22, d: 22, h: 44 - i * 6, col: '#bfdbfe', roof: 0xdbeafe, trim: 0x0ea5e9, label: i ? '' : '🏢 APARTEMEN', bg: '#0ea5e9' }));
+    mkBld({ x: 55, z: -302, w: 34, d: 26, h: 36, col: '#fecdd3', roof: 0xfff1f2, trim: 0xe11d48, label: '🏨 HOTEL ILMI', bg: '#be123c' });
+    [[145, 48], [180, 38]].forEach(([x, h], i) => mkBld({ x, z: -302, w: 22, d: 22, h, col: i ? '#a7f3d0' : '#99f6e4', roof: 0xccfbf1, trim: 0x0d9488, label: i ? '' : '🏙️ MENARA ILMI', bg: '#0f766e' }));
+    /* ---------- baris C: ruko & taman (z=-353) ---------- */
+    const shopN = ['🏪 Minimarket', '💈 Barbershop', '📱 Konter HP', '💊 Apotek', '🥖 Toko Roti', '🍜 Warung Makan', '✂️ Salon', '📚 Toko Buku', '🧸 Toko Mainan', '🚲 Bengkel Sepeda'], shopC = ['#fde68a', '#fbcfe8', '#bbf7d0', '#bfdbfe', '#fed7aa', '#e9d5ff'], shopB = ['#16a34a', '#db2777', '#0891b2', '#ea580c', '#7c3aed', '#ca8a04'];
+    let si = 0;
+    for (let x = -204; x <= 204; x += 26) { if (Math.abs(x) < 12 || Math.abs(Math.abs(x) - 110) < 10 || Math.abs(x + 55) < 40) continue; mkBld({ x, z: -351, w: 20, d: 16, h: 8 + (si % 3) * 2, col: shopC[si % 6], roof: 0xf1f5f9, trim: 0xf8fafc, label: shopN[si % 10], bg: shopB[si % 6] }); si++; }
+    (function park() {
+        mkPlane(86, 22, 0x4ade80, -55, 0.03, -351, scene); mkPlane(4, 22, 0xd6c8a4, -55, 0.05, -351, scene);
+        const pd = new THREE.Mesh(new THREE.CylinderGeometry(7, 7, 0.1, 20), cm(0x38bdf8, { roughness: 0.1 })); pd.position.set(-72, 0.1, -353); scene.add(pd);
+        for (let i = 0; i < 12; i++) { const x = -94 + i * 7.2 + (i % 2) * 1.5, z = -353 + (i % 2 ? 7 : -7); mkCyl(0.3, 0.45, 2.8, 0x78350f, x, 1.4, z, scene, 6); mkSph(2.2, 0x16a34a, x, 4, z, scene, null, 7); circCol(x, z, 0.6); }
+        [-50, -38, -62].forEach(x => mkBox(2.4, 0.5, 0.8, 0x92400e, x, 0.6, -347, scene));
+        label3('🌳 Taman Kota', '#15803d', -55, 7, -353, 9, 2.3);
+    })();
+    label3('🏥 Rumah Sakit', '#dc2626', -167, 26, AZ, 14, 3.2); label3('🏦 Bank Ilmi', '#92400e', -55, 21, AZ, 12, 3);
+    label3('🏙️ Kota Baru Ilmi', '#0e7490', 0, 14, -240, 14, 3.2);
+    /* interaksi RS & bank */
+    interactables.push({ id: 'hospital', type: 'roomact', pos: new THREE.Vector3(-167, 0, AZ + 14), radius: 10, label: 'Masuk Rumah Sakit 🏥', fn: () => {
+        const last = { chk: -1e9 };
+        openMenu('🏥', 'Rumah Sakit Ilmi', 'Selamat datang! Dokter Rani siap membantu. Jaga kesehatan supaya semangat belajar terus.', [
+            { emoji: '🩺', name: 'Periksa kesehatan', desc: 'Cek rutin gratis, +12 XP (jeda 20 detik)', price: 0, fn: () => { if (nowS() - (state._chk || -99) < 20) { floatText('Sabar ya, antre dulu 😄', '#fde047'); return; } state._chk = nowS(); addRewards(0, 12); sfx.correct(); floatText('Kamu sehat! 💚 +12 XP', '#4ade80'); } },
+            { emoji: '💉', name: 'Vitamin & imunisasi', desc: 'Boost kecepatan 60 detik', price: 20, fn: () => { if (state.coins < 20) { floatText('Koin kurang! 😢', '#f87171'); sfx.wrong(); return; } state.coins -= 20; sfx.buy(); boostUntil = nowS() + 60; floatText('⚡ Boost 60 detik!', '#fb923c'); save(); updateHUD(); $('menu-coins').textContent = state.coins; } },
+            { emoji: '🦷', name: 'Periksa gigi', desc: 'Senyum sehat, +30 XP', price: 15, fn: () => { if (state.coins < 15) { floatText('Koin kurang! 😢', '#f87171'); sfx.wrong(); return; } state.coins -= 15; sfx.buy(); addRewards(0, 30); floatText('+30 XP 🦷', '#c084fc'); save(); updateHUD(); $('menu-coins').textContent = state.coins; } }]);
+    } });
+    interactables.push({ id: 'bank', type: 'roomact', pos: new THREE.Vector3(-55, 0, AZ + 14), radius: 10, label: 'Masuk Bank Ilmi 🏦', fn: () => {
+        const render = () => openMenu('🏦', 'Bank Ilmi', `Saldo tabunganmu: 🪙 ${state.bank || 0}. Setiap penarikan dapat bunga 10%!`, [
+            { emoji: '💰', name: 'Menabung 50 koin', desc: 'Simpan koinmu dengan aman', price: 50, fn: () => { if (state.coins < 50) { floatText('Koin kurang! 😢', '#f87171'); sfx.wrong(); return; } state.coins -= 50; state.bank = (state.bank || 0) + 50; sfx.buy(); save(); updateHUD(); render(); } },
+            { emoji: '🏧', name: 'Tarik semua tabungan', desc: 'Tabungan + bunga 10%', price: 0, fn: () => { const b = state.bank || 0; if (!b) { floatText('Tabunganmu masih kosong', '#fde047'); return; } const tot = Math.round(b * 1.1); state.bank = 0; state.coins += tot; sfx.correct(); floatText(`+${tot} koin 💰`, '#facc15'); save(); updateHUD(); render(); } }]);
+        render();
+    } });
+    /* minimap */
+    BIGF.push({ t: 'r', x: 0, z: -300, w: 450, h: 140, c: '#cbd5e1', label: '🏙️ KOTA BARU' }, { t: 'r', x: -167, z: AZ, w: 64, h: 20, c: '#dc2626', label: '🏥' }, { t: 'r', x: -55, z: AZ, w: 42, h: 20, c: '#b45309', label: '🏦' });
+    /* ---------- DESA DIPERLUAS ---------- */
+    (function village2() {
+        roadSeg(-292, 0, -470, 0, 10);
+        mkPlane(6, 200, 0xb8a77a, -290, 0.05, 0, scene);
+        const hc = [0xf59e0b, 0x84cc16, 0xf87171, 0x60a5fa, 0xfde68a, 0xc4b5fd], rc = [0xb45309, 0x7c2d12, 0x991b1b];
+        let n = 0;
+        const house = (x, z) => { const door = z < 0 ? 3.05 : -3.05; mkBox(7, 4.4, 6, hc[n % 6], x, 2.2, z, scene); mkCone(5.6, 3.6, rc[n % 3], x, 6.2, z, scene, 4).rotation.y = Math.PI / 4; mkBox(1.3, 2.4, 0.2, 0x7c2d12, x, 1.2, z - door, scene); boxCol(x, z, 0, 3.8, 3.3); n++; };
+        [-80, -58, 58, 80].forEach(z => { for (let x = -400; x <= -300; x += 20) house(x, z); });
+        [-14, 14, -36, 36, -58, 58, -80, 80].forEach(z => [-420, -440, -460].forEach(x => house(x, z)));
+        for (let i = 0; i < 26; i++) { const x = -465 + (i % 13) * 14, z = (i < 13 ? -1 : 1) * 25; mkCyl(0.25, 0.4, 2.4, 0x78350f, x, 1.2, z, scene, 5); mkSph(1.6, 0x16a34a, x, 3.4, z, scene, null, 6); }
+        const FZ = -102;
+        const masjid = mkBld({ x: -300, z: FZ, w: 18, d: 14, h: 8, col: '#f1f5f9', roof: 0xf8fafc, trim: 0x16a34a, label: '🕌 Masjid Desa', bg: '#15803d' });
+        mkSph(4.2, 0x16a34a, 0, 11, 0, masjid, null, 14); mkCyl(0.7, 0.9, 16, 0xf8fafc, 10.5, 8, -4, masjid, 8); mkCone(1.1, 3, 0x16a34a, 10.5, 17.5, -4, masjid, 8);
+        mkBld({ x: -340, z: FZ, w: 22, d: 12, h: 6, col: '#fde68a', roof: 0xb45309, trim: 0xb45309, label: '🏛️ Balai Desa', bg: '#a16207' });
+        const pus = mkBld({ x: -380, z: FZ, w: 16, d: 12, h: 6, col: '#f1f5f9', roof: 0xf8fafc, trim: 0xef4444, label: '⚕️ Puskesmas', bg: '#dc2626' });
+        mkBox(2, 5, 0.4, 0xdc2626, 0, 4.5, 6.3, pus); mkBox(5, 2, 0.4, 0xdc2626, 0, 4.5, 6.3, pus);
+        mkBld({ x: -420, z: FZ, w: 18, d: 12, h: 6, col: '#fed7aa', roof: 0xf97316, trim: 0xea580c, label: '🛒 Pasar Desa', bg: '#ea580c' });
+        [-300, -340].forEach((x, i) => mkBld({ x, z: 102, w: 16, d: 12, h: 6, col: i ? '#d6c8a4' : '#e7d3a0', roof: 0x92400e, trim: 0x92400e, label: i ? '🌾 Lumbung Padi' : '🏫 Sekolah Desa', bg: '#78350f', rot: Math.PI }));
+        mkPlane(36, 24, 0x65a30d, -395, 0.04, 102, scene); mkBox(0.3, 0.1, 24, 0xf8fafc, -395, 0.09, 102, scene); [-1, 1].forEach(s => { mkBox(0.2, 2.2, 5, 0xf8fafc, -395 + s * 17, 1.1, 102, scene); }); label3('⚽ Lapangan Desa', '#4d7c0f', -395, 6, 102, 9, 2.3);
+        BIGF.push({ t: 'r', x: -365, z: 0, w: 220, h: 220, c: '#d6a65a', label: '' });
+    })();
+    /* ---------- TROTOAR (jalan kota, jalan lingkar, Kota Baru) ---------- */
+    window.SIDEWALKS = [];
+    (function sidewalks() {
+        const segs = [];
+        ROAD_V.forEach(([c, w]) => segs.push({ h: false, c, w, a: -ROAD_ZL, b: ROAD_ZL }));
+        ROAD_H.forEach(([c, w]) => { const L = c === 0 ? 121 : ROAD_XL; segs.push({ h: true, c, w, a: -L, b: L }); });
+        RS.forEach(([x0, z0, x1, z1, w]) => { const h = Math.abs(z1 - z0) < 1e-6; segs.push(h ? { h, c: z0, w, a: Math.min(x0, x1), b: Math.max(x0, x1) } : { h, c: x0, w, a: Math.min(z0, z1), b: Math.max(z0, z1) }); });
+        const SW = 2.4, out = [];
+        segs.forEach(s => [-1, 1].forEach(sd => {
+            const p = s.c + sd * (s.w / 2 + SW / 2), cuts = [];
+            segs.forEach(t => { if (t.h === s.h || p < t.a - 0.5 || p > t.b + 0.5) return; cuts.push([t.c - t.w / 2 - 0.3, t.c + t.w / 2 + 0.3]); });
+            if (Math.abs(p) < 40) { const q = Math.sqrt(1600 - p * p); cuts.push([-q, q]); }
+            cuts.sort((u, v) => u[0] - v[0]);
+            let cur = s.a + 0.5; const free = [];
+            cuts.forEach(([c0, c1]) => { if (c0 > cur) free.push([cur, Math.min(c0, s.b - 0.5)]); cur = Math.max(cur, c1); }); if (cur < s.b - 0.5) free.push([cur, s.b - 0.5]);
+            free.forEach(([f0, f1]) => { if (f1 - f0 > 2.5) { out.push({ h: s.h, p, f0, f1, sd, w: s.w }); window.SIDEWALKS.push(s.h ? [f0, p, f1, p] : [p, f0, p, f1]); } });
+        }));
+        const geo = new THREE.BoxGeometry(1, 1, 1), im = new THREE.InstancedMesh(geo, cm(0xd1d5db), out.length), ic = new THREE.InstancedMesh(geo, cm(0x94a3b8), out.length);
+        const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), S = new THREE.Vector3();
+        out.forEach((o, i) => {
+            const mid = (o.f0 + o.f1) / 2, len = o.f1 - o.f0, cp = o.p - o.sd * (SW / 2 - 0.12);
+            M.compose(o.h ? V.set(mid, 0.08, o.p) : V.set(o.p, 0.08, mid), Q, o.h ? S.set(len, 0.17, SW) : S.set(SW, 0.17, len)); im.setMatrixAt(i, M);
+            M.compose(o.h ? V.set(mid, 0.1, cp) : V.set(cp, 0.1, mid), Q, o.h ? S.set(len, 0.2, 0.24) : S.set(0.24, 0.2, len)); ic.setMatrixAt(i, M);
+        });
+        [im, ic].forEach(m => { m.userData.noCull = true; m.frustumCulled = false; m.receiveShadow = true; scene.add(m); });
+        /* pejalan kaki di trotoar */
+        const long = window.SIDEWALKS.filter(a => Math.hypot(a[2] - a[0], a[3] - a[1]) > 24), cols = [0xf59e0b, 0x16a34a, 0xdb2777, 0x2563eb, 0x7c3aed, 0xf8fafc, 0xef4444];
+        for (let i = 0; i < 40 && long.length; i++) {
+            const a = long[Math.floor(Math.random() * long.length)], L = Math.hypot(a[2] - a[0], a[3] - a[1]), seg = Math.min(L - 4, 18 + Math.random() * 28), t0 = (2 + Math.random() * (L - 4 - seg)) / L, t1 = t0 + seg / L;
+            const f = i % 2 === 0, pp = buildPerson({ shirt: pick(cols), hat: f ? undefined : pick(['peci', 'topi', undefined]), topi: 0x16a34a, hijab: f && i % 4 === 0 ? pick([0xdb2777, 0x7c3aed, 0x16a34a]) : undefined, skirt: f, longSleeve: f, pants: f ? 0x7c2d12 : 0x1e3a8a });
+            const A = [a[0] + (a[2] - a[0]) * t0, a[1] + (a[3] - a[1]) * t0], B = [a[0] + (a[2] - a[0]) * t1, a[1] + (a[3] - a[1]) * t1];
+            scene.add(pp.root); addDay(pp.root); pp.root.position.set(A[0], 0, A[1]);
+            wanderers.push({ p: pp, patrol: true, a: A, b: B, cx: A[0], cz: A[1], r: 0, tx: B[0], tz: B[1], wait: Math.random() * 3, sp: 1.6 + Math.random() * 0.5 });
+        }
+    })();
+    /* pejalan: dilarang masuk badan jalan */
+    window.pedRoad = (x, z, pad) => inRoad(x, z, pad) || RS.some(([x0, z0, x1, z1, w]) => x > Math.min(x0, x1) - w / 2 - pad && x < Math.max(x0, x1) + w / 2 + pad && z > Math.min(z0, z1) - w / 2 - pad && z < Math.max(z0, z1) + w / 2 + pad);
+    wanderers.forEach(w => {
+        if (w.still || w.patrol) return; const r = w.p.root;
+        if (!pedRoad(r.position.x, r.position.z, 0.6) && !pedRoad(w.cx, w.cz, 0.6)) return;
+        for (let rad = 1; rad < 30; rad += 1.5) for (let k = 0; k < 12; k++) { const x = r.position.x + Math.cos(k * 0.5236) * rad, z = r.position.z + Math.sin(k * 0.5236) * rad; if (!pedRoad(x, z, 1.2)) { r.position.set(x, 0, z); w.cx = x; w.cz = z; w.tx = x; w.tz = z; w.r = Math.min(w.r, 5); return; } }
+    });
+    /* warga desa */
+    for (let i = 0; i < 10; i++) {
+        const f = i % 2 === 0, cx = -300 - (i % 5) * 20, cz = i < 5 ? -24 : 24, pp = buildPerson({ shirt: pick([0xf59e0b, 0x16a34a, 0xdb2777, 0x2563eb, 0x7c3aed]), hat: f ? undefined : pick(['caping', 'peci', 'topi']), topi: 0x16a34a, hijab: f ? pick([0xdb2777, 0x7c3aed, 0x16a34a]) : undefined, skirt: f, longSleeve: f, pants: f ? 0x7c2d12 : 0x1e3a8a });
+        scene.add(pp.root); addDay(pp.root); pp.root.position.set(cx, 0, cz); wanderers.push({ p: pp, cx, cz, r: 9, tx: cx, tz: cz, wait: Math.random() * 4, sp: 1.6 });
+    }
     /* peta: ring & garis */
     BIGF.push({ t: 'r', x: 0, z: 0, w: 350, h: 350, c: 'rgba(0,0,0,0)', label: '' });
     camera.far = 330;
@@ -4329,13 +4986,86 @@ let _seed = 12345; const rnd = () => (_seed = (_seed * 16807) % 2147483647) / 21
     addEventListener('keydown', e => { if (e.code !== 'KeyM') return; const t = document.activeElement && document.activeElement.tagName; if (t === 'INPUT' || t === 'TEXTAREA') return; if (!ov.classList.contains('hidden')) close(); else if (!uiOpen()) open(); });
     addEventListener('resize', size);
 })();
+/* ===== v12: layar penuh (fullscreen) + resize ===== */
+(function () {
+    const de = document.documentElement;
+    const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+    const canFS = !!(de.requestFullscreen || de.webkitRequestFullscreen);
+    const iosHint = () => floatText('📱 iPhone: tekan Bagikan → "Tambah ke Layar Utama" untuk layar penuh', '#fde047');
+    async function toggleFS() {
+        try {
+            if (!fsEl()) {
+                if (!canFS) { iosHint(); return; }
+                await (de.requestFullscreen ? de.requestFullscreen({ navigationUI: 'hide' }) : de.webkitRequestFullscreen());
+                try { if (screen.orientation && screen.orientation.lock && innerWidth > innerHeight) await screen.orientation.lock('landscape'); } catch (_) { }
+            } else {
+                try { screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); } catch (_) { }
+                await (document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen());
+            }
+        } catch (e) { floatText('Layar penuh tidak didukung di sini', '#f87171'); }
+    }
+    window.toggleFS = toggleFS;
+    const mk = (id, cls, style) => { const b = document.createElement('button'); b.id = id; b.className = cls; b.title = 'Layar penuh (F)'; b.innerHTML = '<i class="fa-solid fa-expand"></i>'; if (style) b.style.cssText = style; b.addEventListener('click', e => { e.stopPropagation(); toggleFS(); }); return b; };
+    /* tombol di HUD (sebelum pengaturan) */
+    const st = document.getElementById('btn-settings'), hudBtn = mk('btn-fullscreen', 'action-btn bg-emerald-600 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center border-2 border-white/30 text-lg');
+    if (st) st.parentNode.insertBefore(hudBtn, st);
+    /* tombol di layar awal */
+    const stS = document.getElementById('btn-settings-start'), sBtn = mk('btn-fullscreen-start', 'action-btn pointer-events-auto absolute top-0 bg-emerald-600/90 w-11 h-11 rounded-2xl border-2 border-white/30 text-white', 'right:3.1rem');
+    if (stS) stS.parentNode.appendChild(sBtn);
+    /* tombol di splash */
+    const sp = document.getElementById('splash-screen'); if (sp) { const b = mk('btn-fullscreen-splash', 'action-btn', 'position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;width:44px;height:44px;border-radius:14px;background:rgba(5,150,105,.9);color:#fff;border:2px solid rgba(255,255,255,.35);font-size:18px;z-index:5'); sp.appendChild(b); }
+    const sync = () => { const on = !!fsEl(); document.querySelectorAll('#btn-fullscreen i,#btn-fullscreen-start i,#btn-fullscreen-splash i').forEach(i => { i.className = 'fa-solid ' + (on ? 'fa-compress' : 'fa-expand'); }); document.body.classList.toggle('is-fs', on); setTimeout(fit, 120); };
+    function fit() { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); }
+    ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, sync));
+    addEventListener('orientationchange', () => { setTimeout(fit, 250); setTimeout(fit, 700); });
+    if (window.visualViewport) visualViewport.addEventListener('resize', () => fit());
+    addEventListener('keydown', e => { if (e.code !== 'KeyF') return; const t = document.activeElement && document.activeElement.tagName; if (t === 'INPUT' || t === 'TEXTAREA') return; toggleFS(); });
+    /* mode layar luas: HUD otomatis ringkas di layar kecil, canvas pakai tinggi dinamis */
+    const cls = () => { const w = innerWidth, h = innerHeight, small = Math.min(w, h) < 600; document.body.classList.toggle('compact', small); document.body.classList.toggle('land', w > h); document.body.classList.toggle('tablet', Math.min(w, h) >= 600 && Math.min(w, h) < 900); };
+    cls(); addEventListener('resize', cls); addEventListener('orientationchange', () => setTimeout(cls, 300));
+})();
+/* ===== v12: pagar tidak boleh menutupi jalan ===== */
+(function () {
+    scene.updateMatrixWorld(true);
+    const rects = RS.map(([x0, z0, x1, z1, w]) => { const h = Math.abs(z1 - z0) < 1e-6; return [Math.min(x0, x1) - (h ? 0 : w / 2), Math.max(x0, x1) + (h ? 0 : w / 2), Math.min(z0, z1) - (h ? w / 2 : 0), Math.max(z0, z1) + (h ? w / 2 : 0)]; });
+    ROAD_V.forEach(([x, w]) => rects.push([x - w / 2, x + w / 2, -ROAD_ZL, ROAD_ZL])); ROAD_H.forEach(([z, w]) => rects.push([-(z === 0 ? 121 : ROAD_XL), z === 0 ? 121 : ROAD_XL, z - w / 2, z + w / 2]));
+    const inR = (p, pad) => rects.some(r => p.x > r[0] - pad && p.x < r[1] + pad && p.z > r[2] - pad && p.z < r[3] + pad);
+    const v = new THREE.Vector3(), fences = [];
+    scene.children.forEach(top => top.traverse(o => { if (o.isMesh && o.material && o.material.map === fenceTex && o.geometry.parameters && o.geometry.parameters.width) fences.push(o); }));
+    const PADR = 0.5;
+    const inside = (A, Bp, u0, u1, r) => {   /* interval t di dalam kotak jalan r (dipangkas ke [u0,u1]) */
+        let t0 = u0, t1 = u1; const ax = [[A.x, Bp.x - A.x, r[0] - PADR, r[1] + PADR], [A.z, Bp.z - A.z, r[2] - PADR, r[3] + PADR]];
+        for (const [p, d, lo, hi] of ax) { if (Math.abs(d) < 1e-9) { if (p < lo || p > hi) return null; } else { let ta = (lo - p) / d, tb = (hi - p) / d; if (ta > tb) { const t = ta; ta = tb; tb = t; } t0 = Math.max(t0, ta); t1 = Math.min(t1, tb); } }
+        return t0 < t1 ? [t0, t1] : null;
+    };
+    let cut = 0;
+    fences.forEach(o => {
+        const L = o.geometry.parameters.width / 2, h = o.geometry.parameters.height, A = o.localToWorld(v.set(-L, 0, 0)).clone(), Bp = o.localToWorld(v.set(L, 0, 0)).clone();
+        let pieces = [[0, 1]];
+        rects.forEach(r => { const nx = []; pieces.forEach(([u0, u1]) => { const it = inside(A, Bp, u0, u1, r); if (!it) { nx.push([u0, u1]); return; } if (it[0] - u0 > 1e-6) nx.push([u0, it[0]]); if (u1 - it[1] > 1e-6) nx.push([it[1], u1]); }); pieces = nx; });
+        if (pieces.length === 1 && pieces[0][0] === 0 && pieces[0][1] === 1) return;
+        const par = o.parent, len = 2 * L; cut++;
+        pieces.forEach(([u0, u1]) => {
+            const pl = (u1 - u0) * len; if (pl < 1.2) return;
+            const geo = new THREE.PlaneGeometry(pl, h), uv = geo.attributes.uv.array; for (let i = 0; i < uv.length; i += 2) uv[i] *= pl / 4;
+            const m = new THREE.Mesh(geo, o.material); m.rotation.copy(o.rotation); m.scale.copy(o.scale);
+            const mid = A.clone().lerp(Bp, (u0 + u1) / 2); par.worldToLocal(mid); m.position.set(mid.x, o.position.y, mid.z); par.add(m);
+        });
+        par.remove(o);
+    });
+    window.FENCE_REMOVED = cut;
+    /* pohon, semak, tiang di halaman rumah yang berdiri di badan jalan ikut dibuang */
+    let props = 0; houses.forEach(h => { const rm = []; h.g.children.forEach(o => { if (o.geometry && o.geometry.type === 'PlaneGeometry') return; if (o.isSprite) return; const p = o.getWorldPosition(new THREE.Vector3()); if (inR(p, 0.3)) rm.push(o); }); rm.forEach(o => { h.g.remove(o); props++; }); });
+    window.PROPS_REMOVED = props;
+    /* rapikan juga semak/pot yang berdiri tepat di badan jalan */
+})();
 /* ===== v10: render jarak pandang (distance culling) — objek jauh tidak digambar sama sekali ===== */
 const CULL = { list: [], hid: [], n: -1, R: 125, tick: 0 };
 function cullRebuild() {
     CULL.list.length = 0; const box = new THREE.Box3(), sp = new THREE.Sphere(), ctr = new THREE.Vector3();
     scene.children.forEach(o => {
         if (!(o.isMesh || o.isGroup || o.isSprite || o.isLine || o.isPoints)) return;
-        if (o === playerGroup) return;
+        if (o === playerGroup || (o.userData && o.userData.noCull)) return;
         box.setFromObject(o); if (box.isEmpty()) return; box.getBoundingSphere(sp);
         const ox = sp.center.x - o.position.x, oz = sp.center.z - o.position.z;
         CULL.list.push({ o, ox, oz, r: sp.radius + Math.hypot(ox, oz) });
@@ -4359,7 +5089,7 @@ function loop() {
     if (acc < step - 0.003) return;
     const dt = Math.min(acc, 0.1); acc = acc % step;
     update(dt);
-    cullPre(); renderer.render(scene, camera); cullPost();
+    RIG.billboards(camera); cullPre(); renderer.render(scene, camera); cullPost();
     fpsFrames++; fpsTime += dt;
     if (fpsTime >= 0.5) { if (state.settings.showFps) $('fps-chip').textContent = Math.round(fpsFrames / fpsTime) + ' FPS'; fpsFrames = 0; fpsTime = 0; }
 }
@@ -4374,6 +5104,166 @@ setPet(state.pet);
 rebuildNpcs();
 ensureDaily(); updateHUD(); updateBadge(); applyMute();
 $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
+/* ===== v20: MAIN BARENG ONLINE (PeerJS / WebRTC) — kode ruangan + QR, tuan rumah & peserta ===== */
+(function () {
+    const UP = ['https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js', 'https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js'], UQ = ['https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js', 'https://unpkg.com/qrcode-generator@1.4.4/qrcode.js'];
+    function loadJS(list, test) { return new Promise((res, rej) => { if (test()) return res(); let i = 0; const nx = () => { if (i >= list.length) return rej(); const s = document.createElement('script'); s.src = list[i++]; s.onload = () => res(); s.onerror = nx; document.head.appendChild(s); }; nx(); }); }
+    let PJp = null, QRp = null, QRtry = false;
+    const loadPeer = () => PJp || (PJp = loadJS(UP, () => window.Peer).catch(e => { PJp = null; throw e; })), loadQR = () => QRp || (QRp = loadJS(UQ, () => window.qrcode).catch(e => { QRp = null; throw e; }));
+    function qrSvg(t) { try { if (!window.qrcode) return ''; const q = qrcode(0, 'M'); q.addData(t); q.make(); return q.createSvgTag(5, 2); } catch (e) { return ''; } }
+    const genCode = () => { const a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s = ''; for (let i = 0; i < 4; i++) s += a[Math.random() * a.length | 0]; return s; }, rndTok = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+    const EM = ['🦊', '🐼', '🐯', '🐸', '🐵', '🦁', '🐰', '🐨', '🐙', '🦄', '🐧', '🐢'];
+    const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { } };
+    const JOIN = (new URLSearchParams(location.search).get('join') || '').trim().toUpperCase().slice(0, 4);
+    const web = /^https?:/.test(location.protocol);
+    const baseUrl = () => web ? location.origin + location.pathname : (lsGet('owurl') || '');
+    /* status: role = null | 'host' | 'client' */
+    const LB = { role: null, code: null, peer: null, players: [], ok: false, err: '', busy: false, me: null, tok: null, conn: null, lost: false, roster: [] };
+    const myName = () => (lsGet('owname') || state.name || 'Pemain').slice(0, 14);
+    const myLook = () => ({ skin: state.skin, hair: state.hair, shirt: state.shirt, hat: state.hat || 'none' });
+    /* ---------------- sisi tuan rumah ---------------- */
+    const sendL = (lp, m) => { try { lp && lp.conn && lp.conn.open && lp.conn.send(m); } catch (e) { } };
+    function hostInit() {
+        if (LB.peer || LB.busy) return; LB.busy = true; LB.role = 'host';
+        loadPeer().then(() => {
+            LB.busy = false; if (LB.role !== 'host') return; LB.code = genCode(); const pe = new Peer('ow-' + LB.code); LB.peer = pe;
+            pe.on('open', () => { LB.ok = true; LB.err = ''; LB.me = 0; render(); });
+            pe.on('connection', hostConn); pe.on('disconnected', () => { try { pe.reconnect(); } catch (e) { } });
+            pe.on('error', e => { if (e.type == 'unavailable-id') { LB.peer = null; try { pe.destroy(); } catch (x) { } hostInit(); } else { LB.err = 'Koneksi ke server perantara bermasalah (' + e.type + ')'; render(); } });
+        }).catch(() => { LB.busy = false; LB.err = 'PeerJS gagal dimuat — butuh koneksi internet'; render(); });
+    }
+    function hostOff() { try { LB.peer && LB.peer.destroy(); } catch (e) { } clearRemotes(); Object.assign(LB, { role: null, code: null, peer: null, players: [], ok: false, err: '', busy: false, me: null, roster: [] }); render(); }
+    function kick(i) { const p = LB.players[i]; if (!p) return; sendL(p, { t: 'kick' }); try { p.conn && p.conn.close(); } catch (e) { } LB.players.splice(i, 1); render(); }
+    function hostConn(c) { c.on('data', m => hostMsg(c, m)); const dr = () => { if (c._p && c._p.conn === c) { c._p.on = false; render(); } }; c.on('close', dr); c.on('error', dr); }
+    function hostMsg(c, m) {
+        if (!m || typeof m != 'object') return;
+        if (m.t == 'join') {
+            const nm = String(m.name || '').trim().slice(0, 14) || 'Pemain'; let p = m.tok && LB.players.find(x => x.tok === m.tok);
+            if (p) { p.conn = c; p.on = true; c._p = p; p.n = nm; }
+            else { if (LB.players.length >= 10) return c.send({ t: 'err', m: 'Ruangan penuh (maks. 10 pemain)' }); const id = 1 + (LB.players.reduce((a, x) => Math.max(a, x.id), 0)); p = { id, n: nm, e: EM[LB.players.length % 12], tok: rndTok(), conn: c, on: true, st: null }; LB.players.push(p); c._p = p; }
+            if (m.ap) p.ap = m.ap;
+            c.send({ t: 'joined', id: p.id, e: p.e, n: p.n, tok: p.tok, code: LB.code }); render();
+        } else if (m.t == 'pos' && c._p) { c._p.st = { x: +m.x || 0, y: +m.y || 0, z: +m.z || 0, r: +m.r || 0, mv: m.mv ? 1 : 0, air: m.air ? 1 : 0, pose: typeof m.pose == 'string' ? m.pose.slice(0, 16) : null, ih: m.ih ? 1 : 0 }; if (m.ap) c._p.ap = m.ap; c._p.seen = performance.now(); }
+    }
+    function snapshot() {
+        const out = [{ id: 0, n: myName(), e: EM[11], on: 1, ap: myLook(), ...selfState() }];
+        LB.players.forEach(p => { if (p.st) out.push({ id: p.id, n: p.n, e: p.e, on: p.on ? 1 : 0, ap: p.ap, ...p.st }); else out.push({ id: p.id, n: p.n, e: p.e, on: p.on ? 1 : 0, ap: p.ap, nopos: 1 }); });
+        return out;
+    }
+    /* ---------------- sisi peserta ---------------- */
+    function clientInit() {
+        LB.role = 'client'; LB.code = JOIN; LB.tok = lsGet('owtok-' + JOIN); LB.ask = !(LB.tok && lsGet('owname')); if (!LB.ask) clientConnect(); else render();
+    }
+    function clientConnect() {
+        LB.busy = true; LB.err = ''; render();
+        loadPeer().then(() => {
+            const pe = new Peer(); LB.peer = pe;
+            pe.on('open', () => { const c = pe.connect('ow-' + JOIN, { reliable: true }); LB.conn = c; c.on('open', () => c.send({ t: 'join', name: myName(), tok: LB.tok, ap: myLook() })); c.on('data', clientMsg); c.on('close', clientLost); c.on('error', clientLost); });
+            pe.on('error', e => { if (e.type == 'peer-unavailable') { LB.busy = false; LB.err = 'Kode ruangan "' + JOIN + '" tidak ditemukan. Periksa kode atau minta tuan rumah membuat ruangan lagi.'; LB.fatal = true; render(); } else clientLost(); });
+        }).catch(() => { LB.busy = false; LB.err = 'Tidak bisa memuat PeerJS — periksa koneksi internet'; render(); });
+    }
+    function clientLost() { if (LB.fatal || LB.kicked) return; LB.lost = true; render(); clearTimeout(LB.rt); LB.rt = setTimeout(() => { try { LB.peer && LB.peer.destroy(); } catch (e) { } clientConnect(); }, 2000); }
+    function clientMsg(m) {
+        if (!m || !m.t) return; LB.lost = false;
+        if (m.t == 'joined') { LB.busy = false; LB.ok = true; LB.me = m.id; LB.tok = m.tok; lsSet('owtok-' + JOIN, m.tok); LB.code = m.code || JOIN; floatText('🌐 Terhubung ke ruangan ' + LB.code, '#22d3ee'); }
+        else if (m.t == 'err') { LB.busy = false; LB.err = m.m; LB.fatal = true; }
+        else if (m.t == 'kick') { LB.kicked = true; LB.err = 'Kamu dikeluarkan dari ruangan oleh tuan rumah.'; lsSet('owtok-' + JOIN, ''); clearRemotes(); }
+        else if (m.t == 'snap') { applySnap(m.ps); const sig = m.ps.map(x => x.id + x.n + x.on).join('|'); if (sig === LB.sig) return; LB.sig = sig; LB.roster = m.ps; }
+        render();
+    }
+    function leave() { lsSet('owtok-' + JOIN, ''); try { LB.peer && LB.peer.destroy(); } catch (e) { } location.search = ''; }
+    /* ---------------- pemain jarak jauh di dunia ---------------- */
+    const remotes = {};
+    function selfState() { const g = playerGroup; return { x: +g.position.x.toFixed(2), y: +g.position.y.toFixed(2), z: +g.position.z.toFixed(2), r: +g.rotation.y.toFixed(3), mv: movingNow ? 1 : 0, air: airNow ? 1 : 0, pose: player.pose || null, ih: inHouse ? 1 : 0 }; }
+    let movingNow = false, airNow = false;
+    function clearRemotes() { Object.keys(remotes).forEach(k => { scene.remove(remotes[k].g); delete remotes[k]; }); }
+    function mkRemote(d) {
+        const ap = d.ap || {}, av = buildAvatar({ skin: ap.skin ?? 0xf1c27d, hair: ap.hair ?? 0x2b1b12, shirt: ap.shirt ?? 0x2563eb, pants: 0x1e3a8a, hat: ap.hat || 'none' });
+        const g = new THREE.Group(); g.add(av.group); const tag = labelSprite(d.n, '#0ea5e9', 5, 1.25); tag.position.y = 4.6; g.add(tag);
+        g.position.set(d.x || 0, d.y || 0, d.z || 0); scene.add(g);
+        return { g, av, tag, name: d.n, hat: ap.hat || 'none', pose: null, tx: d.x || 0, ty: d.y || 0, tz: d.z || 0, tr: d.r || 0, mv: 0, air: 0 };
+    }
+    function applySnap(ps) {
+        const seen = {};
+        (ps || []).forEach(d => {
+            if (d.id === LB.me) return; seen[d.id] = 1;
+            let r = remotes[d.id]; if (!r && d.nopos) return; if (!r) r = remotes[d.id] = mkRemote(d);
+            if (d.nopos) return;
+            if (r.name !== d.n) { r.name = d.n; r.g.remove(r.tag); r.tag = labelSprite(d.n, '#0ea5e9', 5, 1.25); r.tag.position.y = 4.6; r.g.add(r.tag); }
+            const ap = d.ap || {}; if (ap.skin != null) { r.av.skinM.color.setHex(ap.skin); r.av.hairM.color.setHex(ap.hair); r.av.shirtM.color.setHex(ap.shirt); if ((ap.hat || 'none') !== r.hat) { r.hat = ap.hat || 'none'; r.av.setHat(r.hat); } }
+            r.tx = d.x; r.ty = d.y; r.tz = d.z; r.tr = d.r; r.mv = d.mv; r.air = d.air; r.ih = d.ih; r.on = d.on; r.npose = d.pose;
+        });
+        Object.keys(remotes).forEach(k => { if (!seen[k]) { scene.remove(remotes[k].g); delete remotes[k]; } });
+    }
+    const angD = (a, b) => Math.atan2(Math.sin(b - a), Math.cos(b - a));
+    function tickRemotes(dt, t) {
+        const k = 1 - Math.exp(-dt * 10);
+        Object.values(remotes).forEach(r => {
+            const g = r.g; const far = Math.hypot(r.tx - g.position.x, r.tz - g.position.z) > 25;
+            if (far) g.position.set(r.tx, r.ty, r.tz); else { g.position.x += (r.tx - g.position.x) * k; g.position.y += (r.ty - g.position.y) * k; g.position.z += (r.tz - g.position.z) * k; }
+            g.rotation.y += angD(g.rotation.y, r.tr) * k;
+            g.visible = r.on !== 0 && (!!r.ih === !!inHouse);
+            if (!g.visible) return;
+            if (r.npose !== r.pose) { r.pose = r.npose; if (r.pose) r.av.setPose(r.pose, t, 1e9); else r.av.pose = null; }
+            r.av.animate(t, !!r.mv, 1, !!r.air);
+        });
+    }
+    /* ---------------- siklus per-frame ---------------- */
+    let acc = 0, lastPos = new THREE.Vector3();
+    const _uw = updateWorld;
+    updateWorld = function (dt, k, t, p) {
+        _uw(dt, k, t, p);
+        const g = playerGroup, dx = g.position.x - lastPos.x, dz = g.position.z - lastPos.z; movingNow = Math.hypot(dx, dz) > 0.003; airNow = g.position.y > 0.6; lastPos.copy(g.position);
+        if (!LB.role) return;
+        tickRemotes(dt, t); acc += dt; if (acc < 0.1) return; acc = 0;
+        if (LB.role == 'host' && LB.ok) { const ps = snapshot(); LB.roster = ps; LB.players.forEach(p2 => sendL(p2, { t: 'snap', ps })); applySnap(ps.map(x => x)); }
+        else if (LB.role == 'client' && LB.ok && LB.conn && LB.conn.open) { try { LB.conn.send({ t: 'pos', ...selfState(), ap: myLook() }); } catch (e) { } }
+    };
+    /* host: snapshot dirinya sendiri memakai id 0 -> LB.me = 0 sehingga tidak membuat avatar untuk dirinya */
+    /* ---------------- UI ---------------- */
+    const mkEl = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html) e.innerHTML = html; return e; };
+    const chip = mkEl('button', 'fixed top-2 left-1/2 -translate-x-1/2 z-40 bg-slate-900/80 text-cyan-300 font-black text-xs px-3 py-1 rounded-full border border-cyan-400/50 hidden'); document.body.appendChild(chip); chip.onclick = () => openUI();
+    const modal = mkEl('div', 'fixed inset-0 bg-slate-950/75 backdrop-blur-md z-[70] flex items-center justify-center p-4 hidden'); document.body.appendChild(modal);
+    modal.addEventListener('pointerdown', e => { if (e.target === modal) closeUI(); });
+    function openUI() { modal.classList.remove('hidden'); render(); } function closeUI() { modal.classList.add('hidden'); }
+    function playersHtml() {
+        const list = LB.role == 'host' ? [{ e: EM[11], n: myName() + ' (kamu)', on: true }, ...LB.players.map((p, i) => ({ e: p.e, n: p.n, on: p.on, i }))] : (LB.roster || []).map(p => ({ e: p.e || '🙂', n: p.n + (p.id === LB.me ? ' (kamu)' : ''), on: p.on }));
+        return `<div class="flex flex-col gap-2 my-3">${list.map(p => `<div class="flex items-center gap-2 bg-slate-800 rounded-xl px-3 py-2"><span class="text-xl">${p.e}</span><b class="flex-1 text-left text-sm">${esc(p.n)}</b><span class="text-xs">${p.on ? '🟢' : '⚪ terputus'}</span>${p.i != null ? `<button class="bg-red-500/80 rounded-lg px-2 text-sm" data-kick="${p.i}">✖</button>` : ''}</div>`).join('') || '<small class="text-slate-400">Belum ada pemain lain…</small>'}</div>`;
+    }
+    function render() {
+        const on = !!LB.role, n = LB.role == 'host' ? LB.players.length + 1 : (LB.roster || []).length;
+        chip.classList.toggle('hidden', !on || !started); chip.textContent = on ? `🌐 ${LB.code || JOIN} · ${n} pemain` + (LB.lost ? ' · terputus…' : '') : '';
+        const btn = 'w-full font-black py-3 rounded-2xl mt-2 border-2 border-white/20 ';
+        let h = '<div class="bg-slate-900 border-2 border-cyan-400/50 rounded-3xl p-5 w-full max-w-md max-h-[90vh] overflow-y-auto text-center text-white"><h2 class="text-xl font-black mb-1">🌐 Main Bareng Online</h2>';
+        if (!LB.role) {
+            h += `<p class="text-sm text-slate-300">Jelajahi dunia bersama teman! Satu orang membuat ruangan, yang lain bergabung memakai kode atau QR.</p>
+            <button data-a="host" class="${btn}bg-emerald-500 text-slate-950">🏠 Buat Ruangan (jadi tuan rumah)</button><button data-a="join" class="${btn}bg-sky-500 text-white">🔑 Gabung dengan Kode</button>`;
+        } else if (LB.role == 'host') {
+            const u = LB.code && baseUrl() ? baseUrl() + '?join=' + LB.code : '', qr = u ? qrSvg(u) : '';
+            if (u && !qr && !window.qrcode && !QRtry) { QRtry = true; loadQR().then(() => render()).catch(() => { }); }
+            h += LB.err ? `<p class="text-red-300 text-sm">⚠️ ${esc(LB.err)}</p>` : !LB.ok ? '<p>⏳ Membuat ruangan…</p>' : `<div class="flex gap-4 flex-wrap items-center justify-center my-3">${qr ? `<div class="bg-white rounded-2xl p-1.5" style="width:190px;height:190px">${qr}</div>` : ''}<div><div class="opacity-80 text-sm">Kode ruangan</div><div style="font-size:3.2rem;font-weight:900;letter-spacing:.2em;text-shadow:0 0 14px #22d3ee">${LB.code}</div>${u ? `<div class="text-xs opacity-90 break-all max-w-[260px]">atau buka:<br><b>${esc(u)}</b></div>` : ''}<button data-a="copy" class="mt-2 bg-cyan-600 rounded-xl px-3 py-1 text-sm font-black">📋 Salin ${u ? 'tautan' : 'kode'}</button></div></div>
+            ${web ? '' : `<div class="my-2"><small class="text-slate-300">⚠️ File ini dibuka dari komputer (bukan alamat web), jadi HP belum bisa membukanya. Unggah file ini ke hosting web gratis (GitHub Pages / Netlify / Cloudflare Pages) lalu tempel alamatnya di bawah. Teman juga bisa membuka alamat itu lalu menekan "Gabung dengan Kode" dan memasukkan kode.</small><input id="ow-url" class="w-full mt-2 p-2 rounded-xl text-slate-900" placeholder="https://contoh.github.io/openworld/" value="${esc(lsGet('owurl') || '')}"></div>`}`;
+            h += playersHtml() + `<button data-a="off" class="${btn}bg-red-500 text-white">🛑 Tutup Ruangan</button>`;
+        } else {
+            if (LB.ask) h += `<p class="text-sm">Kode ruangan: <b class="tracking-widest text-lg">${JOIN}</b></p><input id="ow-name" maxlength=14 placeholder="Tulis namamu" value="${esc(lsGet('owname') || state.name || '')}" class="w-full p-3 rounded-2xl text-slate-900 text-center text-lg mt-2"><button data-a="go" class="${btn}bg-emerald-500 text-slate-950">🚀 Gabung</button>`;
+            else h += LB.err ? `<p class="text-red-300 text-sm">⚠️ ${esc(LB.err)}</p><button data-a="leave" class="${btn}bg-slate-700 text-white">🏠 Keluar</button>` : !LB.ok ? `<p>📡 Menghubungkan ke ruangan <b>${JOIN}</b>…</p>` : `<p class="text-emerald-300">✅ Terhubung ke ruangan <b>${LB.code}</b></p>` + playersHtml() + `<button data-a="leave" class="${btn}bg-slate-700 text-white">🚪 Keluar dari ruangan</button>`;
+        }
+        h += `<button data-a="close" class="${btn}bg-slate-800 text-slate-300">Tutup</button></div>`;
+        if (LB.lost) h += '<div class="absolute inset-0 flex items-center justify-center pointer-events-none"><div class="bg-slate-900/90 border border-yellow-400 rounded-2xl p-4 font-black">📡 Terputus… menyambung ulang otomatis</div></div>';
+        modal.innerHTML = h;
+        modal.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { const a = b.dataset.a; if (a == 'host') hostInit(), render(); else if (a == 'join') { const c = prompt('Masukkan kode ruangan (4 karakter):'); if (c) location.search = '?join=' + encodeURIComponent(c.trim()); } else if (a == 'go') { const v = (modal.querySelector('#ow-name') || {}).value; const nm = (v || '').trim().slice(0, 14); if (!nm) return; lsSet('owname', nm); LB.ask = false; clientConnect(); } else if (a == 'copy') { const u2 = baseUrl() ? baseUrl() + '?join=' + LB.code : LB.code; try { navigator.clipboard.writeText(u2); } catch (e) { } floatText('📋 Tersalin: ' + u2, '#22d3ee'); } else if (a == 'off') hostOff(); else if (a == 'leave') leave(); else closeUI(); });
+        modal.querySelectorAll('[data-kick]').forEach(b => b.onclick = () => kick(+b.dataset.kick));
+        const ui = modal.querySelector('#ow-url'); if (ui) ui.onchange = () => { lsSet('owurl', ui.value.trim()); render(); };
+    }
+    /* tombol di HUD & layar awal */
+    const mkBtn = (id, cls, style) => { const b = mkEl('button', cls); b.id = id; b.title = 'Main bareng online'; b.innerHTML = '🌐'; if (style) b.style.cssText = style; b.addEventListener('click', e => { e.stopPropagation(); openUI(); }); return b; };
+    const st = $('btn-settings'); if (st) st.parentNode.insertBefore(mkBtn('btn-online', 'action-btn bg-cyan-600 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center border-2 border-white/30 text-lg'), st);
+    const stS = $('btn-settings-start'); if (stS) stS.parentNode.appendChild(mkBtn('btn-online-start', 'action-btn pointer-events-auto absolute top-0 bg-cyan-600/90 w-11 h-11 rounded-2xl border-2 border-white/30 text-white', 'right:6.2rem'));
+    window.OW = { LB, openUI, hostInit };
+    /* gabung otomatis dari tautan ?join=KODE */
+    if (JOIN) { clientInit(); openUI(); }
+})();
+
 loop();
 </script>
 </body>
