@@ -5127,7 +5127,7 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
         if (LB.peer || LB.busy) return; LB.busy = true; LB.role = 'host';
         loadPeer().then(() => {
             LB.busy = false; if (LB.role !== 'host') return; LB.code = genCode(); const pe = new Peer('ow-' + LB.code); LB.peer = pe;
-            pe.on('open', () => { LB.ok = true; LB.err = ''; LB.me = 0; render(); });
+            pe.on('open', () => { LB.ok = true; LB.err = ''; LB.me = 0; if (!LB.ms) hostStartMission(0); render(); });
             pe.on('connection', hostConn); pe.on('disconnected', () => { try { pe.reconnect(); } catch (e) { } });
             pe.on('error', e => { if (e.type == 'unavailable-id') { LB.peer = null; try { pe.destroy(); } catch (x) { } hostInit(); } else { LB.err = 'Koneksi ke server perantara bermasalah (' + e.type + ')'; render(); } });
         }).catch(() => { LB.busy = false; LB.err = 'PeerJS gagal dimuat — butuh koneksi internet'; render(); });
@@ -5144,6 +5144,9 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
             if (m.ap) p.ap = m.ap;
             c.send({ t: 'joined', id: p.id, e: p.e, n: p.n, tok: p.tok, code: LB.code }); render();
         } else if (m.t == 'pos' && c._p) { c._p.st = { x: +m.x || 0, y: +m.y || 0, z: +m.z || 0, r: +m.r || 0, mv: m.mv ? 1 : 0, air: m.air ? 1 : 0, pose: typeof m.pose == 'string' ? m.pose.slice(0, 16) : null, ih: m.ih ? 1 : 0 }; if (m.ap) c._p.ap = m.ap; c._p.seen = performance.now(); }
+        else if (m.t == 'ev' && c._p) hostEv(String(m.k), Math.min(5, Math.max(0, +m.n || 0)), c._p.n);
+        else if (m.t == 'chat' && c._p) { const txt = String(m.txt || '').slice(0, 40); showChat(c._p.id, txt); LB.players.forEach(p => { if (p !== c._p) sendL(p, { t: 'chat', id: c._p.id, txt }); }); }
+        else if (m.t == 'emo' && c._p) relayEmo(c._p.id, +m.to, String(m.k).slice(0, 8));
     }
     function snapshot() {
         const out = [{ id: 0, n: myName(), e: EM[11], on: 1, ap: myLook(), ...selfState() }];
@@ -5168,7 +5171,9 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
         if (m.t == 'joined') { LB.busy = false; LB.ok = true; LB.me = m.id; LB.tok = m.tok; lsSet('owtok-' + JOIN, m.tok); LB.code = m.code || JOIN; floatText('🌐 Terhubung ke ruangan ' + LB.code, '#22d3ee'); }
         else if (m.t == 'err') { LB.busy = false; LB.err = m.m; LB.fatal = true; }
         else if (m.t == 'kick') { LB.kicked = true; LB.err = 'Kamu dikeluarkan dari ruangan oleh tuan rumah.'; lsSet('owtok-' + JOIN, ''); clearRemotes(); }
-        else if (m.t == 'snap') { applySnap(m.ps); const sig = m.ps.map(x => x.id + x.n + x.on).join('|'); if (sig === LB.sig) return; LB.sig = sig; LB.roster = m.ps; }
+        else if (m.t == 'chat') showChat(m.id, String(m.txt || '').slice(0, 40));
+        else if (m.t == 'emo') recvEmo(m.from, String(m.k));
+        else if (m.t == 'snap') { applySnap(m.ps); LB.ms = m.ms || null; applyMs(); const sig = m.ps.map(x => x.id + x.n + x.on).join('|'); if (sig === LB.sig) return; LB.sig = sig; LB.roster = m.ps; }
         render();
     }
     function leave() { lsSet('owtok-' + JOIN, ''); try { LB.peer && LB.peer.destroy(); } catch (e) { } location.search = ''; }
@@ -5176,12 +5181,17 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
     const remotes = {};
     function selfState() { const g = playerGroup; return { x: +g.position.x.toFixed(2), y: +g.position.y.toFixed(2), z: +g.position.z.toFixed(2), r: +g.rotation.y.toFixed(3), mv: movingNow ? 1 : 0, air: airNow ? 1 : 0, pose: player.pose || null, ih: inHouse ? 1 : 0 }; }
     let movingNow = false, airNow = false;
-    function clearRemotes() { Object.keys(remotes).forEach(k => { scene.remove(remotes[k].g); delete remotes[k]; }); }
+    function dropRemote(k) { const r = remotes[k]; if (!r) return; scene.remove(r.g); const ix = interactables.indexOf(r.it); if (ix >= 0) interactables.splice(ix, 1); floatText('👋 ' + r.name + ' keluar', '#fca5a5'); delete remotes[k]; }
+    function clearRemotes() { Object.keys(remotes).forEach(k => dropRemote(k)); }
     function mkRemote(d) {
         const ap = d.ap || {}, av = buildAvatar({ skin: ap.skin ?? 0xf1c27d, hair: ap.hair ?? 0x2b1b12, shirt: ap.shirt ?? 0x2563eb, pants: 0x1e3a8a, hat: ap.hat || 'none' });
         const g = new THREE.Group(); g.add(av.group); const tag = labelSprite(d.n, '#0ea5e9', 5, 1.25); tag.position.y = 4.6; g.add(tag);
         g.position.set(d.x || 0, d.y || 0, d.z || 0); scene.add(g);
-        return { g, av, tag, name: d.n, hat: ap.hat || 'none', pose: null, tx: d.x || 0, ty: d.y || 0, tz: d.z || 0, tr: d.r || 0, mv: 0, air: 0 };
+        const bub = makeBubble(); bub.sprite.position.y = 5.8; g.add(bub.sprite);
+        const r = { g, av, tag, bub, name: d.n, hat: ap.hat || 'none', pose: null, tx: d.x || 0, ty: d.y || 0, tz: d.z || 0, tr: d.r || 0, mv: 0, air: 0, id: d.id };
+        r.it = { id: 'ow' + d.id, type: 'roomact', indoor: false, pos: g.position, radius: 4.2, label: () => `${KINDS[kindI][1]} ${r.name} ${KINDS[kindI][2]}`, hideIf: () => !g.visible, fn: () => pairEmote(d.id) }; interactables.push(r.it);
+        floatText('👋 ' + d.n + ' bergabung', '#4ade80'); burst(d.x || 0, d.y || 0, d.z || 0, null, 24, 4);
+        return r;
     }
     function applySnap(ps) {
         const seen = {};
@@ -5193,7 +5203,7 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
             const ap = d.ap || {}; if (ap.skin != null) { r.av.skinM.color.setHex(ap.skin); r.av.hairM.color.setHex(ap.hair); r.av.shirtM.color.setHex(ap.shirt); if ((ap.hat || 'none') !== r.hat) { r.hat = ap.hat || 'none'; r.av.setHat(r.hat); } }
             r.tx = d.x; r.ty = d.y; r.tz = d.z; r.tr = d.r; r.mv = d.mv; r.air = d.air; r.ih = d.ih; r.on = d.on; r.npose = d.pose;
         });
-        Object.keys(remotes).forEach(k => { if (!seen[k]) { scene.remove(remotes[k].g); delete remotes[k]; } });
+        Object.keys(remotes).forEach(k => { if (!seen[k]) dropRemote(k); });
     }
     const angD = (a, b) => Math.atan2(Math.sin(b - a), Math.cos(b - a));
     function tickRemotes(dt, t) {
@@ -5205,7 +5215,7 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
             g.visible = r.on !== 0 && (!!r.ih === !!inHouse);
             if (!g.visible) return;
             if (r.npose !== r.pose) { r.pose = r.npose; if (r.pose) r.av.setPose(r.pose, t, 1e9); else r.av.pose = null; }
-            r.av.animate(t, !!r.mv, 1, !!r.air);
+            r.av.animate(t, !!r.mv, 1, !!r.air); r.bub.update(); r.dt = dust(g.position.x, g.position.z, dt, r.mv, r.air, r.dt || 0);
         });
     }
     /* ---------------- siklus per-frame ---------------- */
@@ -5214,9 +5224,10 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
     updateWorld = function (dt, k, t, p) {
         _uw(dt, k, t, p);
         const g = playerGroup, dx = g.position.x - lastPos.x, dz = g.position.z - lastPos.z; movingNow = Math.hypot(dx, dz) > 0.003; airNow = g.position.y > 0.6; lastPos.copy(g.position);
+        tickParticles(dt); dustT = dust(g.position.x, g.position.z, dt, movingNow, airNow, dustT);
         if (!LB.role) return;
         tickRemotes(dt, t); acc += dt; if (acc < 0.1) return; acc = 0;
-        if (LB.role == 'host' && LB.ok) { const ps = snapshot(); LB.roster = ps; LB.players.forEach(p2 => sendL(p2, { t: 'snap', ps })); applySnap(ps.map(x => x)); }
+        if (LB.role == 'host' && LB.ok) { const ps = snapshot(); LB.roster = ps; if (LB.ms && LB.ms.done && performance.now() - LB.ms.doneAt > 12000) hostStartMission(LB.ms.i + 1); LB.players.forEach(p2 => sendL(p2, { t: 'snap', ps, ms: LB.ms })); applySnap(ps.map(x => x)); applyMs(); }
         else if (LB.role == 'client' && LB.ok && LB.conn && LB.conn.open) { try { LB.conn.send({ t: 'pos', ...selfState(), ap: myLook() }); } catch (e) { } }
     };
     /* host: snapshot dirinya sendiri memakai id 0 -> LB.me = 0 sehingga tidak membuat avatar untuk dirinya */
@@ -5232,7 +5243,7 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
     }
     function render() {
         const on = !!LB.role, n = LB.role == 'host' ? LB.players.length + 1 : (LB.roster || []).length;
-        chip.classList.toggle('hidden', !on || !started); chip.textContent = on ? `🌐 ${LB.code || JOIN} · ${n} pemain` + (LB.lost ? ' · terputus…' : '') : '';
+        chip.classList.toggle('hidden', !on || !started); chatBtn.style.display = on && started ? 'block' : 'none'; if (!on) { LB.ms = null; applyMs(); } chip.textContent = on ? `🌐 ${LB.code || JOIN} · ${n} pemain` + (LB.lost ? ' · terputus…' : '') : '';
         const btn = 'w-full font-black py-3 rounded-2xl mt-2 border-2 border-white/20 ';
         let h = '<div class="bg-slate-900 border-2 border-cyan-400/50 rounded-3xl p-5 w-full max-w-md max-h-[90vh] overflow-y-auto text-center text-white"><h2 class="text-xl font-black mb-1">🌐 Main Bareng Online</h2>';
         if (!LB.role) {
@@ -5243,7 +5254,7 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
             if (u && !qr && !window.qrcode && !QRtry) { QRtry = true; loadQR().then(() => render()).catch(() => { }); }
             h += LB.err ? `<p class="text-red-300 text-sm">⚠️ ${esc(LB.err)}</p>` : !LB.ok ? '<p>⏳ Membuat ruangan…</p>' : `<div class="flex gap-4 flex-wrap items-center justify-center my-3">${qr ? `<div class="bg-white rounded-2xl p-1.5" style="width:190px;height:190px">${qr}</div>` : ''}<div><div class="opacity-80 text-sm">Kode ruangan</div><div style="font-size:3.2rem;font-weight:900;letter-spacing:.2em;text-shadow:0 0 14px #22d3ee">${LB.code}</div>${u ? `<div class="text-xs opacity-90 break-all max-w-[260px]">atau buka:<br><b>${esc(u)}</b></div>` : ''}<button data-a="copy" class="mt-2 bg-cyan-600 rounded-xl px-3 py-1 text-sm font-black">📋 Salin ${u ? 'tautan' : 'kode'}</button></div></div>
             ${web ? '' : `<div class="my-2"><small class="text-slate-300">⚠️ File ini dibuka dari komputer (bukan alamat web), jadi HP belum bisa membukanya. Unggah file ini ke hosting web gratis (GitHub Pages / Netlify / Cloudflare Pages) lalu tempel alamatnya di bawah. Teman juga bisa membuka alamat itu lalu menekan "Gabung dengan Kode" dan memasukkan kode.</small><input id="ow-url" class="w-full mt-2 p-2 rounded-xl text-slate-900" placeholder="https://contoh.github.io/openworld/" value="${esc(lsGet('owurl') || '')}"></div>`}`;
-            h += playersHtml() + `<button data-a="off" class="${btn}bg-red-500 text-white">🛑 Tutup Ruangan</button>`;
+            h += `<div class="my-2 text-left"><b class="text-sm">🎯 Misi Bersama</b>${MIS.map((m, i) => `<button data-ms="${i}" class="w-full text-left text-sm bg-slate-800 rounded-xl px-3 py-2 mt-1 ${LB.ms && LB.ms.i === i ? 'border-2 border-cyan-400' : ''}">${esc(m.t)} · 🪙${m.c}</button>`).join('')}</div>` + playersHtml() + `<button data-a="off" class="${btn}bg-red-500 text-white">🛑 Tutup Ruangan</button>`;
         } else {
             if (LB.ask) h += `<p class="text-sm">Kode ruangan: <b class="tracking-widest text-lg">${JOIN}</b></p><input id="ow-name" maxlength=14 placeholder="Tulis namamu" value="${esc(lsGet('owname') || state.name || '')}" class="w-full p-3 rounded-2xl text-slate-900 text-center text-lg mt-2"><button data-a="go" class="${btn}bg-emerald-500 text-slate-950">🚀 Gabung</button>`;
             else h += LB.err ? `<p class="text-red-300 text-sm">⚠️ ${esc(LB.err)}</p><button data-a="leave" class="${btn}bg-slate-700 text-white">🏠 Keluar</button>` : !LB.ok ? `<p>📡 Menghubungkan ke ruangan <b>${JOIN}</b>…</p>` : `<p class="text-emerald-300">✅ Terhubung ke ruangan <b>${LB.code}</b></p>` + playersHtml() + `<button data-a="leave" class="${btn}bg-slate-700 text-white">🚪 Keluar dari ruangan</button>`;
@@ -5252,6 +5263,7 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
         if (LB.lost) h += '<div class="absolute inset-0 flex items-center justify-center pointer-events-none"><div class="bg-slate-900/90 border border-yellow-400 rounded-2xl p-4 font-black">📡 Terputus… menyambung ulang otomatis</div></div>';
         modal.innerHTML = h;
         modal.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { const a = b.dataset.a; if (a == 'host') hostInit(), render(); else if (a == 'join') { const c = prompt('Masukkan kode ruangan (4 karakter):'); if (c) location.search = '?join=' + encodeURIComponent(c.trim()); } else if (a == 'go') { const v = (modal.querySelector('#ow-name') || {}).value; const nm = (v || '').trim().slice(0, 14); if (!nm) return; lsSet('owname', nm); LB.ask = false; clientConnect(); } else if (a == 'copy') { const u2 = baseUrl() ? baseUrl() + '?join=' + LB.code : LB.code; try { navigator.clipboard.writeText(u2); } catch (e) { } floatText('📋 Tersalin: ' + u2, '#22d3ee'); } else if (a == 'off') hostOff(); else if (a == 'leave') leave(); else closeUI(); });
+        modal.querySelectorAll('[data-ms]').forEach(b => b.onclick = () => { hostStartMission(+b.dataset.ms); applyMs(); render(); });
         modal.querySelectorAll('[data-kick]').forEach(b => b.onclick = () => kick(+b.dataset.kick));
         const ui = modal.querySelector('#ow-url'); if (ui) ui.onchange = () => { lsSet('owurl', ui.value.trim()); render(); };
     }
@@ -5259,7 +5271,58 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
     const mkBtn = (id, cls, style) => { const b = mkEl('button', cls); b.id = id; b.title = 'Main bareng online'; b.innerHTML = '🌐'; if (style) b.style.cssText = style; b.addEventListener('click', e => { e.stopPropagation(); openUI(); }); return b; };
     const st = $('btn-settings'); if (st) st.parentNode.insertBefore(mkBtn('btn-online', 'action-btn bg-cyan-600 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center border-2 border-white/30 text-lg'), st);
     const stS = $('btn-settings-start'); if (stS) stS.parentNode.appendChild(mkBtn('btn-online-start', 'action-btn pointer-events-auto absolute top-0 bg-cyan-600/90 w-11 h-11 rounded-2xl border-2 border-white/30 text-white', 'right:6.2rem'));
-    window.OW = { LB, openUI, hostInit };
+    /* ================= v21: MISI BERSAMA, CHAT CEPAT, EMOTE BERDUA, EFEK ================= */
+    const st0 = document.createElement('style');
+    st0.textContent = '@keyframes owban{0%{transform:translate(-50%,-30px) scale(.7);opacity:0}15%{transform:translate(-50%,0) scale(1.08);opacity:1}25%{transform:translate(-50%,0) scale(1)}85%{opacity:1}100%{transform:translate(-50%,-10px);opacity:0}}#ow-banner{position:fixed;top:64px;left:50%;z-index:80;pointer-events:none;background:linear-gradient(90deg,#0891b2,#7c3aed);color:#fff;font-weight:900;padding:10px 20px;border-radius:18px;border:3px solid #fff;box-shadow:0 8px 24px #0006;max-width:90vw;text-align:center;animation:owban 3.6s ease forwards}#ow-ms{position:fixed;top:56px;right:8px;z-index:40;width:230px;background:#0f172acc;border:2px solid #22d3ee88;border-radius:16px;padding:8px 10px;color:#fff;font-size:12px;display:none;cursor:pointer}#ow-ms .bar{height:10px;background:#334155;border-radius:6px;overflow:hidden;margin:5px 0}#ow-ms .bar i{display:block;height:100%;background:linear-gradient(90deg,#22d3ee,#4ade80);transition:width .4s}#ow-chat{position:fixed;left:12px;bottom:178px;z-index:40;display:none;flex-direction:column;gap:6px}#ow-chat button.q{background:#0e7490;color:#fff;font-weight:800;border-radius:14px;padding:6px 10px;border:2px solid #fff4;text-align:left;font-size:13px}';
+    document.head.appendChild(st0);
+    const banner = txt => { const old = $('ow-banner'); if (old) old.remove(); const b = mkEl('div', '', esc(txt)); b.id = 'ow-banner'; document.body.appendChild(b); setTimeout(() => b.remove(), 3700); };
+    /* --- partikel (kolam tetap, ringan) --- */
+    const NP = 260, pPos = new Float32Array(NP * 3).fill(-100), pCol = new Float32Array(NP * 3), pVel = new Float32Array(NP * 3), pLife = new Float32Array(NP);
+    const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pPos, 3)); pg.setAttribute('color', new THREE.BufferAttribute(pCol, 3));
+    const pts = new THREE.Points(pg, new THREE.PointsMaterial({ size: 0.75, vertexColors: true, transparent: true, depthWrite: false })); pts.frustumCulled = false; pts.userData.noCull = true; scene.add(pts);
+    let pI = 0; const tc = new THREE.Color();
+    function emit(x, y, z, vx, vy, vz, col, life) { const i = (pI++) % NP; tc.set(col); pPos[i * 3] = x; pPos[i * 3 + 1] = y; pPos[i * 3 + 2] = z; pVel[i * 3] = vx; pVel[i * 3 + 1] = vy; pVel[i * 3 + 2] = vz; pCol[i * 3] = tc.r; pCol[i * 3 + 1] = tc.g; pCol[i * 3 + 2] = tc.b; pLife[i] = life; }
+    const CONF = [0xfacc15, 0xf472b6, 0x38bdf8, 0x4ade80, 0xfb923c, 0xc084fc];
+    function burst(x, y, z, col, n, sp) { for (let k = 0; k < n; k++) { const a = Math.random() * 6.28, u = Math.random(); emit(x, y + 0.8, z, Math.cos(a) * sp * u, 3 + Math.random() * sp, Math.sin(a) * sp * u, col == null ? CONF[k % 6] : col, 0.9 + Math.random() * 0.7); } }
+    function tickParticles(dt) { let any = false; for (let i = 0; i < NP; i++) { if (pLife[i] <= 0) continue; any = true; pLife[i] -= dt; pVel[i * 3 + 1] -= 9 * dt; pPos[i * 3] += pVel[i * 3] * dt; pPos[i * 3 + 1] += pVel[i * 3 + 1] * dt; pPos[i * 3 + 2] += pVel[i * 3 + 2] * dt; if (pPos[i * 3 + 1] < 0.05) { pPos[i * 3 + 1] = 0.05; pVel[i * 3 + 1] *= -0.3; } if (pLife[i] <= 0) pPos[i * 3 + 1] = -100; } if (any) { pg.attributes.position.needsUpdate = true; pg.attributes.color.needsUpdate = true; } }
+    const dust = (x, z, dt, mv, air, acc) => { if (!mv || air) return 0; acc += dt; if (acc < 0.16) return acc; emit(x + (Math.random() - .5) * .5, 0.15, z + (Math.random() - .5) * .5, (Math.random() - .5) * .8, 0.8 + Math.random() * .6, (Math.random() - .5) * .8, 0xe7dcc0, 0.45); return 0; };
+    let dustT = 0;
+    /* --- misi bersama --- */
+    const MIS = [
+        { id: 'correct', t: '🧠 Jawab 10 soal dengan benar', key: 'correct', goal: 10, c: 60, x: 50 },
+        { id: 'talk', t: '💬 Ngobrol dengan 6 warga', key: 'talk', goal: 6, c: 40, x: 40 },
+        { id: 'coin', t: '🪙 Ambil 25 koin di jalanan', key: 'coin', goal: 25, c: 70, x: 30 },
+        { id: 'quiz', t: '📚 Selesaikan 4 kuis', key: 'quiz', goal: 4, c: 80, x: 60 }
+    ];
+    LB.ms = null; LB.seenSeq = undefined; LB.claimed = undefined;
+    function hostStartMission(i) { const m = MIS[((i % MIS.length) + MIS.length) % MIS.length]; LB.ms = { ...m, i: MIS.indexOf(m), p: 0, seq: (LB.ms ? LB.ms.seq : 0) + 1, done: false, by: {} }; }
+    function hostEv(k, n, who) { const m = LB.ms; if (!m || m.done || m.key !== k || !(n > 0)) return; m.p = Math.min(m.goal, m.p + n); m.by[who] = (m.by[who] || 0) + n; if (m.p >= m.goal) { m.done = true; m.doneAt = performance.now(); } }
+    const _ap = addProgress; addProgress = function (key, n) { _ap(key, n); if (LB.role == 'host') hostEv(key, n, myName()); else if (LB.role == 'client' && LB.ok && LB.conn && LB.conn.open) { try { LB.conn.send({ t: 'ev', k: key, n }); } catch (e) { } } };
+    const msBox = mkEl('div'); msBox.id = 'ow-ms'; document.body.appendChild(msBox); msBox.onclick = () => openUI(); let msSig = '';
+    function applyMs() {
+        const m = LB.ms; msBox.style.display = m && started ? 'block' : 'none'; if (!m) return;
+        const sig = m.seq + '|' + m.p + '|' + m.done + '|' + started; if (sig !== msSig) { msSig = sig; const by = Object.entries(m.by).sort((a, b) => b[1] - a[1]).map(([n, v]) => esc(n) + ' ' + v).join(' · ');
+            msBox.innerHTML = `<b>🎯 Misi Bersama</b><div style="margin-top:2px">${esc(m.t)}</div><div class="bar"><i style="width:${m.p / m.goal * 100}%"></i></div><div>${m.done ? '🏆 Selesai! Misi baru sebentar lagi…' : m.p + ' / ' + m.goal}</div>${by ? `<div style="opacity:.75;margin-top:3px">${by}</div>` : ''}`; }
+        if (LB.seenSeq === undefined) { LB.seenSeq = m.seq; if (m.done) LB.claimed = m.seq; return; }
+        if (m.seq !== LB.seenSeq) { LB.seenSeq = m.seq; banner('🎯 Misi Bersama: ' + m.t); burst(playerGroup.position.x, playerGroup.position.y, playerGroup.position.z, null, 24, 4); }
+        if (m.done && LB.claimed !== m.seq) { LB.claimed = m.seq; addRewards(m.c, m.x); try { sfx.level(); } catch (e) { } confetti(); burst(playerGroup.position.x, playerGroup.position.y, playerGroup.position.z, null, 60, 6); banner(`🏆 Misi selesai! +${m.c} 🪙  +${m.x} XP`); }
+    }
+    /* --- chat cepat --- */
+    const PH = ['👋 Halo!', '🙌 Ikuti aku!', '🆘 Bantu aku!', '👍 Mantap!', '😂 Wkwk', '📍 Ke sini!', '🎯 Ayo misi!', '⏳ Tunggu ya'];
+    const chatBtn = mkBtn('ow-chatbtn', 'action-btn fixed z-40 bg-cyan-600 text-white w-11 h-11 rounded-full border-2 border-white/40', 'left:12px;bottom:128px;display:none;font-size:20px'); chatBtn.innerHTML = '💬'; chatBtn.title = 'Chat cepat'; document.body.appendChild(chatBtn);
+    const chatPanel = mkEl('div'); chatPanel.id = 'ow-chat'; document.body.appendChild(chatPanel);
+    chatBtn.onclick = e => { e.stopPropagation(); chatPanel.style.display = chatPanel.style.display == 'flex' ? 'none' : 'flex'; };
+    PH.forEach(t => { const b = mkEl('button', 'q', esc(t)); b.onclick = e => { e.stopPropagation(); sendChat(t); chatPanel.style.display = 'none'; }; chatPanel.appendChild(b); });
+    function sendChat(txt) { playerBubble.show(txt, 4); if (LB.role == 'host') LB.players.forEach(p => sendL(p, { t: 'chat', id: 0, txt })); else if (LB.role == 'client' && LB.conn && LB.conn.open) try { LB.conn.send({ t: 'chat', txt }); } catch (e) { } }
+    function showChat(id, txt) { const r = remotes[id]; if (!r) return; r.bub.show(txt, 4); r.bub.sprite.visible = true; floatText(r.name + ': ' + txt, '#a5f3fc'); }
+    /* --- emote berdua --- */
+    const KINDS = [['hi5', 'Tos', '🙌', 'clap'], ['dance', 'Menari bareng', '💃', 'dance'], ['wave', 'Melambai ke', '👋', 'wave']]; let kindI = 0, lastPair = 0;
+    function faceTo(x, z) { const g = playerGroup; g.rotation.y = Math.atan2(x - g.position.x, z - g.position.z); }
+    function doPair(k, rx, rz) { const K = KINDS.find(x => x[0] === k) || KINDS[0], t = clock.elapsedTime; player.setPose(K[3], t, k === 'dance' ? 4 : 2); burst((playerGroup.position.x + rx) / 2, 0.8, (playerGroup.position.z + rz) / 2, null, 22, 3.5); if (nowS() - lastPair > 6) { lastPair = nowS(); addRewards(0, 3); } }
+    function pairEmote(id) { const r = remotes[id]; if (!r) return; const K = KINDS[kindI]; kindI = (kindI + 1) % KINDS.length; faceTo(r.g.position.x, r.g.position.z); doPair(K[0], r.g.position.x, r.g.position.z); relayEmo(LB.me, id, K[0]); }
+    function relayEmo(from, to, k) { if (to === LB.me) return recvEmo(from, k); if (LB.role == 'host') { const p = LB.players.find(x => x.id === to); sendL(p, { t: 'emo', from, to, k }); } else if (LB.conn && LB.conn.open) try { LB.conn.send({ t: 'emo', to, k }); } catch (e) { } }
+    function recvEmo(from, k) { const r = remotes[from]; if (!r) return; faceTo(r.g.position.x, r.g.position.z); doPair(k, r.g.position.x, r.g.position.z); const K = KINDS.find(x => x[0] === k) || KINDS[0]; floatText(`${K[2]} ${r.name} ${K[0] == 'dance' ? 'mengajak menari!' : K[0] == 'wave' ? 'melambai!' : 'mengajak tos!'}`, '#f9a8d4'); }
+    window.OW = { LB, openUI, hostInit, burst, hostStartMission };
     /* gabung otomatis dari tautan ?join=KODE */
     if (JOIN) { clientInit(); openUI(); }
 })();
