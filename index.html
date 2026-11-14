@@ -50,6 +50,20 @@
         .sp-title { animation: sp-glow 3s ease-in-out infinite; letter-spacing: .02em; }
         .lbl { font-size: 11px; font-weight: 800; color: #94a3b8; margin: 8px 0 3px; display: block; }
 
+        /* ===== v27: HP horizontal: menu tidak terpotong ===== */
+        @media (max-height: 520px) {
+            [id$="-modal"] { align-items: flex-start !important; overflow-y: auto !important; padding: 6px !important; -webkit-overflow-scrolling: touch; }
+            [id$="-modal"] > div { max-height: none !important; margin: 0 auto !important; width: min(100%, 560px); zoom: .85; }
+            [id$="-modal"] [class*="max-h-"] { max-height: none !important; }
+            #dialog-modal { align-items: flex-end !important; }
+            #dialog-modal > div { zoom: .8; }
+            #start-screen > div:nth-child(2) { max-height: calc(100dvh - 78px) !important; }
+            #start-screen h1 { font-size: 26px !important; }
+            #start-screen p.mt-1 { display: none; }
+            #start-screen { padding: 6px 10px !important; }
+            body.compact #hud > .fixed.top-3 > .flex.items-center { flex-wrap: wrap !important; justify-content: flex-end; max-width: 56vw; row-gap: 3px !important; }
+            body.compact #hud > .fixed.top-3 > .flex.items-center > button { width: 30px !important; height: 30px !important; font-size: 13px !important; }
+        }
         /* ===== v12: tampilan luas untuk HP & tablet ===== */
         html, body { height: 100%; }
         #webgl-container { width: 100%; height: 100vh; height: 100dvh; position: fixed; inset: 0; }
@@ -1126,10 +1140,31 @@ const RIG = (function () {
                     case 'cheer': { const s = Math.abs(Math.sin(pt * 6 + ph)); T[SX[0]] = T[SX[1]] = -2.9; T[SZ[0]] = 0.25; T[SZ[1]] = -0.25; T[EL[0]] = T[EL[1]] = -0.15; T[KN[0]] = T[KN[1]] = 0.1 + 0.5 * s; T[HX[0]] = T[HX[1]] = -0.25 * s; flat(T, 0); flat(T, 1); hop = s * 0.3; break; }
                     case 'splash': { const k = Math.sin(pt * 8 + ph); T[SX[0]] = -2.6 + Math.sin(pt * 9 + ph) * 0.5; T[SX[1]] = -2.6 + Math.cos(pt * 9 + ph) * 0.5; T[SZ[0]] = 0.3; T[SZ[1]] = -0.3; T[EL[0]] = T[EL[1]] = -0.3; T[HX[0]] = k * 0.3; T[HX[1]] = -k * 0.3; T[KN[0]] = 0.1 + Math.max(0, -k) * 0.5; T[KN[1]] = 0.1 + Math.max(0, k) * 0.5; flat(T, 0); flat(T, 1); hop = Math.abs(Math.sin(pt * 5 + ph)) * 0.25; break; }
                     case 'stretch': { const e = (Math.sin(pt * 1.6 + ph) + 1) / 2; T[SX[0]] = T[SX[1]] = -3.0 * e; T[SZ[0]] = 0.3 * e; T[SZ[1]] = -0.3 * e; T[EL[0]] = T[EL[1]] = -0.1 * e; T[CRX] = -0.12 * e; T[HRX] = -0.12 * e; break; }
-                    case 'fight': { const b = Math.sin(pt * 6 + ph); for (let s = 0; s < 2; s++) { T[SX[s]] = -1.15; T[EL[s]] = -1.75; T[SZ[s]] = s ? -0.12 : 0.12; } T[HX[0]] = -0.45; T[KN[0]] = 0.45 + b * 0.06; T[HX[1]] = 0.25; T[KN[1]] = 0.3; flat(T, 0); flat(T, 1); T[CRX] = 0.14; T[BRY] = 0.35; hop = Math.abs(b) * 0.04; break; }
-                    case 'punch': { const e = Math.sin(((pt * 2.2) % 1) * PI); T[SX[1]] = -1.25 - 0.3 * e; T[EL[1]] = -1.75 + 1.7 * e; T[SZ[1]] = -0.1; T[SX[0]] = -1.15; T[EL[0]] = -1.75; T[SZ[0]] = 0.12; T[CRY] = -0.55 * e; T[CRX] = 0.12 + 0.1 * e; T[BRY] = 0.3; T[HX[0]] = -0.5 - 0.2 * e; T[KN[0]] = 0.5; T[HX[1]] = 0.3; T[KN[1]] = 0.35; flat(T, 0); flat(T, 1); hop = 0.02 * e; break; }
-                    case 'kick': { const e = Math.sin(((pt * 2) % 1) * PI); T[HX[1]] = -1.5 * e; T[KN[1]] = 0.6 * (1 - e); T[AN[1]] = -(T[HX[1]] + T[KN[1]]) * 0.6; T[HX[0]] = 0.1; T[KN[0]] = 0.25 + 0.2 * e; flat(T, 0); T[CRX] = -0.28 * e; T[SX[0]] = T[SX[1]] = -0.5; T[SZ[0]] = 0.8; T[SZ[1]] = -0.8; T[EL[0]] = T[EL[1]] = -0.3; break; }
-                    case 'hurt': { const w = Math.sin(pt * 14) * 0.05; T[CRX] = -0.35; T[HRX] = -0.3 + w; T[SX[0]] = T[SX[1]] = -0.7; T[SZ[0]] = 0.6; T[SZ[1]] = -0.6; T[EL[0]] = T[EL[1]] = -0.5; T[HX[0]] = -0.25; T[KN[0]] = 0.4; T[HX[1]] = 0.2; T[KN[1]] = 0.25; flat(T, 0); flat(T, 1); break; }
+                    case 'fight': { const b = Math.sin(pt * 6 + ph); for (let s = 0; s < 2; s++) { T[SX[s]] = -1.15; T[EL[s]] = -1.75; T[SZ[s]] = s ? -0.12 : 0.12; } T[HX[0]] = -0.45; T[KN[0]] = 0.45 + b * 0.06; T[HX[1]] = 0.25; T[KN[1]] = 0.3; flat(T, 0); flat(T, 1); T[CRX] = 0.14; T[BRY] = 0.35 + 0.08 * Math.sin(pt * 3 + ph); T[PRZ] = 0.04 * Math.sin(pt * 3 + ph); T[SX[1]] = -1.15 + 0.1 * Math.sin(pt * 6 + 1.3); T[EL[1]] = -1.75 + 0.15 * Math.sin(pt * 6 + 1.3); hop = Math.abs(b) * 0.04; break; }
+                    case 'punch': {
+                        if (r._lpt === undefined || pt < r._lpt - 0.02) r._cvn = (r._cvn || 0) + 1; r._lpt = pt;
+                        const v = r._cvn % 3, w = sm(cl(pt / 0.09, 0, 1)) * (1 - sm(cl((pt - 0.09) / 0.05, 0, 1))), e = sm(cl((pt - 0.08) / 0.1, 0, 1)) * (1 - sm(cl((pt - 0.3) / 0.2, 0, 1)));
+                        const a = v === 1 ? 0 : 1, g = 1 - a, out = a ? -1 : 1, hk = v === 2;
+                        T[SX[g]] = -1.15 - 0.1 * e; T[EL[g]] = -1.75; T[SZ[g]] = g ? -0.12 : 0.12;
+                        if (hk) { T[SX[a]] = -1.3 + 0.25 * w; T[EL[a]] = -1.55 + 0.5 * e - 0.4 * w; T[SZ[a]] = out * (0.15 + 1.0 * e - 0.35 * w); }
+                        else { T[SX[a]] = -1.25 - 0.3 * e + 0.35 * w; T[EL[a]] = -1.75 + 1.7 * e - 0.5 * w; T[SZ[a]] = out * 0.1; }
+                        const tw = hk ? 0.85 : 0.6; T[CRY] = out * (-tw * e + 0.3 * w); T[BRY] = 0.3 + out * (-0.25 * e + 0.1 * w); T[PRY] = out * -0.12 * e;
+                        T[CRX] = 0.12 + 0.14 * e - 0.06 * w; T[HRX] = -0.06 * e;
+                        T[HX[0]] = -0.5 - 0.3 * e; T[KN[0]] = 0.5 + 0.25 * e + 0.1 * w; T[HX[1]] = 0.3 + 0.1 * e; T[KN[1]] = 0.35 - 0.1 * e; flat(T, 0); flat(T, 1); hop = 0.03 * e - 0.015 * w; break; }
+                    case 'kick': {
+                        if (r._lpt === undefined || pt < r._lpt - 0.02) r._cvn = (r._cvn || 0) + 1; r._lpt = pt;
+                        const v = r._cvn % 2, ch = sm(cl(pt / 0.13, 0, 1)), ex = sm(cl((pt - 0.12) / 0.08, 0, 1)), rt = sm(cl((pt - 0.3) / 0.2, 0, 1)), up = ch * (1 - rt), e = ex * (1 - rt);
+                        if (v === 0) { T[HX[1]] = -1.15 * up - 0.4 * e; T[KN[1]] = 1.7 * up * (1 - ex) + 0.1 * up * ex; }
+                        else { T[HX[1]] = -0.9 * up - 0.3 * e; T[KN[1]] = 1.5 * up * (1 - ex) + 0.1 * up * ex; T[HZ[1]] = 0.9 * e; T[BRY] = -0.5 * e; T[CRZ] = 0.35 * e; }
+                        T[AN[1]] = -(T[HX[1]] + T[KN[1]]) * 0.6;
+                        T[HX[0]] = 0.1 * up; T[KN[0]] = 0.25 * up + 0.2 * e; flat(T, 0);
+                        T[CRX] = -0.1 * up - 0.22 * e; T[HRX] = 0.1 * e;
+                        T[SX[0]] = T[SX[1]] = -0.5 * up; T[SZ[0]] = (0.4 + 0.5 * e) * up; T[SZ[1]] = -(0.4 + 0.5 * e) * up; T[EL[0]] = T[EL[1]] = -0.3 * up - 0.3 * e; hop = 0.05 * e; break; }
+                    case 'hurt': {
+                        const h = pt < 0.1 ? pt / 0.1 : Math.max(0, 1 - (pt - 0.1) / 0.4), q = Math.sin(pt * 18) * 0.05 * h;
+                        T[CRX] = -0.4 * h; T[HRX] = -0.35 * h + q; T[BRX] = -0.1 * h; T[CRY] = 0.25 * h; T[HRZ] = 0.15 * h;
+                        T[SX[0]] = mix(T[SX[0]], -0.8, h); T[SX[1]] = mix(T[SX[1]], -0.5, h); T[SZ[0]] = mix(T[SZ[0]], 0.7, h); T[SZ[1]] = mix(T[SZ[1]], -0.9, h); T[EL[0]] = mix(T[EL[0]], -0.5, h); T[EL[1]] = mix(T[EL[1]], -0.35, h);
+                        T[HX[0]] = mix(T[HX[0]], -0.3, h); T[KN[0]] = mix(T[KN[0]], 0.45, h); T[HX[1]] = mix(T[HX[1]], 0.25, h); T[KN[1]] = mix(T[KN[1]], 0.3, h); flat(T, 0); flat(T, 1); hop = 0.02 * h; break; }
                     case 'phone': T[HRX] = 0.4; T[CRX] = 0.06; T[SX[1]] = -0.9; T[EL[1]] = -1.95; T[SZ[1]] = -0.15; break;
                     case 'clap': { const c = Math.abs(Math.sin(pt * 8 + ph)); T[SX[0]] = T[SX[1]] = -1.0; T[EL[0]] = T[EL[1]] = -1.0; T[SZ[0]] = 0.2 + 0.35 * c; T[SZ[1]] = -(0.2 + 0.35 * c); hop = Math.abs(Math.sin(pt * 4)) * 0.02; break; }
                     case 'cook': { const e = Math.sin(pt * 4 + ph); T[CRX] = 0.1; T[SX[0]] = -0.9; T[EL[0]] = -0.8; T[SX[1]] = -1.0 + e * 0.25; T[EL[1]] = -1.1 + e * 0.35; T[SZ[1]] = e * 0.2; T[HRY] = Math.sin(pt * 0.8) * 0.3; break; }
@@ -1153,8 +1188,9 @@ const RIG = (function () {
         if (first) { r._out = new Float64Array(N); r._from = new Float64Array(N); r._out.set(T); r._key = mk; r._bt = 9; }
         else {
             if (mk !== r._key) { r._from.set(r._out); r._bt = 0; r._key = mk; }
-            if (r._bt < 0.25) { r._bt += dt; const w = sm(r._bt / 0.25); for (let i = 0; i < N; i++) r._out[i] = r._from[i] + (T[i] - r._from[i]) * w; }
-            else r._out.set(T);
+            const BL = (mk === 'punch' || mk === 'kick' || mk === 'hurt') ? 0.06 : mk === 'fight' ? 0.12 : 0.25;
+            if (r._bt < BL) { r._bt += dt; const w = sm(r._bt / BL); for (let i = 0; i < N; i++) r._out[i] = r._from[i] + (T[i] - r._from[i]) * w; }
+            else { const sk = (mk === 'punch' || mk === 'kick') ? 26 : (mk === 'hurt' || mk === 'fight') ? 15 : 0; if (sk) { const a = 1 - Math.exp(-dt * sk); for (let i = 0; i < N; i++) r._out[i] += (T[i] - r._out[i]) * a; } else r._out.set(T); }
         }
         const o = r._out, b = r.body;
         if (r.is2D) {
@@ -2313,7 +2349,7 @@ function updateNpcs(dt, k, t, p) {
             if (h) g.position.set(h.front.x, 0, h.front.z);
             r.bubble.show('Selamat pagi! ☀️', 3); r.av.setPose('wave', t, 1.6); r.barkAt = now + 8;
         }
-        r.bubble.update(); if (r.comp) return;
+        r.bubble.update(); if (r.comp || r.bully) return;
         const dist = Math.hypot(p.x - g.position.x, p.z - g.position.z);
         const talking = dialogNpc === r;
         let moving = false, spd = d.behavior === 'patrol' ? 1.3 : 0.8;
@@ -2984,7 +3020,7 @@ function updateWorld(dt, k, t, p) {
         s.p.root.position.set(s.x, POOL.wy - 0.55, s.z); s.p.root.rotation.y = s.dir > 0 ? Math.PI / 2 : -Math.PI / 2; animPerson(s.p, t, 'swim', 1);
     });
     wanderers.forEach(w => {
-        const r = w.p.root;
+        if (w.recruited) return; const r = w.p.root;
         if (w.still) { r.position.set(w.tx, w.y, w.tz); animPerson(w.p, t, w.mode, 1); return; }
         if (nightNow) return;
         w.wait -= dt; let moving = false;
@@ -3130,8 +3166,8 @@ function doJump() {
     if (isGrounded) { playerVelY = 0.36 * GEAR.jump; isGrounded = false; jumpsUsed = 1; sfx.jump(); }
     else if (!inHouse && jumpsUsed < GEAR.maxJ) { playerVelY = 0.34 * GEAR.jump; jumpsUsed++; sfx.jump(); if (GEAR.onAirJump) GEAR.onAirJump(jumpsUsed); }
 }
-$('btn-jump-mobile').addEventListener('click', doJump);
-$('btn-interact-mobile').addEventListener('click', () => { if (!uiOpen()) triggerInteract(); });
+$('btn-jump-mobile').addEventListener('pointerdown', e => { e.preventDefault(); doJump(); });
+$('btn-interact-mobile').addEventListener('pointerdown', e => { e.preventDefault(); if (!uiOpen()) triggerInteract(); });
 
 /* ==========================================
    13. INTERAKSI
@@ -3866,9 +3902,9 @@ function update(dt) {
         if (mx && mz) { mx *= 0.7071; mz *= 0.7071; }
         if (joystickActive) { mx = touchMove.x; mz = touchMove.y; mag = Math.min(1, Math.hypot(mx, mz)); if (mag < 0.12) mx = mz = 0; }
         if (mx || mz) {
-            moving = true; player.pose = null;
+            moving = true; if (player.pose !== 'punch' && player.pose !== 'kick' && player.pose !== 'hurt') player.pose = null;
             const ang = Math.atan2(mx, mz) + camH;
-            const sp = SPEED * k * (joystickActive ? mag : 1) * (riding ? (riding.spd !== undefined ? riding.spd : 2.1) : swimming ? 0.5 * GEAR.swim : (keys['ShiftLeft'] ? 1.5 : 1)) * (boosted ? 1.5 : 1) * (riding || swimming ? 1 : GEAR.spd);
+            const sp = SPEED * k * (joystickActive ? mag : 1) * (riding ? (riding.spd !== undefined ? riding.spd : 2.1) : swimming ? 0.5 * GEAR.swim : (keys['ShiftLeft'] ? 1.5 : 1)) * (boosted ? 1.5 : 1) * (riding || swimming ? 1 : GEAR.spd) * (player.pose === 'punch' || player.pose === 'kick' ? 0.5 : 1) * (window.__slowMul ? window.__slowMul() : 1);
             p.x += Math.sin(ang) * sp; p.z += Math.cos(ang) * sp;
             turnTo(playerGroup, ang, 0.22 * k);
         }
@@ -4107,10 +4143,10 @@ let curRoom=null;
   /* --- interaksi & keluar/masuk --- */
   const ov=()=>document.getElementById('loadov');
   window.enterRoom=function(key){if(riding||onTransit||swimming||inHouse||transitioning)return;const R=room[key],sc=key==='sekolah';
-    ov().querySelector('#loadtxt').textContent=({sekolah:'Memuat SD Ilmiverse…',masjid:'Memasuki Masjid Al-Ilmi…',minimarket:'Memasuki Minimarket…',toko_alat:'Memasuki Toko Alat…',rs:'Memasuki Rumah Sakit…'})[key];ov().style.display='flex';
+    ov().querySelector('#loadtxt').textContent=({sekolah:'Memuat SD Ilmiverse…',masjid:'Memasuki Masjid Al-Ilmi…',minimarket:'Memasuki Minimarket…',toko_alat:'Memasuki Toko Alat…',rs:'Memasuki Rumah Sakit…'})[key]||(window.ROOMTXT&&window.ROOMTXT[key]&&window.ROOMTXT[key][0])||'Memasuki…';ov().style.display='flex';
     fadeThen(()=>{curHouse=R.h;inHouse=true;curRoom={x:R.cx,z:R.cz,hw:R.hw-1.4,hd:R.hd-1.2};playerGroup.position.set(R.cx,0,R.cz-R.hd+3);playerGroup.rotation.y=0;playerVelY=0;
-      camH=Math.PI;camV=0.55;camDist=8;homeLight.position.set(R.cx,10,R.cz);homeLight.distance=130;homeLight.intensity=1.6;ov().style.display='none';
-      floatText(sc?'🏫 Selamat datang di sekolah!':key==='minimarket'?'🏪 Selamat datang di Minimarket!':key==='toko_alat'?'🛠️ Selamat datang di Toko Alat!':key==='rs'?'🏥 Selamat datang di Rumah Sakit Ilmi!':'🕌 Assalamualaikum',sc?'#fde047':key==='minimarket'||key==='toko_alat'||key==='rs'?'#7dd3fc':'#86efac');},sc?1500:800);};
+      camH=Math.PI;camV=0.55;camDist=8;homeLight.position.set(R.cx,10,R.cz);homeLight.distance=130;homeLight.intensity=(window.ROOMTXT&&window.ROOMTXT[key])?1.05:1.6;ov().style.display='none';
+      floatText(sc?'🏫 Selamat datang di sekolah!':key==='minimarket'?'🏪 Selamat datang di Minimarket!':key==='toko_alat'?'🛠️ Selamat datang di Toko Alat!':key==='rs'?'🏥 Selamat datang di Rumah Sakit Ilmi!':(window.ROOMTXT&&window.ROOMTXT[key]?window.ROOMTXT[key][1]:'🕌 Assalamualaikum'),sc?'#fde047':key==='minimarket'||key==='toko_alat'||key==='rs'?'#7dd3fc':'#86efac');},sc?1500:800);};
   const _ei=extraInteract;extraInteract=function(it){if(it.type==='enterroom'){enterRoom(it.room);return true;}if(it.type==='roomact'){it.fn();return true;}return _ei(it);};
   const _xh=exitHome;exitHome=function(){curRoom=null;_xh();};
   /* --- isi rumah berbeda-beda --- */
@@ -5172,10 +5208,12 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
             if (p) { p.conn = c; p.on = true; c._p = p; p.n = nm; }
             else { if (LB.players.length >= 10) return c.send({ t: 'err', m: 'Ruangan penuh (maks. 10 pemain)' }); const id = 1 + (LB.players.reduce((a, x) => Math.max(a, x.id), 0)); p = { id, n: nm, e: EM[LB.players.length % 12], tok: rndTok(), conn: c, on: true, st: null }; LB.players.push(p); c._p = p; }
             if (m.ap) p.ap = m.ap;
-            c.send({ t: 'joined', id: p.id, e: p.e, n: p.n, tok: p.tok, code: LB.code }); render();
-        } else if (m.t == 'pos' && c._p) { c._p.st = { x: +m.x || 0, y: +m.y || 0, z: +m.z || 0, r: +m.r || 0, mv: m.mv ? 1 : 0, air: m.air ? 1 : 0, pose: typeof m.pose == 'string' ? m.pose.slice(0, 16) : null, ih: m.ih ? 1 : 0, vh: typeof m.vh == 'string' ? m.vh.slice(0, 8) : null, sf: m.sf | 0, pa: typeof m.pa == 'number' ? m.pa : null }; if (m.ap) c._p.ap = m.ap; c._p.seen = performance.now(); }
+            c.send({ t: 'joined', id: p.id, e: p.e, n: p.n, tok: p.tok, code: LB.code }); if (LB.fm && sitesBuilt) sendSites(p); render();
+        } else if (m.t == 'pos' && c._p) { c._p.st = { x: +m.x || 0, y: +m.y || 0, z: +m.z || 0, r: +m.r || 0, mv: m.mv ? 1 : 0, air: m.air ? 1 : 0, pose: typeof m.pose == 'string' ? m.pose.slice(0, 16) : null, ih: m.ih ? 1 : 0, vh: typeof m.vh == 'string' ? m.vh.slice(0, 8) : null, sf: m.sf | 0, pa: typeof m.pa == 'number' ? m.pa : null }; if (m.ap) c._p.ap = m.ap; c._p.seen = performance.now(); c._p.st.fi = m.fi ? 1 : 0; }
+        else if (m.t == 'hit' && c._p && LB.fm) hitMsgHost(c._p, m);
+        else if (m.t == 'gang' && c._p) gangApply(c._p.id, m);
         else if (m.t == 'ev' && c._p) hostEv(String(m.k), Math.min(5, Math.max(0, +m.n || 0)), c._p.n);
-        else if (m.t == 'chat' && c._p) { const txt = String(m.txt || '').slice(0, 40); showChat(c._p.id, txt); LB.players.forEach(p => { if (p !== c._p) sendL(p, { t: 'chat', id: c._p.id, txt }); }); }
+        else if (m.t == 'chat' && c._p) { const txt = cleanChat(String(m.txt || '')); showChat(c._p.id, txt); LB.players.forEach(p => { if (p !== c._p) sendL(p, { t: 'chat', id: c._p.id, txt }); }); }
         else if (m.t == 'emo' && c._p) relayEmo(c._p.id, +m.to, String(m.k).slice(0, 8));
     }
     function snapshot() {
@@ -5201,15 +5239,18 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
         if (m.t == 'joined') { LB.busy = false; LB.ok = true; LB.me = m.id; LB.tok = m.tok; lsSet('owtok-' + JOIN, m.tok); LB.code = m.code || JOIN; floatText('🌐 Terhubung ke ruangan ' + LB.code, '#22d3ee'); }
         else if (m.t == 'err') { LB.busy = false; LB.err = m.m; LB.fatal = true; }
         else if (m.t == 'kick') { LB.kicked = true; LB.err = 'Kamu dikeluarkan dari ruangan oleh tuan rumah.'; lsSet('owtok-' + JOIN, ''); clearRemotes(); }
-        else if (m.t == 'chat') showChat(m.id, String(m.txt || '').slice(0, 40));
+        else if (m.t == 'chat') showChat(m.id, cleanChat(String(m.txt || '')));
         else if (m.t == 'emo') recvEmo(m.from, String(m.k));
-        else if (m.t == 'snap') { applySnap(m.ps); LB.ms = m.ms || null; applyMs(); const sig = m.ps.map(x => x.id + x.n + x.on).join('|'); if (sig === LB.sig) return; LB.sig = sig; LB.roster = m.ps; }
+        else if (m.t == 'sites') sitesMsg(m);
+        else if (m.t == 'gangs') { LB.gangs = m.gg || {}; gangTags(); }
+        else if (m.t == 'fx') fxMsg(m);
+        else if (m.t == 'snap') { LB.fm = !!m.fm; if (m.gg) LB.gangs = m.gg; if (m.th) applyTh(m.th); applySnap(m.ps); LB.ms = m.ms || null; applyMs(); const sig = m.ps.map(x => x.id + x.n + x.on).join('|'); if (sig === LB.sig) return; LB.sig = sig; LB.roster = m.ps; }
         render();
     }
     function leave() { lsSet('owtok-' + JOIN, ''); try { LB.peer && LB.peer.destroy(); } catch (e) { } location.search = ''; }
     /* ---------------- pemain jarak jauh di dunia ---------------- */
     const remotes = {};
-    function selfState() { const g = playerGroup; return { x: +g.position.x.toFixed(2), y: +g.position.y.toFixed(2), z: +g.position.z.toFixed(2), r: +g.rotation.y.toFixed(3), mv: movingNow ? 1 : 0, air: airNow ? 1 : 0, pose: player.pose || null, ih: inHouse ? 1 : 0, vh: riding && riding.own && window.VEH && VEH.own ? VEH.own.type : null, sf: window.__freeSeats ? window.__freeSeats() : 0, pa: window.VEH && VEH.myPass ? VEH.myPass.id : null }; }
+    function selfState() { const g = playerGroup; return { x: +g.position.x.toFixed(2), y: +g.position.y.toFixed(2), z: +g.position.z.toFixed(2), r: +g.rotation.y.toFixed(3), mv: movingNow ? 1 : 0, air: airNow ? 1 : 0, pose: player.pose || null, ih: inHouse ? 1 : 0, vh: riding && riding.own && window.VEH && VEH.own ? VEH.own.type : null, sf: window.__freeSeats ? window.__freeSeats() : 0, pa: window.VEH && VEH.myPass ? VEH.myPass.id : null, fi: fightOn() ? 1 : 0 }; }
     let movingNow = false, airNow = false;
     function dropRemote(k) { const r = remotes[k]; if (!r) return; scene.remove(r.g); const ix = interactables.indexOf(r.it); if (ix >= 0) interactables.splice(ix, 1); if (r.itB) { const ib = interactables.indexOf(r.itB); if (ib >= 0) interactables.splice(ib, 1); } if (window.VEH && VEH.myPass && VEH.myPass.id == k) window.__dropPass && window.__dropPass(); floatText('👋 ' + r.name + ' keluar', '#fca5a5'); delete remotes[k]; }
     function clearRemotes() { Object.keys(remotes).forEach(k => dropRemote(k)); }
@@ -5260,7 +5301,7 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
         tickParticles(dt); dustT = dust(g.position.x, g.position.z, dt, movingNow, airNow, dustT); gearTick(dt, t);
         if (!LB.role) return;
         tickRemotes(dt, t); acc += dt; if (acc < 0.1) return; acc = 0;
-        if (LB.role == 'host' && LB.ok) { const ps = snapshot(); LB.roster = ps; if (LB.ms && LB.ms.done && performance.now() - LB.ms.doneAt > 12000) hostStartMission(LB.ms.i + 1); LB.players.forEach(p2 => sendL(p2, { t: 'snap', ps, ms: LB.ms })); applySnap(ps.map(x => x)); applyMs(); }
+        if (LB.role == 'host' && LB.ok) { const ps = snapshot(); LB.roster = ps; if (LB.ms && LB.ms.done && performance.now() - LB.ms.doneAt > 12000) hostStartMission(LB.ms.i + 1); const th = LB.fm && sitesBuilt ? encodeTh(false) : null; LB.players.forEach(p2 => sendL(p2, { t: 'snap', ps, ms: LB.ms, fm: LB.fm ? 1 : 0, th, gg: LB.gangs })); applySnap(ps.map(x => x)); applyMs(); }
         else if (LB.role == 'client' && LB.ok && LB.conn && LB.conn.open) { try { LB.conn.send({ t: 'pos', ...selfState(), ap: myLook() }); } catch (e) { } }
     };
     /* host: snapshot dirinya sendiri memakai id 0 -> LB.me = 0 sehingga tidak membuat avatar untuk dirinya */
@@ -5287,7 +5328,7 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
             if (u && !qr && !window.qrcode && !QRtry) { QRtry = true; loadQR().then(() => render()).catch(() => { }); }
             h += LB.err ? `<p class="text-red-300 text-sm">⚠️ ${esc(LB.err)}</p>` : !LB.ok ? '<p>⏳ Membuat ruangan…</p>' : `<div class="flex gap-4 flex-wrap items-center justify-center my-3">${qr ? `<div class="bg-white rounded-2xl p-1.5" style="width:190px;height:190px">${qr}</div>` : ''}<div><div class="opacity-80 text-sm">Kode ruangan</div><div style="font-size:3.2rem;font-weight:900;letter-spacing:.2em;text-shadow:0 0 14px #22d3ee">${LB.code}</div>${u ? `<div class="text-xs opacity-90 break-all max-w-[260px]">atau buka:<br><b>${esc(u)}</b></div>` : ''}<button data-a="copy" class="mt-2 bg-cyan-600 rounded-xl px-3 py-1 text-sm font-black">📋 Salin ${u ? 'tautan' : 'kode'}</button></div></div>
             ${web ? '' : `<div class="my-2"><small class="text-slate-300">⚠️ File ini dibuka dari komputer (bukan alamat web), jadi HP belum bisa membukanya. Unggah file ini ke hosting web gratis (GitHub Pages / Netlify / Cloudflare Pages) lalu tempel alamatnya di bawah. Teman juga bisa membuka alamat itu lalu menekan "Gabung dengan Kode" dan memasukkan kode.</small><input id="ow-url" class="w-full mt-2 p-2 rounded-xl text-slate-900" placeholder="https://contoh.github.io/openworld/" value="${esc(lsGet('owurl') || '')}"></div>`}`;
-            h += `<div class="my-2 text-left"><b class="text-sm">🎯 Misi Bersama</b>${MIS.map((m, i) => `<button data-ms="${i}" class="w-full text-left text-sm bg-slate-800 rounded-xl px-3 py-2 mt-1 ${LB.ms && LB.ms.i === i ? 'border-2 border-cyan-400' : ''}">${esc(m.t)} · 🪙${m.c}</button>`).join('')}</div>` + playersHtml() + `<button data-a="off" class="${btn}bg-red-500 text-white">🛑 Tutup Ruangan</button>`;
+            h += `<button data-a="fm" class="${btn}${LB.fm ? 'bg-red-600 text-white' : 'bg-slate-700 text-white'}">🥊 Mode Bertarung: ${LB.fm ? 'AKTIF (ketuk untuk matikan)' : 'mati (ketuk untuk aktifkan)'}</button>` + `<div class="my-2 text-left"><b class="text-sm">🎯 Misi Bersama</b>${MIS.map((m, i) => m.fm && !LB.fm ? '' : `<button data-ms="${i}" class="w-full text-left text-sm bg-slate-800 rounded-xl px-3 py-2 mt-1 ${LB.ms && LB.ms.i === i ? 'border-2 border-cyan-400' : ''}">${esc(m.t)} · 🪙${m.c}</button>`).join('')}</div>` + playersHtml() + `<button data-a="off" class="${btn}bg-red-500 text-white">🛑 Tutup Ruangan</button>`;
         } else {
             if (LB.ask) h += `<p class="text-sm">Kode ruangan: <b class="tracking-widest text-lg">${JOIN}</b></p><input id="ow-name" maxlength=14 placeholder="Tulis namamu" value="${esc(lsGet('owname') || state.name || '')}" class="w-full p-3 rounded-2xl text-slate-900 text-center text-lg mt-2"><div class="grid grid-cols-2 gap-2 mt-2"><button data-gen="l" class="rounded-2xl py-2 font-black text-sm border-2 ${state.gender !== 'p' ? 'bg-emerald-500 text-slate-950 border-white' : 'bg-slate-700 text-white border-slate-500'}">👦 Laki-laki</button><button data-gen="p" class="rounded-2xl py-2 font-black text-sm border-2 ${state.gender === 'p' ? 'bg-emerald-500 text-slate-950 border-white' : 'bg-slate-700 text-white border-slate-500'}">👧 Perempuan</button></div><button data-a="go" class="${btn}bg-emerald-500 text-slate-950">🚀 Gabung</button>`;
             else h += LB.err ? `<p class="text-red-300 text-sm">⚠️ ${esc(LB.err)}</p><button data-a="leave" class="${btn}bg-slate-700 text-white">🏠 Keluar</button>` : !LB.ok ? `<p>📡 Menghubungkan ke ruangan <b>${JOIN}</b>…</p>` : `<p class="text-emerald-300">✅ Terhubung ke ruangan <b>${LB.code}</b></p>` + playersHtml() + `<button data-a="leave" class="${btn}bg-slate-700 text-white">🚪 Keluar dari ruangan</button>`;
@@ -5296,7 +5337,7 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
         if (LB.lost) h += '<div class="absolute inset-0 flex items-center justify-center pointer-events-none"><div class="bg-slate-900/90 border border-yellow-400 rounded-2xl p-4 font-black">📡 Terputus… menyambung ulang otomatis</div></div>';
         modal.innerHTML = h;
         modal.querySelectorAll('[data-gen]').forEach(b => b.onclick = () => { setGender(b.dataset.gen); render(); });
-        modal.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { const a = b.dataset.a; if (a == 'host') hostInit(), render(); else if (a == 'join') { const c = prompt('Masukkan kode ruangan (4 karakter):'); if (c) location.search = '?join=' + encodeURIComponent(c.trim()); } else if (a == 'go') { const v = (modal.querySelector('#ow-name') || {}).value; const nm = (v || '').trim().slice(0, 14); if (!nm) return; lsSet('owname', nm); LB.ask = false; clientConnect(); } else if (a == 'copy') { const u2 = baseUrl() ? baseUrl() + '?join=' + LB.code : LB.code; try { navigator.clipboard.writeText(u2); } catch (e) { } floatText('📋 Tersalin: ' + u2, '#22d3ee'); } else if (a == 'off') hostOff(); else if (a == 'leave') leave(); else closeUI(); });
+        modal.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { const a = b.dataset.a; if (a == 'host') hostInit(), render(); else if (a == 'join') { const c = prompt('Masukkan kode ruangan (4 karakter):'); if (c) location.search = '?join=' + encodeURIComponent(c.trim()); } else if (a == 'go') { const v = (modal.querySelector('#ow-name') || {}).value; const nm = (v || '').trim().slice(0, 14); if (!nm) return; lsSet('owname', nm); LB.ask = false; clientConnect(); } else if (a == 'copy') { const u2 = baseUrl() ? baseUrl() + '?join=' + LB.code : LB.code; try { navigator.clipboard.writeText(u2); } catch (e) { } floatText('📋 Tersalin: ' + u2, '#22d3ee'); } else if (a == 'fm') { LB.fm = !LB.fm; render(); } else if (a == 'off') hostOff(); else if (a == 'leave') leave(); else closeUI(); });
         modal.querySelectorAll('[data-ms]').forEach(b => b.onclick = () => { hostStartMission(+b.dataset.ms); applyMs(); render(); });
         modal.querySelectorAll('[data-kick]').forEach(b => b.onclick = () => kick(+b.dataset.kick));
         const ui = modal.querySelector('#ow-url'); if (ui) ui.onchange = () => { lsSet('owurl', ui.value.trim()); render(); };
@@ -5307,7 +5348,7 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
     const stS = $('btn-settings-start'); if (stS) stS.parentNode.appendChild(mkBtn('btn-online-start', 'action-btn pointer-events-auto absolute top-0 bg-cyan-600/90 w-11 h-11 rounded-2xl border-2 border-white/30 text-white', 'right:6.2rem'));
     /* ================= v21: MISI BERSAMA, CHAT CEPAT, EMOTE BERDUA, EFEK ================= */
     const st0 = document.createElement('style');
-    st0.textContent = '@keyframes owban{0%{transform:translate(-50%,-30px) scale(.7);opacity:0}15%{transform:translate(-50%,0) scale(1.08);opacity:1}25%{transform:translate(-50%,0) scale(1)}85%{opacity:1}100%{transform:translate(-50%,-10px);opacity:0}}#ow-banner{position:fixed;top:64px;left:50%;z-index:80;pointer-events:none;background:linear-gradient(90deg,#0891b2,#7c3aed);color:#fff;font-weight:900;padding:10px 20px;border-radius:18px;border:3px solid #fff;box-shadow:0 8px 24px #0006;max-width:90vw;text-align:center;animation:owban 3.6s ease forwards}#ow-ms{position:fixed;top:56px;right:8px;z-index:40;width:230px;background:#0f172acc;border:2px solid #22d3ee88;border-radius:16px;padding:8px 10px;color:#fff;font-size:12px;display:none;cursor:pointer}#ow-ms .bar{height:10px;background:#334155;border-radius:6px;overflow:hidden;margin:5px 0}#ow-ms .bar i{display:block;height:100%;background:linear-gradient(90deg,#22d3ee,#4ade80);transition:width .4s}#ow-chat{position:fixed;left:12px;bottom:178px;z-index:40;display:none;flex-direction:column;gap:6px}#ow-chat button.q{background:#0e7490;color:#fff;font-weight:800;border-radius:14px;padding:6px 10px;border:2px solid #fff4;text-align:left;font-size:13px}';
+    st0.textContent = '@keyframes owban{0%{transform:translate(-50%,-30px) scale(.7);opacity:0}15%{transform:translate(-50%,0) scale(1.08);opacity:1}25%{transform:translate(-50%,0) scale(1)}85%{opacity:1}100%{transform:translate(-50%,-10px);opacity:0}}#ow-banner{position:fixed;top:64px;left:50%;z-index:80;pointer-events:none;background:linear-gradient(90deg,#0891b2,#7c3aed);color:#fff;font-weight:900;padding:10px 20px;border-radius:18px;border:3px solid #fff;box-shadow:0 8px 24px #0006;max-width:90vw;text-align:center;animation:owban 3.6s ease forwards}#ow-ms{position:fixed;top:56px;right:8px;z-index:40;width:230px;background:#0f172acc;border:2px solid #22d3ee88;border-radius:16px;padding:8px 10px;color:#fff;font-size:12px;display:none;cursor:pointer}#ow-ms .bar{height:10px;background:#334155;border-radius:6px;overflow:hidden;margin:5px 0}#ow-ms .bar i{display:block;height:100%;background:linear-gradient(90deg,#22d3ee,#4ade80);transition:width .4s}#ow-chat{position:fixed;left:12px;bottom:178px;max-width:80vw;z-index:40;display:none;flex-direction:column;gap:6px}#ow-chat button.q{background:#0e7490;color:#fff;font-weight:800;border-radius:14px;padding:6px 10px;border:2px solid #fff4;text-align:left;font-size:13px}';
     document.head.appendChild(st0);
     const banner = txt => { const old = $('ow-banner'); if (old) old.remove(); const b = mkEl('div', '', esc(txt)); b.id = 'ow-banner'; document.body.appendChild(b); setTimeout(() => b.remove(), 3700); };
     /* --- partikel (kolam tetap, ringan) --- */
@@ -5326,10 +5367,13 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
         { id: 'correct', t: '🧠 Jawab 10 soal dengan benar', key: 'correct', goal: 10, c: 60, x: 50 },
         { id: 'talk', t: '💬 Ngobrol dengan 6 warga', key: 'talk', goal: 6, c: 40, x: 40 },
         { id: 'coin', t: '🪙 Ambil 25 koin di jalanan', key: 'coin', goal: 25, c: 70, x: 30 },
-        { id: 'quiz', t: '📚 Selesaikan 4 kuis', key: 'quiz', goal: 4, c: 80, x: 60 }
+        { id: 'quiz', t: '📚 Selesaikan 4 kuis', key: 'quiz', goal: 4, c: 80, x: 60 },
+        { id: 'thug', t: '🥊 Kalahkan 8 preman bersama-sama', key: 'brave', goal: 8, c: 140, x: 90, fm: true },
+        { id: 'camp', t: '🏴 Bubarkan 1 markas geng preman', key: 'camp', goal: 1, c: 200, x: 120, fm: true },
+        { id: 'boss', t: '👹 Kalahkan 1 bos preman', key: 'boss', goal: 1, c: 260, x: 150, fm: true }
     ];
     LB.ms = null; LB.seenSeq = undefined; LB.claimed = undefined;
-    function hostStartMission(i) { const m = MIS[((i % MIS.length) + MIS.length) % MIS.length]; LB.ms = { ...m, i: MIS.indexOf(m), p: 0, seq: (LB.ms ? LB.ms.seq : 0) + 1, done: false, by: {} }; }
+    function hostStartMission(i) { let m = MIS[((i % MIS.length) + MIS.length) % MIS.length]; for (let q = 0; q < MIS.length && m.fm && !LB.fm; q++) m = MIS[(MIS.indexOf(m) + 1) % MIS.length]; LB.ms = { ...m, i: MIS.indexOf(m), p: 0, seq: (LB.ms ? LB.ms.seq : 0) + 1, done: false, by: {} }; }
     function hostEv(k, n, who) { const m = LB.ms; if (!m || m.done || m.key !== k || !(n > 0)) return; m.p = Math.min(m.goal, m.p + n); m.by[who] = (m.by[who] || 0) + n; if (m.p >= m.goal) { m.done = true; m.doneAt = performance.now(); } }
     const _ap = addProgress; addProgress = function (key, n) { _ap(key, n); if (LB.role == 'host') hostEv(key, n, myName()); else if (LB.role == 'client' && LB.ok && LB.conn && LB.conn.open) { try { LB.conn.send({ t: 'ev', k: key, n }); } catch (e) { } } };
     const msBox = mkEl('div'); msBox.id = 'ow-ms'; document.body.appendChild(msBox); msBox.onclick = () => openUI(); let msSig = '';
@@ -5347,8 +5391,13 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
     const chatPanel = mkEl('div'); chatPanel.id = 'ow-chat'; document.body.appendChild(chatPanel);
     chatBtn.onclick = e => { e.stopPropagation(); chatPanel.style.display = chatPanel.style.display == 'flex' ? 'none' : 'flex'; };
     PH.forEach(t => { const b = mkEl('button', 'q', esc(t)); b.onclick = e => { e.stopPropagation(); sendChat(t); chatPanel.style.display = 'none'; }; chatPanel.appendChild(b); });
-    function sendChat(txt) { playerBubble.show(txt, 4); if (LB.role == 'host') LB.players.forEach(p => sendL(p, { t: 'chat', id: 0, txt })); else if (LB.role == 'client' && LB.conn && LB.conn.open) try { LB.conn.send({ t: 'chat', txt }); } catch (e) { } }
-    function showChat(id, txt) { const r = remotes[id]; if (!r) return; r.bub.show(txt, 4); r.bub.sprite.visible = true; floatText(r.name + ': ' + txt, '#a5f3fc'); }
+    const BAD = /(anjing|bangsat|kontol|memek|babi|goblok|tolol|bodoh|jancok|asu|fuck|shit)/gi, cleanChat = t => t.replace(BAD, '***').slice(0, 80);
+    const logBox = mkEl('div'); logBox.id = 'ow-log'; logBox.style.cssText = 'position:fixed;left:12px;bottom:236px;z-index:39;max-width:60vw;display:flex;flex-direction:column;gap:3px;pointer-events:none;font:700 12px sans-serif'; document.body.appendChild(logBox);
+    function addLog(who, txt, me) { const d = mkEl('div'); d.style.cssText = 'background:rgba(15,23,42,.78);color:#fff;border-radius:10px;padding:3px 8px;border-left:3px solid ' + (me ? '#22d3ee' : '#f9a8d4') + ';transition:opacity .6s'; d.textContent = who + ': ' + txt; logBox.appendChild(d); while (logBox.children.length > 6) logBox.removeChild(logBox.firstChild); setTimeout(() => { d.style.opacity = 0; setTimeout(() => d.remove(), 700); }, 14000); }
+    { const row = mkEl('div'); row.style.cssText = 'display:flex;gap:4px;margin-top:4px'; row.innerHTML = '<input id="ow-ci" maxlength="80" placeholder="Ketik pesan…" style="flex:1;min-width:120px;border-radius:12px;padding:6px 10px;font-size:13px;color:#0f172a"><button id="ow-cs" style="background:#22c55e;color:#052e16;font-weight:900;border-radius:12px;padding:6px 10px">➤</button>'; chatPanel.appendChild(row); const ci = row.querySelector('input'); const go = () => { const v = cleanChat(ci.value.trim()); if (!v) return; ci.value = ''; sendChat(v); }; row.querySelector('button').onclick = e => { e.stopPropagation(); go(); }; ci.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') { go(); ci.blur(); chatPanel.style.display = 'none'; } else if (e.key === 'Escape') { ci.blur(); chatPanel.style.display = 'none'; } }); ci.addEventListener('keyup', e => e.stopPropagation()); window.__chatFocus = () => { chatPanel.style.display = 'flex'; ci.focus(); }; }
+    addEventListener('keydown', e => { if (e.key === 'Enter' && started && LB.role && !(e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) && chatBtn.style.display !== 'none') { e.preventDefault(); window.__chatFocus(); } });
+    function sendChat(txt) { addLog(myName(), txt, true); playerBubble.show(txt, 4); if (LB.role == 'host') LB.players.forEach(p => sendL(p, { t: 'chat', id: 0, txt })); else if (LB.role == 'client' && LB.conn && LB.conn.open) try { LB.conn.send({ t: 'chat', txt }); } catch (e) { } }
+    function showChat(id, txt) { const r = remotes[id]; if (!r) return; r.bub.show(txt, 4); r.bub.sprite.visible = true; addLog(r.name, txt, false); }
     /* --- emote berdua --- */
     const KINDS = [['hi5', 'Tos', '🙌', 'clap'], ['dance', 'Menari bareng', '💃', 'dance'], ['wave', 'Melambai ke', '👋', 'wave']]; let kindI = 0, lastPair = 0;
     function faceTo(x, z) { const g = playerGroup; g.rotation.y = Math.atan2(x - g.position.x, z - g.position.z); }
@@ -5520,8 +5569,10 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
     })();
     /* ================= v25: KEBAIKAN, TEMAN PENGIKUT, BERTARUNG, SHOLAT BERSAMA ================= */
     if (!state.kind) state.kind = { pts: 0, day: '', log: {}, inv: {} };
-    if (!state.kind.inv) state.kind.inv = {};
+    if (!state.kind.inv) state.kind.inv = {}; if (!state.fight) state.fight = { xp: 0, lv: 1 }; if (!state.train) state.train = {}; const trn = k => (state.train[k] ? state.train[k].lv : 0);
+    const fNeed = () => 40 + 30 * (state.fight.lv - 1), fMax = () => 100 + 12 * (state.fight.lv - 1) + 8 * trn('sta'), fMul = () => (1 + 0.1 * (state.fight.lv - 1)) * (1 + 0.05 * trn('pow'));
     const KLV = [[0, 'Warga Baru', '🌱'], [20, 'Warga Baik', '🌼'], [60, 'Tetangga Ramah', '🤝'], [120, 'Penolong Kota', '🌟'], [250, 'Pahlawan Kebaikan', '🦸'], [500, 'Legenda Kebaikan', '👑']];
+    const kBad = () => state.kind.pts < 0 ? (state.kind.pts < -80 ? [0, 'Penjahat Kota', '😈'] : state.kind.pts < -30 ? [0, 'Pengganggu Kota', '👿'] : [0, 'Si Nakal', '😠']) : null;
     const kLevel = () => { let r = 0; KLV.forEach((l, j) => { if (state.kind.pts >= l[0]) r = j; }); return r; };
     const kDay = () => { const d = todayStr(); if (state.kind.day !== d) { state.kind.day = d; state.kind.log = {}; state.kind.inv = {}; } };
     const DEEDS = { greet: ['💬', 'Menyapa warga'], give: ['🎁', 'Memberi koin'], invite: ['🤝', 'Mengajak teman'], litter: ['🗑️', 'Memungut sampah'], defend: ['🛡️', 'Membela warga'], pray: ['🤲', 'Sholat'], jamaah: ['🕌', 'Sholat berjamaah'] };
@@ -5529,19 +5580,19 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
     function goodDeed(key, pts, msg) {
         kDay(); const old = kLevel(); state.kind.pts += pts; state.kind.log[key] = (state.kind.log[key] || 0) + 1;
         floatText('💖 +' + pts + ' Kebaikan' + (msg ? ' · ' + msg : ''), '#f9a8d4'); burst(pgp().x, pgp().y + 3, pgp().z, 0xf9a8d4, 12, 3);
-        const nl = kLevel(); if (nl > old) { const rw = 30 * nl; state.coins += rw; sfx.level(); floatText(KLV[nl][2] + ' Gelar baru: ' + KLV[nl][1] + '! +' + rw + ' 🪙', '#fde047'); burst(pgp().x, pgp().y + 2, pgp().z, null, 40, 5); updateHUD(); }
+        const nl = kLevel(); if (nl > old && state.kind.pts > 0) { const rw = 30 * nl; state.coins += rw; sfx.level(); floatText(KLV[nl][2] + ' Gelar baru: ' + KLV[nl][1] + '! +' + rw + ' 🪙', '#fde047'); burst(pgp().x, pgp().y + 2, pgp().z, null, 40, 5); updateHUD(); }
         save(); if (!km.classList.contains('hidden')) kindRender();
     }
     const km = mkEl('div', 'fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden'); km.id = 'kind-modal'; document.body.appendChild(km); MODAL_IDS.push('kind-modal');
-    const comps = [];
+    const comps = []; let bullyUntil = 0; const bullyOn = () => nowS() < bullyUntil || state.kind.pts < -15;
     function kindRender() {
-        kDay(); const lv = kLevel(), nx = KLV[lv + 1], cur = KLV[lv], pct = nx ? Math.round((state.kind.pts - cur[0]) / (nx[0] - cur[0]) * 100) : 100;
+        kDay(); const lv = kLevel(); let nx = KLV[lv + 1], cur = KLV[lv], pct = nx ? Math.round((state.kind.pts - cur[0]) / (nx[0] - cur[0]) * 100) : 100; const bad = kBad(); if (bad) { cur = bad; nx = KLV[0]; pct = Math.round((1 + state.kind.pts / 120) * 100); pct = Math.max(4, Math.min(100, pct)); }
         km.innerHTML = `<div class="bg-slate-900 border-2 border-pink-400/60 rounded-3xl p-4 w-full max-w-md max-h-[90vh] overflow-y-auto text-white"><div class="flex items-center justify-between"><h2 class="text-xl font-black">💖 Kebaikan</h2><span class="bg-slate-800 px-3 py-1 rounded-xl font-black text-pink-300 text-sm">${state.kind.pts} poin</span></div>
-        <div class="bg-slate-800 rounded-2xl p-3 my-3 text-center"><div class="text-4xl">${cur[2]}</div><b class="block">${cur[1]}</b><div class="h-3 bg-slate-700 rounded-full mt-2 overflow-hidden"><div style="width:${pct}%;height:100%;background:#f472b6"></div></div><small class="text-slate-400">${nx ? 'Berikutnya: ' + nx[2] + ' ' + nx[1] + ' (' + nx[0] + ' poin)' : 'Gelar tertinggi!'}</small></div>
+        <div class="bg-slate-800 rounded-2xl p-3 my-3 text-center"><div class="text-4xl">${cur[2]}</div><b class="block">${cur[1]}</b><div class="h-3 bg-slate-700 rounded-full mt-2 overflow-hidden"><div style="width:${pct}%;height:100%;background:${bad ? '#ef4444' : '#f472b6'}"></div></div><small class="text-slate-400">${bad ? 'Banyak berbuat baik untuk memperbaiki namamu' : nx ? 'Berikutnya: ' + nx[2] + ' ' + nx[1] + ' (' + nx[0] + ' poin)' : 'Gelar tertinggi!'}</small></div>
         <p class="text-xs font-bold text-slate-300 mb-1">Perbuatan baik hari ini</p><div class="grid grid-cols-2 gap-2 mb-3">${Object.keys(DEEDS).map(k => `<div class="bg-slate-800 rounded-xl p-2 text-sm">${DEEDS[k][0]} ${DEEDS[k][1]} <b class="text-pink-300 float-right">×${state.kind.log[k] || 0}</b></div>`).join('')}</div>
-        <p class="text-xs font-bold text-slate-300 mb-1">Teman yang ikut (${comps.length}/3)</p><div class="flex flex-col gap-2 mb-3">${comps.map((c, i) => `<div class="flex items-center bg-slate-800 rounded-xl p-2 text-sm"><span class="flex-1">${c.d.emoji} ${esc(c.d.name)}</span><button data-bye="${i}" class="bg-slate-600 rounded-lg px-3 py-1 font-black text-xs">Suruh pulang</button></div>`).join('') || '<small class="text-slate-400">Ajak warga lewat obrolan: tombol 🤝 Ajak ikut.</small>'}</div>
+        ${bad || bullyOn() ? '<button data-sorry class="w-full mb-3 bg-amber-500 text-slate-950 rounded-2xl py-2 font-black text-sm">🙏 Minta maaf (50 🪙) → +10 poin, warga memaafkan</button>' : ''}<div class="bg-slate-800 rounded-xl p-2 mb-3 text-sm">🥊 Level Petarung <b class="text-amber-300">${state.fight.lv}</b> · ${state.fight.xp}/${fNeed()} XP · Nyawa ${fMax()} · Serangan +${Math.round((fMul() - 1) * 100)}%${state.fight.lv >= 3 ? ' · 🌀 Tendangan putar' : ''}</div><p class="text-xs font-bold text-slate-300 mb-1">Teman yang ikut (${comps.length}/5)</p><div class="flex flex-col gap-2 mb-3">${comps.map((c, i) => `<div class="flex items-center bg-slate-800 rounded-xl p-2 text-sm"><span class="flex-1">${c.d.emoji} ${esc(c.d.name)}${c.lv ? ' <small class=text-amber-300>Lv' + c.lv + '</small>' : ''}</span><button data-bye="${i}" class="bg-slate-600 rounded-lg px-3 py-1 font-black text-xs">Suruh pulang</button></div>`).join('') || '<small class="text-slate-400">Ajak warga lewat obrolan: tombol 🤝 Ajak ikut.</small>'}</div>
         <p class="text-[11px] text-slate-400">💡 Sapa warga, beri koin, pungut sampah 🗑️, ajak sholat berjamaah (tekan P), dan bela warga dari preman (Mode Bertarung di Pengaturan).</p><button data-close class="w-full mt-3 bg-slate-700 rounded-2xl py-2.5 font-black">Tutup</button></div>`;
-        km.querySelector('[data-close]').onclick = () => km.classList.add('hidden');
+        km.querySelector('[data-close]').onclick = () => km.classList.add('hidden'); const sr = km.querySelector('[data-sorry]'); if (sr) sr.onclick = () => { if (state.coins < 50) { floatText('Koin kurang! 😢', '#f87171'); return; } state.coins -= 50; state.kind.pts += 10; bullyUntil = 0; updateHUD(); save(); sfx.correct(); floatText('🙏 Warga memaafkan kamu', '#4ade80'); kindRender(); };
         km.querySelectorAll('[data-bye]').forEach(b => b.onclick = () => { dismiss(comps[+b.dataset.bye]); kindRender(); });
     }
     km.addEventListener('pointerdown', e => { if (e.target === km) km.classList.add('hidden'); });
@@ -5551,18 +5602,18 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
     const typing = e => e.target && /INPUT|TEXTAREA/.test(e.target.tagName);
     /* ---- teman pengikut ---- */
     function invite(rt) {
-        kDay(); if (comps.includes(rt)) return; if (comps.length >= 3) { floatText('Maksimal 3 teman ikut 😊', '#fde047'); return; }
-        rt.comp = true; comps.push(rt); rt.target = null; rt.mode = 'day'; rt.bubble.show(pick(['Oke, aku ikut! 🤝', 'Siap, ayo jalan! 🚶', 'Aku jagain kamu! 💪']), 2.6); sfx.coin();
+        kDay(); if (comps.includes(rt)) return; if (comps.length >= 5) { floatText('Maksimal 5 teman ikut 😊', '#fde047'); return; }
+        rt.comp = true; rt.fighter = fightEnabled(); comps.push(rt); rt.target = null; rt.mode = 'day'; rt.bubble.show(pick(['Oke, aku ikut! 🤝', 'Siap, ayo jalan! 🚶', 'Aku jagain kamu! 💪']), 2.6); sfx.coin();
         if (state.kind.inv[rt.d.id] !== 1) { state.kind.inv[rt.d.id] = 1; goodDeed('invite', 3, rt.d.name + ' ikut'); }
     }
-    function dismiss(rt) { if (!rt) return; rt.comp = false; const i = comps.indexOf(rt); if (i >= 0) comps.splice(i, 1); rt.mode = 'post'; rt.tripT = 0; rt.av.pose = null; rt.group.visible = true; rt.bubble.show('Sampai jumpa! 👋', 2.2); }
+    function dismiss(rt) { if (!rt) return; if (rt.hpS) { rt.group.remove(rt.hpS); rt.hpS = null; } rt.down = 0; rt.jump = null; rt.group.rotation.x = 0; rt.group.position.y = 0; if (rt.recruit) { const i = comps.indexOf(rt); if (i >= 0) comps.splice(i, 1); const w = rt.w; w.recruited = false; if (rt.tag) rt.group.remove(rt.tag); w.cx = w.tx = rt.group.position.x; w.cz = w.tz = rt.group.position.z; w.wait = 1; w.trust = 0; w.talks = 0; if (w.hadDay) { dayOnly.push(rt.group); w.hadDay = false; } rt.av.pose = null; rt.group.visible = true; rt.group.position.y = 0; rt.vride = false; return; } rt.comp = false; const i = comps.indexOf(rt); if (i >= 0) comps.splice(i, 1); rt.mode = 'post'; rt.tripT = 0; rt.av.pose = null; rt.group.visible = true; rt.bubble.show('Sampai jumpa! 👋', 2.2); }
     const _dsl = dlgShowLine; dlgShowLine = function () {
         _dsl(); const d = dialogNpc && dialogNpc.d; if (!d) return; const act = $('dlg-actions'), lines = d.lines && d.lines.length ? d.lines : ['Halo!'];
         if (dlgIdx < lines.length - 1) return;
         const mk2 = (label, cls, fn) => { const b = document.createElement('button'); b.className = 'action-btn flex-1 py-2.5 rounded-xl font-black text-sm ' + cls; b.textContent = label; b.onclick = fn; act.insertBefore(b, act.lastChild); };
         const rt = dialogNpc;
         mk2('🎁 Beri 10 koin', 'bg-pink-500 text-white', () => { if (state.coins < 10) { floatText('Koin kurang! 😢', '#f87171'); sfx.wrong(); return; } state.coins -= 10; updateHUD(); sfx.coin(); rt.bubble.show('Terima kasih banyak! 😊', 2.4); goodDeed('give', 2, 'Berbagi'); });
-        mk2(comps.includes(rt) ? '👋 Suruh pulang' : '🤝 Ajak ikut', 'bg-sky-500 text-white', () => { if (comps.includes(rt)) dismiss(rt); else invite(rt); closeDialog(); });
+        mk2(comps.includes(rt) ? '👋 Suruh pulang' : fightEnabled() ? '🛡️ Rekrut lawan preman' : '🤝 Ajak ikut', 'bg-sky-500 text-white', () => { if (comps.includes(rt)) dismiss(rt); else invite(rt); closeDialog(); });
     };
     const _mt = markTalked; markTalked = function (rt) { const was = state.talked[rt.d.id] === todayStr(); _mt(rt); if (!was) goodDeed('greet', 1); };
     /* ---- sholat dimana saja + teman ikut ---- */
@@ -5572,17 +5623,94 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
     }
     addEventListener('keydown', e => { if (typing(e)) return; if (e.code === 'KeyP') startPray(); else if (e.code === 'KeyK' && started) { if (!km.classList.contains('hidden')) km.classList.add('hidden'); else if (!uiOpen()) { kindRender(); km.classList.remove('hidden'); } } else if (e.code === 'KeyF') attack(); });
     /* ---- sampah untuk dipungut ---- */
+    /* ===== v28: warga bervariasi (nama, level, ukuran, sifat) & rekrut dengan obrolan/tantangan ===== */
+    const WN = ['Ani', 'Budi', 'Citra', 'Dedi', 'Eka', 'Fajar', 'Gita', 'Hadi', 'Intan', 'Joko', 'Kiki', 'Lina', 'Maman', 'Nina', 'Oki', 'Putri', 'Rudi', 'Sari', 'Tono', 'Umi', 'Vina', 'Wawan', 'Yuni', 'Zaki', 'Bayu', 'Dewi', 'Rizki', 'Salsa'];
+    const TR = { ramah: { e: '😊', n: 'Ramah', ch: 'kuis', talk: 12, gift: 15 }, pemalu: { e: '😳', n: 'Pemalu', ch: 'sampah', talk: 6, gift: 20 }, sombong: { e: '😏', n: 'Sombong', ch: 'lari', talk: 3, gift: 25 }, pemberani: { e: '😤', n: 'Pemberani', ch: 'preman', talk: 8, gift: 12 } };
+    const TLINES = { ramah: ['Halo! Senang bertemu denganmu 😊', 'Hari yang cerah ya! Aku suka berteman.', 'Kamu baik sekali, boleh kenalan?'], pemalu: ['A-aku malu... tapi boleh ngobrol 😳', 'Kamu baik ya... aku jarang punya teman.', 'Maaf, aku tidak biasa bicara dengan orang baru...'], sombong: ['Hmph, aku orang penting lho 😏', 'Kamu pikir kamu hebat?', 'Buktikan dulu kemampuanmu!'], pemberani: ['Aku tidak takut apa pun! 💪', 'Preman? Kecil! Tapi aku mau lihat nyalimu.', 'Kalau mau lawan preman, buktikan keberanianmu!'] };
+    const CHCAP = { kuis: 'Jawab pertanyaan dengan benar', sampah: 'Pungut sampah di kota', lari: 'Lari ke garis finis tepat waktu', preman: 'Kalahkan preman' };
+    const QB = [['Ibu kota Indonesia adalah…', ['Jakarta', 'Bandung', 'Surabaya'], 0], ['2 + 3 × 2 = …', ['10', '8', '7'], 1], ['Warna bendera Indonesia…', ['Merah Putih', 'Merah Biru', 'Putih Hijau'], 0], ['Hewan yang bertelur…', ['Kucing', 'Ayam', 'Sapi'], 1], ['Planet tempat kita tinggal…', ['Mars', 'Venus', 'Bumi'], 2], ['Jumlah hari dalam seminggu…', ['5', '7', '6'], 1], ['Air membeku pada suhu…', ['0°C', '50°C', '100°C'], 0], ['Pancasila memiliki … sila', ['4', '6', '5'], 2], ['Alat untuk melihat bintang…', ['Teleskop', 'Stetoskop', 'Mikroskop'], 0], ['Hasil dari 12 ÷ 3 = …', ['3', '4', '6'], 1], ['Tumbuhan membuat makanan lewat…', ['Fotosintesis', 'Pernapasan', 'Penguapan'], 0], ['Mata uang Indonesia…', ['Ringgit', 'Rupiah', 'Dolar'], 1]];
+    const wNeed = w => Math.min(100, 30 + 10 * w.lv);
+    (function initW() { wanderers.forEach(w => { if (w.still || w.nm || !w.p || !w.p.root) return; w.nm = pick(WN); w.lv = 1 + Math.floor(Math.pow(Math.random(), 1.6) * 10); w.tr = pick(Object.keys(TR)); w.trust = 0; w.talks = 0; const base = w.p.root.scale.x || 1, sc = 0.78 + 0.05 * w.lv + (Math.random() - 0.5) * 0.16; w.sz = sc; w.p.root.scale.setScalar(base * sc); }); })();
+    const getWBub = w => { if (!w.bub) { w.bub = makeBubble(); w.bub.sprite.position.y = 5.2; w.p.root.add(w.bub.sprite); } return w.bub; };
+    function wAv(p) { return { pose: null, poseUntil: 0, poseStart: 0, sitH: 0.55, setPose(pz, t, dur) { this.pose = pz; this.poseStart = t; this.poseUntil = t + dur; }, animate(t, mv) { if (this.pose && t > this.poseUntil) this.pose = null; animPerson(p, this.pose ? t - this.poseStart : t, this.pose || (mv ? 'walk' : 'idle'), 1); } }; }
+    function recruitW(w) {
+        if (!w || comps.length >= 5 || w.recruited) return; const r = w.p.root, i = dayOnly.indexOf(r); if (i >= 0) { dayOnly.splice(i, 1); w.hadDay = true; } w.school = false; w.recruited = true;
+        const tg = labelSprite('🛡️ ' + w.nm + ' Lv' + w.lv, '#0369a1', 5.2, 1.1); tg.position.y = 4.4; r.add(tg);
+        const rt = { d: { id: 'rec' + w.nm, name: w.nm, emoji: '🛡️' }, av: wAv(w.p), group: r, bubble: getWBub(w), comp: true, recruit: true, fighter: true, w, lv: w.lv, tag: tg }; comps.push(rt); rt.bubble.show(pick(['Siap bantu lawan preman! 💪', 'Aku ikut, kawan!', 'Ayo kita beresin preman!']), 2.8); sfx.coin(); goodDeed('invite', 2, w.nm + ' bergabung');
+    }
+    const cLv = rt => rt.lv || Math.max(1, Math.ceil(state.fight.lv / 1.5)), hpMul = rt => 1 + (cLv(rt) - 1) * 0.3;
+    function drawHp(rt) {
+        const key = Math.ceil(rt.hp) + '/' + rt.hpMax; if (rt._hk === key) return; rt._hk = key; const cv = rt.hpC, c = cv.getContext('2d'), W = cv.width, H = cv.height, r = Math.max(0, rt.hp / rt.hpMax);
+        c.clearRect(0, 0, W, H); roundRectPath(c, 2, 2, W - 4, H - 4, 11); c.fillStyle = 'rgba(15,23,42,.85)'; c.fill();
+        if (r > 0) { roundRectPath(c, 5, 5, Math.max(8, (W - 10) * r), H - 10, 8); c.fillStyle = r > 0.5 ? '#22c55e' : r > 0.25 ? '#f59e0b' : '#ef4444'; c.fill(); }
+        c.lineWidth = 3; c.strokeStyle = '#fff'; roundRectPath(c, 2, 2, W - 4, H - 4, 11); c.stroke();
+        c.font = 'bold 15px Fredoka, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#fff'; c.strokeStyle = 'rgba(0,0,0,.6)'; c.lineWidth = 3; const tx = '❤ ' + Math.ceil(rt.hp); c.strokeText(tx, W / 2, H / 2 + 1); c.fillText(tx, W / 2, H / 2 + 1); rt.hpT.needsUpdate = true;
+    }
+    function mkHp(rt) {
+        rt.hpMax = Math.round(50 * hpMul(rt)); rt.hp = rt.hpMax; const cv = document.createElement('canvas'); cv.width = 170; cv.height = 30; rt.hpC = cv; rt.hpT = new THREE.CanvasTexture(cv);
+        const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: rt.hpT, transparent: true })); sp.scale.set(1.5 + 0.55 * hpMul(rt), 0.62, 1); sp.position.y = rt.recruit ? 3.85 : 4.3; sp.renderOrder = 998; rt.hpS = sp; rt.group.add(sp); drawHp(rt);
+    }
+    function compHurt(c, dmg, t) {
+        if (c.hp === undefined || c.down) return; c.hp = Math.max(0, c.hp - dmg); c.lastHit = t; drawHp(c); c.av.setPose('hurt', t, 0.4);
+        if (c.hp <= 0) { c.down = t + 10; c.jump = null; c.group.position.y = 0; c.av.pose = null; c.bubble.show('Aduh… aku KO 😵', 2.4); floatText('😵 ' + c.d.name + ' pingsan! Dia bangun sebentar lagi', '#f87171'); } else c.bubble.show(pick(['Aduh! 😣', 'Auw! 😖', 'Kuat juga dia! 😤']), 1.2);
+    }
+    const compDmg = rt => (rt.lv ? 6 + 4 * rt.lv : 10 + 2 * state.fight.lv) + (rt.fighter ? 4 : 0);
+    const rm = mkEl('div', 'fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden'); rm.id = 'rec-modal'; document.body.appendChild(rm); MODAL_IDS.push('rec-modal');
+    const chH = mkEl('div'); chH.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);top:118px;z-index:26;background:rgba(15,23,42,.9);border:2px solid #38bdf8;border-radius:14px;padding:6px 12px;color:#fff;font:800 12px sans-serif;display:none;text-align:center;pointer-events:none'; document.body.appendChild(chH);
+    let chal = null, recW = null, quizI = 0, mark = null;
+    function openRecruit(w, view) {
+        recW = w; const T = TR[w.tr], need = wNeed(w), tp = Math.min(100, w.trust), icon = w.sz > 1.1 ? '🧑‍🦱' : w.sz < 0.9 ? '🧒' : '🧑';
+        let body;
+        if (view && view.q) { const q = QB[view.q.id]; body = `<p class="font-black mb-2">❓ ${esc(q[0])} <small class="text-slate-400">(${view.q.n + 1}/${view.q.total})</small></p><div class="flex flex-col gap-2">${q[1].map((o, i) => `<button data-ans="${i}" class="bg-slate-800 border-2 border-slate-600 rounded-xl py-2 font-black text-sm">${esc(o)}</button>`).join('')}</div>`; }
+        else body = `<div class="h-3 bg-slate-700 rounded-full overflow-hidden mb-1"><div style="width:${tp}%;height:100%;background:#22d3ee"></div></div><small class="text-slate-400">Kepercayaan ${Math.round(tp)}/${need}${tp >= need ? ' ✅ siap jadi kawan!' : ''}</small>
+        <div class="grid grid-cols-2 gap-2 mt-3"><button data-a="talk" class="bg-sky-600 rounded-xl py-2 font-black text-sm">💬 Ngobrol</button><button data-a="gift" class="bg-pink-600 rounded-xl py-2 font-black text-sm">🎁 Hadiah (${10 * w.lv} 🪙)</button><button data-a="chal" class="bg-amber-500 text-slate-950 rounded-xl py-2 font-black text-sm col-span-2">🎯 Tantangan: ${CHCAP[T.ch]}</button><button data-a="join" class="${tp >= need ? 'bg-emerald-500 text-slate-950' : 'bg-slate-700 text-slate-400'} rounded-xl py-2 font-black text-sm col-span-2">✅ Ajak bergabung</button></div>`;
+        rm.innerHTML = `<div class="bg-slate-900 border-2 border-sky-400/60 rounded-3xl p-4 w-full max-w-sm text-white"><div class="flex items-center gap-3 mb-2"><span class="text-4xl">${icon}</span><div class="flex-1"><b class="text-lg">${esc(w.nm)}</b> <span class="bg-amber-400 text-slate-950 rounded-lg px-2 text-xs font-black">Lv ${w.lv}</span><br><small class="text-slate-300">${T.e} ${T.n} · ${w.lv >= 7 ? 'sangat kuat, sulit diyakinkan' : w.lv >= 4 ? 'lumayan kuat' : 'masih pemula'}</small></div></div><p id="rec-say" class="bg-slate-800 rounded-xl p-2 text-sm mb-2 min-h-[2.5rem]">${esc((view && view.say) || pick(TLINES[w.tr]))}</p>${body}<button data-close class="w-full mt-3 bg-slate-700 rounded-2xl py-2 font-black">Tutup</button></div>`;
+        rm.classList.remove('hidden'); rm.querySelector('[data-close]').onclick = () => rm.classList.add('hidden');
+        const bubSay = t => getWBub(w).show(t, 2.4);
+        rm.querySelectorAll('[data-ans]').forEach(b => b.onclick = () => { const q = view.q, ok = +b.dataset.ans === QB[q.id][2]; if (!ok) { w.trust = Math.max(0, w.trust - 8); sfx.wrong(); bubSay('Hmm, kurang tepat... 😕'); openRecruit(w, { say: 'Jawabanmu belum benar. Coba lagi nanti ya!' }); return; } sfx.correct(); if (q.n + 1 >= q.total) { winChal(w); } else openRecruit(w, { q: { id: (q.id + 1 + Math.floor(Math.random() * 5)) % QB.length, n: q.n + 1, total: q.total }, say: 'Benar! Satu lagi…' }); });
+        rm.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
+            const a = b.dataset.a; sfx.click();
+            if (a === 'talk') { if (w.talks >= 4) { openRecruit(w, { say: 'Kita sudah banyak ngobrol… sekarang tunjukkan sesuatu! 😅' }); return; } w.talks++; w.trust += T.talk; bubSay('😊'); openRecruit(w, { say: pick(TLINES[w.tr]) + ' (+' + T.talk + ')' }); }
+            else if (a === 'gift') { const c = 10 * w.lv; if (state.coins < c) { floatText('Koin kurang! 😢', '#f87171'); return; } state.coins -= c; updateHUD(); w.trust += T.gift + 2 * (w.lv > 6 ? 0 : 1); sfx.coin(); goodDeed('give', 1); openRecruit(w, { say: 'Terima kasih hadiahnya! 🥰 (+' + T.gift + ')' }); }
+            else if (a === 'chal') startChal(w);
+            else if (a === 'join') { if (w.trust < need) { openRecruit(w, { say: 'Aku belum cukup percaya padamu… ngobrol atau selesaikan tantangan dulu.' }); return; } rm.classList.add('hidden'); recruitW(w); }
+        });
+    }
+    function startChal(w) {
+        const T = TR[w.tr], lv = w.lv; rm.classList.add('hidden'); if (chal) return;
+        if (T.ch === 'kuis') { openRecruit(w, { q: { id: Math.floor(Math.random() * QB.length), n: 0, total: 1 + Math.floor(lv / 4) }, say: 'Jawab dengan benar, ya!' }); return; }
+        chal = { w, type: T.ch, t0: nowS() };
+        if (T.ch === 'sampah') { chal.need = 2 + Math.floor(lv / 2); chal.got = 0; chal.ends = nowS() + 150; }
+        else if (T.ch === 'preman') { chal.need = 1 + Math.floor(lv / 3); chal.got = 0; chal.ends = nowS() + 420; }
+        else { const P = pgp(); let dist = 50 + 6 * lv, x, z, ok = false; for (let k = 0; k < 40 && !ok; k++) { const a = Math.random() * 6.283; x = P.x + Math.cos(a) * dist; z = P.z + Math.sin(a) * dist; ok = Math.abs(x) < 380 && Math.abs(z) < 380 && !tooCloseToBuilding(x, z, 3) && !(window.pedRoad && pedRoad(x, z, 1.5)) && !circleColliders.some(c => Math.hypot(x - c.x, z - c.z) < c.r + 2); if (!ok && k % 10 == 9) dist *= 0.8; }
+            chal.x = x; chal.z = z; chal.ends = nowS() + dist / 10 + 4 - 0.25 * lv; const g = new THREE.Group(); g.position.set(x, 0, z); mkCyl(0.6, 0.6, 12, 0x22d3ee, 0, 6, 0, g, 10).material = cm(0x22d3ee, { emissive: 0x22d3ee, emissiveIntensity: 0.9, transparent: true, opacity: 0.55 }); const lb = labelSprite('🏁 Garis finis', '#0891b2', 6, 1.5); lb.position.y = 13; g.add(lb); scene.add(g); mark = g; }
+        floatText('🎯 Tantangan dimulai: ' + CHCAP[T.ch], '#fde047'); getWBub(w).show('Buktikan ya! 😏', 2.4);
+    }
+    function endChal(ok) {
+        if (!chal) return; const w = chal.w; if (mark) { scene.remove(mark); mark = null; } chal = null; chH.style.display = 'none';
+        if (ok) winChal(w); else { w.trust = Math.max(0, w.trust - 10); sfx.wrong(); floatText('⏰ Tantangan gagal. Coba lagi!', '#f87171'); getWBub(w).show('Belum berhasil, coba lagi ya!', 2.4); }
+    }
+    function winChal(w) { w.trust = 200; sfx.level(); floatText('🎉 ' + w.nm + ' kagum padamu!', '#4ade80'); rm.classList.add('hidden'); recruitW(w); }
+    function chalEvent(kind) { if (!chal) return; if (chal.type === 'sampah' && kind === 'litter') chal.got++; else if (chal.type === 'preman' && kind === 'thug') chal.got++; if (chal.need && chal.got >= chal.need) endChal(true); }
+    window.__chal = chalEvent;
+    function chalTick() {
+        if (!chal) return; const left = chal.ends - nowS();
+        if (left <= 0) { endChal(false); return; } if (chal.type === 'lari' && Math.hypot(pgp().x - chal.x, pgp().z - chal.z) < 3.2) { endChal(true); return; }
+        chH.style.display = 'block'; chH.textContent = '🎯 ' + chal.w.nm + ': ' + CHCAP[chal.type] + (chal.need ? ' ' + chal.got + '/' + chal.need : ' · ' + Math.round(Math.hypot(pgp().x - chal.x, pgp().z - chal.z)) + ' m') + ' · ⏱ ' + Math.ceil(left) + ' dtk';
+    }
+    rm.addEventListener('pointerdown', e => { if (e.target === rm) rm.classList.add('hidden'); });
+    const recIt = { id: 'recruit', type: 'roomact', indoor: false, pos: new THREE.Vector3(), radius: 3.6, target: null, label: () => recIt.target ? '🛡️ Ajak ' + recIt.target.nm + ' (Lv ' + recIt.target.lv + ')' : '', hideIf: () => !recIt.target, fn: () => recIt.target && openRecruit(recIt.target) }; interactables.push(recIt);
+    const relIt = { id: 'release', type: 'roomact', indoor: false, pos: new THREE.Vector3(), radius: 3.4, target: null, label: () => relIt.target ? '👋 Lepaskan ' + relIt.target.d.name : '', hideIf: () => !relIt.target, fn: () => { const c = relIt.target; if (c) { c.bubble.show('Oke, sampai jumpa! 👋', 2.4); dismiss(c); floatText('👋 ' + c.d.name + ' dilepas', '#fde047'); } } }; interactables.push(relIt);
     const litter = [];
     function mkLitter() {
         const [x, z] = randomCoinPos(), g = new THREE.Group(); g.position.set(x, 0, z); mkBox(0.5, 0.3, 0.4, 0x9ca3af, 0, 0.2, 0, g); mkBox(0.3, 0.25, 0.3, 0xa16207, 0.35, 0.15, 0.2, g); mkCone(0.18, 0.4, 0x22c55e, -0.3, 0.2, 0.1, g, 5); g.rotation.y = Math.random() * 6; scene.add(g);
-        const it = { id: 'litter' + Math.random(), type: 'roomact', indoor: false, pos: g.position, radius: 2.2, label: 'Pungut Sampah 🗑️', on: true, hideIf: () => !it.on, fn: () => { if (!it.on) return; it.on = false; g.visible = false; state.coins += 3; sfx.coin(); updateHUD(); goodDeed('litter', 1, 'Kota bersih'); it.back = nowS() + 90; } };
+        const it = { id: 'litter' + Math.random(), type: 'roomact', indoor: false, pos: g.position, radius: 2.2, label: 'Pungut Sampah 🗑️', on: true, hideIf: () => !it.on, fn: () => { if (!it.on) return; it.on = false; g.visible = false; state.coins += 3; sfx.coin(); updateHUD(); goodDeed('litter', 1, 'Kota bersih'); chalEvent('litter'); it.back = nowS() + 90; } };
         interactables.push(it); it.g = g; litter.push(it);
     }
     for (let i = 0; i < 26; i++) mkLitter();
     /* ---- bertarung ---- */
-    const FIGHT = { hp: 100, max: 100, enemies: [], next: 8, combo: 0, atkCd: 0, hurtCd: 0, lastHit: -99, lastHurt: -99 }, pend = [];
-    const fightOn = () => !!state.settings.fight && started && !inHouse && !riding && !onTransit;
-    const fh = mkEl('div', '', ''); fh.style.cssText = 'position:fixed;left:12px;top:112px;z-index:25;display:none;pointer-events:none;font:800 12px sans-serif;color:#fff'; fh.innerHTML = '🥊 <span style="display:inline-block;width:110px;height:10px;background:#450a0a;border-radius:6px;overflow:hidden;vertical-align:middle"><span id="fight-bar" style="display:block;height:100%;width:100%;background:#ef4444"></span></span><br><span id="fight-hint" style="font-size:11px;text-shadow:0 1px 3px #000"></span>'; document.body.appendChild(fh);
+    const FIGHT = { hp: 100, max: 100, lastLv: 1, enemies: [], next: 8, combo: 0, atkCd: 0, hurtCd: 0, lastHit: -99, lastHurt: -99 }, pend = [];
+    const fh = mkEl('div', '', ''); fh.style.cssText = 'position:fixed;left:12px;top:112px;z-index:25;display:none;pointer-events:none;font:800 12px sans-serif;color:#fff'; fh.innerHTML = '🥊 <span style="display:inline-block;width:110px;height:10px;background:#450a0a;border-radius:6px;overflow:hidden;vertical-align:middle"><span id="fight-bar" style="display:block;height:100%;width:100%;background:#ef4444"></span></span> <b id="fight-lv" style="color:#fcd34d">Lv1</b><br><span style="display:inline-block;width:110px;height:5px;background:#1e293b;border-radius:4px;overflow:hidden;margin-left:20px"><span id="fight-xp" style="display:block;height:100%;width:0;background:#facc15"></span></span><br><span id="fight-hint" style="font-size:11px;text-shadow:0 1px 3px #000"></span>'; document.body.appendChild(fh);
     const flash = mkEl('div', '', ''); flash.style.cssText = 'position:fixed;inset:0;z-index:24;pointer-events:none;background:radial-gradient(ellipse at center,transparent 40%,rgba(220,38,38,.65));opacity:0;transition:opacity .4s'; document.body.appendChild(flash);
     const fbtn = mkEl('button', 'action-btn bg-red-600 text-white font-black border-4 border-white shadow-2xl', '👊'); fbtn.id = 'btn-fight'; fbtn.style.cssText = 'position:fixed;bottom:112px;right:92px;z-index:20;width:60px;height:60px;border-radius:50%;font-size:26px;display:none'; document.body.appendChild(fbtn);
     fbtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); attack(); });
@@ -5590,95 +5718,332 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
     const SITES = [], SEEDR = (() => { let s = 20261110; return () => (s = (s * 16807) % 2147483647) / 2147483647; })(); let sitesBuilt = false;
     const THUG_LINES = ['Mau apa kamu?! 😠', 'Ini wilayah kami!', 'Pergi sana, anak kecil!', 'Hahaha, cari masalah?', 'Berani lawan kami?'], HARASS_LINES = ['Serahkan koinmu! 💰', 'Heh, jangan lari!', 'Mau lewat? Bayar dulu!'];
     const nearRoad = (x, z) => window.pedRoad && pedRoad(x, z, 9) && !pedRoad(x, z, 2.5);
-    function freeSpot(minD, maxD, wantRoad, avoid) {
+    function freeSpot(minD, maxD, wantRoad, avoid, pad) {
+        pad = pad || 5;
         for (let k = 0; k < 900; k++) {
             const a = SEEDR() * 6.283, d = minD + SEEDR() * (maxD - minD), x = Math.cos(a) * d, z = Math.sin(a) * d; if (Math.abs(x) > 380 || Math.abs(z) > 380) continue;
-            if (tooCloseToBuilding(x, z, 5) || circleColliders.some(c => Math.hypot(x - c.x, z - c.z) < c.r + 4) || boxColliders.some(c => Math.abs(x - c.x) < Math.max(c.hw, c.hd) + 7 && Math.abs(z - c.z) < Math.max(c.hw, c.hd) + 7)) continue;
-            if (window.pedRoad && pedRoad(x, z, 2.5)) continue; if (wantRoad && !nearRoad(x, z)) continue; if (avoid.some(q => Math.hypot(x - q.x, z - q.z) < 65)) continue; return { x, z };
+            if (tooCloseToBuilding(x, z, pad) || circleColliders.some(c => c.r > 4 && Math.hypot(x - c.x, z - c.z) < c.r + pad * 0.8) || boxColliders.some(c => Math.abs(x - c.x) < Math.max(c.hw, c.hd) + pad + 2 && Math.abs(z - c.z) < Math.max(c.hw, c.hd) + pad + 2)) continue;
+            if (window.pedRoad && pedRoad(x, z, 2.5)) continue; if (wantRoad && !nearRoad(x, z)) continue; if (avoid.some(q => Math.hypot(x - q.x, z - q.z) < 55)) continue; return { x, z };
         } return null;
     }
-    function mkThug(site, x, z, ang) {
-        const p = buildPerson({ shirt: pick([0x111827, 0x7f1d1d, 0x1e293b]), pants: 0x7f1d1d, hat: 'cap', skin: pick(SK) }), eg = new THREE.Group(); eg.add(p.root); eg.position.set(x, 0, z); eg.rotation.y = ang || 0; scene.add(eg);
-        const tag = labelSprite('😈 Preman Nakal', '#7f1d1d', 5.5, 1.25); tag.position.y = 4.8; eg.add(tag); const bub = makeBubble(); bub.sprite.position.y = 6.0; eg.add(bub.sprite);
-        const e = { p, eg, tag, bub, site, hp: 50, max: 50, cd: 0, hurtUntil: 0, kx: 0, kz: 0, dead: false, atkStart: -9, atkUntil: 0, state: 'loiter', hx: x, hz: z, lm: pick(['idle', 'phone', 'laugh', 'clap']), lmT: Math.random() * 6 }; FIGHT.enemies.push(e); site.thugs.push(e); return e;
+    /* ================= v32: PREMAN BERAGAM, MARKAS PERSEMBUNYIAN, JURUS PAMUNGKAS, SINKRON MULTIPLAYER ================= */
+    const mulb = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+    const MPon = () => !!(LB.role && LB.ok), isCl = () => LB.role === 'client' && LB.ok, meId = () => MPon() ? LB.me : 0;
+    const fightEnabled = () => MPon() ? !!LB.fm : !!state.settings.fight;
+    const bcast = m => { if (LB.role === 'host') LB.players.forEach(p => sendL(p, m)); };
+    const toHost = m => { if (isCl() && LB.conn && LB.conn.open) { try { LB.conn.send(m); } catch (e) { } } };
+    const GNAMES = ['Serigala Hitam', 'Tengkorak Merah', 'Ular Kobra', 'Banteng Liar', 'Rajawali Gelap', 'Macan Kumbang', 'Bayangan Malam', 'Kalajengking', 'Badai Besi', 'Naga Api'];
+    /* tipe preman: setiap tipe punya ciri, kekuatan, dan jurus pamungkas sendiri */
+    const TYPES = {
+        pukul: { n: 'Tukang Pukul', e: '😈', hp: 1, dmg: 1, sp: 1, wk: 'rand', hat: 'topi', topi: 0x7f1d1d, col: [0x111827, 0x7f1d1d, 0x1e293b], ult: ['slam'] },
+        kilat: { n: 'Si Kilat', e: '⚡', hp: 0.7, dmg: 0.9, sp: 1.55, sz: 0.88, wk: null, col: [0xeab308, 0x0ea5e9, 0x22c55e], pants: 0x1e293b, acc: 'bandana', ult: ['dash'] },
+        lempar: { n: 'Pelempar Batu', e: '🪨', hp: 0.8, dmg: 0.8, sp: 0.9, wk: null, hat: 'caping', col: [0x78350f, 0x57534e], ranged: true, ult: ['rain'] },
+        tameng: { n: 'Si Tameng', e: '🛡️', hp: 1.9, dmg: 0.9, sp: 0.75, sz: 1.15, wk: 'pipa', hat: 'helm', helm: 0x64748b, col: [0x334155], shield: true, ult: ['charge'] },
+        bayang: { n: 'Si Bayangan', e: '🥷', hp: 0.75, dmg: 1.1, sp: 1.3, sz: 0.95, wk: 'pisau', col: [0x0f172a], pants: 0x0f172a, acc: 'masker', ult: ['blink'] },
+        dukun: { n: 'Dukun Preman', e: '🔮', hp: 0.85, dmg: 0.8, sp: 0.8, wk: 'tongkat', hat: 'peci', col: [0x6d28d9, 0x7c3aed], pants: 0x4c1d95, robe: true, healer: true, ult: ['curse'] },
+        bos: { n: 'Bos Preman', e: '👹', ult: ['slam', 'spin'] },
+        raja: { n: 'RAJA PREMAN', e: '👑', ult: ['slam', 'spin', 'leap', 'roar'] }
+    };
+    const ULTS = {
+        slam: { n: 'Hantaman Tanah', cd: 11, r: 4.6, delay: 0.95, dmg: 2.2, at: 'self', rng: [0, 6.2] },
+        spin: { n: 'Putaran Maut', cd: 13, r: 5.2, delay: 0.8, dur: 1.4, ticks: 3, dmg: 0.9, at: 'self', rng: [0, 6.5] },
+        dash: { n: 'Tendangan Kilat', cd: 9, delay: 0.65, dmg: 2.0, at: 'dash', len: 9, w: 1.8, rng: [4, 12] },
+        charge: { n: 'Dobrak Tameng', cd: 11, delay: 0.95, dmg: 2.0, at: 'dash', len: 11, w: 2.4, push: 3.5, rng: [4, 13] },
+        rain: { n: 'Hujan Batu', cd: 12, r: 2.3, delay: 1.25, dmg: 1.6, at: 'rain', cnt: 5, rng: [3, 15] },
+        blink: { n: 'Bayangan Kembar', cd: 10, r: 2.7, delay: 0.85, dmg: 2.0, at: 'behind', rng: [3, 14] },
+        curse: { n: 'Kutukan Gelap', cd: 14, r: 5.5, delay: 1.15, dmg: 1.5, at: 'target', rng: [2, 12] },
+        leap: { n: 'Lompat Terkam', cd: 14, r: 4.6, delay: 1.1, dmg: 2.6, at: 'target', jump: true, rng: [4, 14] },
+        roar: { n: 'Teriakan Raja', cd: 18, r: 9, delay: 1.35, dmg: 1.8, at: 'self', rng: [0, 10] }
+    };
+    const fightOn = () => fightEnabled() && started && !inHouse && !riding && !onTransit;
+    const angDiff = (a, b) => Math.atan2(Math.sin(b - a), Math.cos(b - a));
+    let SITE_DEFS = [], SITE_VER = 0;
+    /* ---- efek peringatan jurus (cincin / garis merah di tanah) ---- */
+    const ULT_FX = [], PROJ = [], fxMat = (o) => new THREE.MeshBasicMaterial({ color: 0xef4444, transparent: true, opacity: o, depthWrite: false, side: THREE.DoubleSide });
+    function mkRing(x, z, r) { const g = new THREE.Group(), fill = new THREE.Mesh(new THREE.CircleGeometry(r, 36), fxMat(0.32)), edge = new THREE.Mesh(new THREE.RingGeometry(r * 0.93, r, 40), fxMat(0.85)); [fill, edge].forEach(m => { m.rotation.x = -Math.PI / 2; g.add(m); }); fill.position.y = 0.16; edge.position.y = 0.17; g.position.set(x, 0, z); scene.add(g); return { g, fill, grow: true }; }
+    function mkLine(x, z, ax, az, len, w) { const g = new THREE.Group(), fill = new THREE.Mesh(new THREE.PlaneGeometry(w, len), fxMat(0.32)), edge = new THREE.Mesh(new THREE.PlaneGeometry(w, len), new THREE.MeshBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.8, wireframe: true, depthWrite: false })); [fill, edge].forEach(m => { m.rotation.x = -Math.PI / 2; m.position.set(0, 0.16, len / 2); g.add(m); }); g.position.set(x, 0, z); g.rotation.y = Math.atan2(ax, az); scene.add(g); return { g, fill, grow: false }; }
+    function ultFxTick(t) {
+        for (let i = ULT_FX.length - 1; i >= 0; i--) { const f = ULT_FX[i], u = Math.min(1, (t - f.t0) / Math.max(0.05, f.delay)); f.shapes.forEach(s => { if (s.grow) s.fill.scale.setScalar(Math.max(0.05, u)); s.fill.material.opacity = 0.2 + 0.25 * Math.abs(Math.sin(t * 9)); });
+            if (t > f.until) { f.shapes.forEach(s => { scene.remove(s.g); s.g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }); ULT_FX.splice(i, 1); } }
+        for (let i = PROJ.length - 1; i >= 0; i--) { const q = PROJ[i], u = (t - q.t0) / q.dur; if (u >= 1) { scene.remove(q.m); PROJ.splice(i, 1); continue; } q.m.position.set(q.x0 + (q.x1 - q.x0) * u, 0.6 + Math.sin(Math.PI * u) * 3.2, q.z0 + (q.z1 - q.z0) * u); q.m.rotation.x += 0.25; }
+    }
+    function inShape(ev, x, z) {
+        if (ev.k === 'ring') return Math.hypot(x - ev.x, z - ev.z) < ev.r;
+        if (ev.k === 'rain') return ev.pts.some(q => Math.hypot(x - q[0], z - q[1]) < ev.r);
+        if (ev.k === 'line') { const dx = x - ev.x, dz = z - ev.z, u = dx * ev.ax + dz * ev.az, v = Math.abs(-dx * ev.az + dz * ev.ax); return u > -1 && u < ev.len && v < ev.w / 2 + 0.6; }
+        return false;
+    }
+    function ultBegin(ev) {
+        const t0 = clock.elapsedTime, shapes = [];
+        if (ev.k === 'ring') shapes.push(mkRing(ev.x, ev.z, ev.r)); else if (ev.k === 'line') shapes.push(mkLine(ev.x, ev.z, ev.ax, ev.az, ev.len, ev.w)); else if (ev.k === 'rain') ev.pts.forEach(q => shapes.push(mkRing(q[0], q[1], ev.r)));
+        ULT_FX.push({ shapes, t0, delay: ev.delay, until: t0 + ev.delay + (ev.dur || 0) + 0.5 });
+        const cx = ev.x != null ? ev.x : ev.pts[0][0], cz = ev.z != null ? ev.z : ev.pts[0][1];
+        if (fightOn() && Math.hypot(pgp().x - cx, pgp().z - cz) < 45) { floatText('⚠️ ' + ev.name + '! Menjauh dari area merah!', '#fca5a5'); sfx.wrong(); }
+        const nt = ev.ticks || 1; for (let j = 0; j < nt; j++) pend.push({ at: t0 + ev.delay + (nt > 1 ? (ev.dur || 0) * j / (nt - 1) : 0), fn: () => ultHitLocal(ev, j) });
+    }
+    function ultHitLocal(ev, j) {
+        const t = clock.elapsedTime, P = pgp();
+        if (ev.k === 'rain') ev.pts.forEach(q => burst(q[0], 0.6, q[1], 0x94a3b8, 10, 4)); else if (ev.k === 'ring') burst(ev.x, 0.8, ev.z, ev.u === 'curse' ? 0xa855f7 : 0xf97316, ev.u === 'roar' ? 40 : 22, ev.r > 6 ? 8 : 5); else burst(ev.x + ev.ax * ev.len / 2, 0.8, ev.z + ev.az * ev.len / 2, 0xfde047, 24, 5);
+        if (fightOn() && inShape(ev, P.x, P.z)) { const fr = ev.k === 'line' ? { x: ev.x, z: ev.z } : { x: ev.x != null ? ev.x : ev.pts[0][0], z: ev.z != null ? ev.z : ev.pts[0][1] }; FIGHT.hurtCd = 0; playerHurt(t, fr, ev.d, ev.push || 2.4); if (ev.u === 'curse') { slowUntil = t + 3; floatText('🔮 Kena kutukan! Gerakmu melambat', '#c084fc'); } }
+        comps.forEach(c => { if (!c.group.visible || c.vride || c.down || c.hp === undefined) return; if (inShape(ev, c.group.position.x, c.group.position.z)) compHurt(c, Math.round(ev.d * 0.8), t); });
+    }
+    let slowUntil = 0; window.__slowMul = () => (clock.elapsedTime < slowUntil ? 0.55 : 1);
+    function projBegin(ev) {
+        const t0 = clock.elapsedTime, m = new THREE.Mesh(new THREE.DodecahedronGeometry(0.45), cm(0x78716c)); m.position.set(ev.x0, 2, ev.z0); scene.add(m); PROJ.push({ m, t0, dur: ev.dur, x0: ev.x0, z0: ev.z0, x1: ev.x1, z1: ev.z1 });
+        pend.push({ at: t0 + ev.dur, fn: () => { burst(ev.x1, 0.6, ev.z1, 0xa8a29e, 8, 3); const P = pgp(); if (fightOn() && Math.hypot(P.x - ev.x1, P.z - ev.z1) < 1.9) { FIGHT.hurtCd = 0; playerHurt(clock.elapsedTime, { x: ev.x0, z: ev.z0 }, ev.d, 1.2); } comps.forEach(c => { if (!c.down && c.hp !== undefined && Math.hypot(c.group.position.x - ev.x1, c.group.position.z - ev.z1) < 1.9) compHurt(c, ev.d, clock.elapsedTime); }); } });
+    }
+    const emitFx = ev => { ev.t = 'fx'; bcast(ev); };
+
+    /* ---- membuat preman ---- */
+    function mkThug(site, idx, x, z, ang, type) {
+        const R = site.rng, T = TYPES[type], boss = type === 'bos' || type === 'raja' ? type : null, tier = site.tier || 0, rp = a => a[Math.floor(R() * a.length)];
+        const big = type === 'raja' ? 2.4 : type === 'bos' ? 1.9 : 1, sz = boss ? 1 : (T.sz || 1) * (0.94 + R() * 0.2);
+        const wk = boss ? 'gada' : T.wk === 'rand' ? (R() < 0.55 ? rp(['tongkat', 'pipa', 'palu']) : null) : T.wk;
+        const pal = T.col || [0x111827, 0x7f1d1d, 0x1e293b];
+        const p = buildPerson({ shirt: boss ? (type === 'raja' ? 0x1c1917 : 0x450a0a) : rp(pal), pants: boss ? 0x111827 : (T.pants !== undefined ? T.pants : 0x7f1d1d), hat: boss ? 'none' : (T.hat || 'none'), topi: T.topi, helm: T.helm, skin: rp(SK), skirt: !!T.robe, longSleeve: !!T.robe }), eg = new THREE.Group();
+        if (p.head && typeof _rbBox === 'function') { try {
+            if (T.acc === 'bandana') { _rbBox(p.head, 8.4, 1.3, 8.4, cm(0xef4444), 0, 2.4, 0); _rbBox(p.head, 1.4, 2.4, 1.0, cm(0xef4444), 3.6, 1.2, -4.3); }
+            if (T.acc === 'masker') { _rbBox(p.head, 8.3, 3.0, 8.3, cm(0x0f172a), 0, 1.6, 0); _rbBox(p.head, 6.4, 1.1, 0.5, cm(0xf8fafc), 0, 1.7, 4.4); }
+            if (!boss && type === 'pukul' && R() < 0.4) _rbBox(p.head, 6.4, 1.2, 0.6, cm(0x111827), 0, 0.6, 4.5);
+            if (boss) { _rbBox(p.head, 6.8, 1.1, 0.6, cm(0x111827), 0, 0.7, 4.5); _rbBox(p.head, 8.4, 0.9, 8.4, cm(type === 'raja' ? 0xfacc15 : 0xdc2626), 0, 4.5, 0); if (type === 'raja') for (let q = 0; q < 5; q++) _rbBox(p.head, 1.0, 2.2, 1.0, cm(0xfacc15), -3.2 + q * 1.6, 5.8, 0); }
+        } catch (e) { } }
+        if (T.shield && p.hands) { const sh = new THREE.Group(); p.hands[0].add(sh); sh.position.set(0, -0.1, 0.25); const sb = new THREE.Mesh(new THREE.BoxGeometry(0.14, 1.5, 1.0), cm(0x64748b, { metalness: 0.5 })); sh.add(sb); const sm2 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.5, 0.5), cm(0xfacc15)); sm2.position.x = 0.07; sh.add(sm2); sh.traverse(o => { if (o.isMesh) o.castShadow = true; }); }
+        eg.add(p.root); eg.position.set(x, 0, z); eg.rotation.y = ang || 0; eg.scale.setScalar(boss ? big : sz); scene.add(eg);
+        const WEM = { tongkat: '🏏', pipa: '🔧', palu: '🔨', pisau: '🔪', gada: '🪓' };
+        const tag = labelSprite(boss ? (type === 'raja' ? '👑 RAJA PREMAN' : '👹 Bos ' + (site.gname || 'Preman')) : T.e + ' ' + T.n + (wk && WEM[wk] ? ' ' + WEM[wk] : ''), boss ? '#450a0a' : (T.ranged ? '#57534e' : T.healer ? '#6d28d9' : '#7f1d1d'), boss ? 6.5 : 5.8, boss ? 1.5 : 1.25); tag.position.y = 4.8; eg.add(tag); const bub = makeBubble(); bub.sprite.position.y = 6.0; eg.add(bub.sprite);
+        if (wk && p.hands) { const wg = new THREE.Group(); p.hands[1].add(wg); wg.position.set(0, -0.05, 0.1); wg.rotation.x = -0.9; const L = (a, c, col, x2, y, z2, o) => { const m = new THREE.Mesh(a, cm(col, o)); m.position.set(x2, y, z2); wg.add(m); return m; };
+            if (wk === 'tongkat') L(new THREE.CylinderGeometry(0.05, 0.09, 1.1, 8), 0, 0x92400e, 0, 0.5, 0); else if (wk === 'pipa') { L(new THREE.CylinderGeometry(0.06, 0.06, 1.0, 8), 0, 0x64748b, 0, 0.45, 0); L(new THREE.CylinderGeometry(0.1, 0.1, 0.12, 8), 0, 0x475569, 0, 0.95, 0); } else if (wk === 'palu') { L(new THREE.CylinderGeometry(0.04, 0.04, 0.8, 6), 0, 0x78350f, 0, 0.35, 0); L(new THREE.BoxGeometry(0.4, 0.22, 0.22), 0, 0x475569, 0, 0.8, 0); }
+            else if (wk === 'pisau') { L(new THREE.BoxGeometry(0.06, 0.8, 0.14), 0, 0xe2e8f0, 0, 0.5, 0, { metalness: 0.8 }); L(new THREE.BoxGeometry(0.1, 0.18, 0.1), 0, 0x111827, 0, 0.05, 0); }
+            else { L(new THREE.CylinderGeometry(0.1, 0.16, 1.4, 8), 0, 0x57534e, 0, 0.6, 0); for (let q = 0; q < 6; q++) L(new THREE.ConeGeometry(0.06, 0.2, 5), 0, 0x94a3b8, Math.cos(q * 1.05) * 0.18, 0.9 + (q % 2) * 0.2, Math.sin(q * 1.05) * 0.18); } wg.traverse(o => { if (o.isMesh) o.castShadow = true; }); }
+        const hpv = type === 'raja' ? 700 : type === 'bos' ? 320 : Math.round((50 + tier * 45) * (T.hp || 1));
+        const e = { p, eg, tag, bub, site, idx, type, boss, big: boss ? big : 0, sz, sp: T.sp || 1, ranged: !!T.ranged, shield: !!T.shield, healer: !!T.healer,
+            dmg: type === 'raja' ? 24 : type === 'bos' ? 17 : Math.round((6 + tier * 3) * (T.dmg || 1) * (wk ? 1.4 : 1)), hp: hpv, max: hpv, cd: 0, hurtUntil: 0, kx: 0, kz: 0, dead: false, atkStart: -9, atkUntil: 0, state: 'loiter', hx: x, hz: z, lm: rp(['idle', 'phone', 'laugh', 'clap']), lmT: R() * 6, mode: 1, ult: null, ultCd: clock.elapsedTime + 4 + R() * 8, healT: 0, px: x, pz: z, py: 0, pr: ang || 0 };
+        FIGHT.enemies.push(e); site.thugs.push(e); return e;
+    }
+    /* ---- tempat persembunyian ---- */
+    function buildHideout(s, g, def) {
+        const R = s.rng, cols = s.cols = [], col = (lx, lz, hw, hd) => { const c = { x: def.x + lx, z: def.z + lz, rot: 0, hw, hd }; boxColliders.push(c); cols.push(c); };
+        const face = Math.abs(def.x) > Math.abs(def.z) ? (def.x > 0 ? 'w' : 'e') : (def.z > 0 ? 's' : 'n'), sgn = { n: [0, 1], s: [0, -1], e: [1, 0], w: [-1, 0] };
+        const flag = (x, z, c) => { mkBox(0.18, 6, 0.18, 0x44403c, x, 3, z, g); mkBox(2.0, 1.3, 0.1, c, x + 1.1, 5.3, z, g); mkBox(0.7, 0.7, 0.12, 0xf8fafc, x + 1.1, 5.3, z + 0.02, g); };
+        const crates = (x, z) => { mkBox(1.2, 1.1, 1.2, 0x92400e, x, 0.55, z, g); mkBox(1.0, 0.9, 1.0, 0xb45309, x + 0.1, 1.55, z, g); mkBox(1.1, 1.0, 1.1, 0x78350f, x + 1.3, 0.5, z + 0.3, g); col(x + 0.6, z, 1.3, 0.8); };
+        const barrel = (x, z) => { mkCyl(0.5, 0.5, 1.1, 0x7f1d1d, x, 0.55, z, g, 10); mkCyl(0.52, 0.52, 0.1, 0x111827, x, 0.9, z, g, 10); col(x, z, 0.55, 0.55); };
+        const tent = (x, z, c) => { mkCone(2.1, 2.4, c, x, 1.2, z, g, 4).rotation.y = Math.PI / 4; mkBox(0.9, 1.4, 0.1, 0x111827, x, 0.7, z + 1.5, g); col(x, z, 1.7, 1.7); };
+        const graffiti = (x, y, z, ry, txt) => signPlane([txt], 3.4, 1.1, '#111827', '#ef4444', g, x, y, z, ry);
+        mkCyl(2.6, 2.6, 0.06, 0x44403c, 0, 0.05, 0, g, 18);
+        if (def.boss) {
+            const H = def.boss === 'raja' ? 14 : 11, th = 0.5, wh = 3.4, wallM = 0x78350f, gap = 3.2;
+            const wall = (x0, z0, x1, z1) => { const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, w = Math.abs(x1 - x0) || th * 2, d = Math.abs(z1 - z0) || th * 2; mkBox(w, wh, d, wallM, cx, wh / 2, cz, g); const n = Math.max(1, Math.round(Math.max(w, d) / 1.4)); for (let q = 0; q < n; q++) { const u = (q + 0.5) / n; mkCone(0.3, 0.9, 0x44403c, x0 + (x1 - x0) * u, wh + 0.45, z0 + (z1 - z0) * u, g, 5); } col(cx, cz, w / 2, d / 2); };
+            [['n', 0, 1], ['s', 0, -1], ['e', 1, 0], ['w', -1, 0]].forEach(([sd, ax, az]) => {
+                if (az) { const z = az * H; if (face === sd) { wall(-H, z, -gap, z); wall(gap, z, H, z); } else wall(-H, z, H, z); }
+                else { const x = ax * H; if (face === sd) { wall(x, -H, x, -gap); wall(x, gap, x, H); } else wall(x, -H, x, H); } });
+            [[-H, -H], [H, -H], [-H, H], [H, H]].forEach(([x, z]) => { mkBox(2.8, 6.4, 2.8, 0x57534e, x, 3.2, z, g); mkBox(3.4, 0.5, 3.4, 0x44403c, x, 6.5, z, g); mkCone(2.5, 2.0, 0x7f1d1d, x, 7.8, z, g, 6); col(x, z, 1.5, 1.5); });
+            const f = sgn[face]; flag(f[0] * (H + 1.5) + (f[1] ? 4.5 : 0), f[1] * (H + 1.5) + (f[0] ? 4.5 : 0), 0x7f1d1d); flag(f[0] * (H + 1.5) - (f[1] ? 4.5 : 0), f[1] * (H + 1.5) - (f[0] ? 4.5 : 0), 0x7f1d1d);
+            tent(-H + 4.5, -H + 4.5, 0x7f1d1d); tent(H - 4.5, -H + 4.5, 0x44403c); crates(-H + 3.5, H - 3.5); barrel(H - 3, H - 3.5); barrel(H - 3, H - 5);
+            const bx = -f[0] * (H - 3), bz = -f[1] * (H - 3); mkBox(3.6, 1.2, 2.2, 0x44403c, bx, 0.6, bz, g); mkBox(3.6, 3.2, 0.5, 0x450a0a, bx, 2.8, bz - f[1] * 0.9 - f[0] * 0.9, g); mkBox(3.0, 1.6, 0.9, 0x7f1d1d, bx, 1.8, bz, g); col(bx, bz, 1.9, 1.2);
+            graffiti(0, 4.8, H - 0.4, Math.PI, '☠ ' + s.gname.toUpperCase());
+            if (def.boss === 'raja') { mkSph(1.0, 0xf8fafc, -3, 1.1, H - 2, g, null, 8); mkSph(1.0, 0xf8fafc, 3, 1.1, H - 2, g, null, 8); }
+        } else if (s.hk === 0) {
+            mkBox(7, 3.4, 0.4, 0x78350f, -7, 1.7, -9, g); mkBox(0.4, 3.4, 5, 0x78350f, -10.3, 1.7, -6.5, g); mkBox(0.4, 3.4, 5, 0x78350f, -3.7, 1.7, -6.5, g); mkBox(7.6, 0.4, 6, 0x57534e, -7, 3.6, -6.5, g); mkBox(7.8, 0.5, 6.2, 0x44403c, -7, 3.2, -6.5, g);
+            col(-7, -9, 3.5, 0.3); col(-10.3, -6.5, 0.3, 2.5); col(-3.7, -6.5, 0.3, 2.5); graffiti(-7, 2.4, -3.3, 0, '☠ ' + s.gname.toUpperCase()); mkBox(1.6, 1.0, 1.2, 0x7f1d1d, -7, 0.5, -7.5, g);
+            tent(8, -6, 0x44403c); crates(6, 7); barrel(-8, 6); barrel(-9, 7.4); flag(9, 3, 0x111827);
+        } else {
+            mkBox(11, 4.2, 0.5, 0x57534e, 0, 2.1, -10, g); mkBox(0.5, 4.2, 7, 0x57534e, -5.5, 2.1, -6.6, g); mkBox(0.5, 4.2, 7, 0x57534e, 5.5, 2.1, -6.6, g); mkBox(12, 0.5, 8, 0x44403c, 0, 4.4, -6.6, g);
+            col(0, -10, 5.5, 0.4); col(-5.5, -6.6, 0.4, 3.5); col(5.5, -6.6, 0.4, 3.5); graffiti(0, 3.4, -9.6, 0, '☠ ' + s.gname.toUpperCase()); mkBox(2.4, 1.2, 2.4, 0x7f1d1d, 0, 0.6, -8.4, g);
+            crates(-9, 4); crates(9, 3); barrel(8, -2); barrel(9.2, -1); flag(-8, 8, 0x7f1d1d);
+        }
     }
     function buildSite(def) {
-        const s = { kind: def.kind, x: def.x, z: def.z, thugs: [], objs: [], alert: false, cleared: false, clearT: 0, victim: null, def }, g = new THREE.Group(); g.position.set(def.x, 0, def.z); scene.add(g); s.objs.push(g);
-        const lab = labelSprite(def.kind === 'camp' ? '😈 Markas Preman' : '🚨 Warga diganggu!', def.kind === 'camp' ? '#7f1d1d' : '#dc2626', 8, 2); lab.position.y = 8; g.add(lab); s.lab = lab;
+        const s = { id: def.id, kind: def.kind, x: def.x, z: def.z, tier: Math.max(0, Math.min(1, (Math.hypot(def.x, def.z) - 100) / 220)), thugs: [], objs: [], alert: false, cleared: false, clearT: 0, victim: null, def, rng: mulb(def.seed || 1), cols: [] }, g = new THREE.Group(); g.position.set(def.x, 0, def.z); scene.add(g); s.objs.push(g);
+        s.gname = GNAMES[Math.floor(s.rng() * GNAMES.length)]; s.hk = Math.floor(s.rng() * 2);
+        const lab = labelSprite(def.kind === 'camp' ? '🏴 Markas Geng ' + s.gname : '🚨 Warga diganggu!', def.kind === 'camp' ? '#7f1d1d' : '#dc2626', 9, 2); lab.position.y = 9; g.add(lab); s.lab = lab;
         if (def.kind === 'camp') {
-            mkCyl(0.6, 0.6, 1.2, 0x7f1d1d, 0, 0.6, 0, g, 10); mkCone(0.4, 1.0, 0xf97316, 0, 1.6, 0, g, 6).material = cm(0xf97316, { emissive: 0xf97316, emissiveIntensity: 0.9 }); mkBox(1.1, 0.8, 1.1, 0x78350f, 4, 0.4, 3, g); mkBox(0.9, 0.7, 0.9, 0x92400e, 4.2, 1.1, 3.1, g); mkBox(1.0, 0.7, 1.0, 0x78350f, -4, 0.35, -3, g);
-            mkBox(0.2, 2.6, 0.2, 0x334155, -3, 1.3, 4, g); mkBox(2.4, 1.2, 0.12, 0x111827, -3, 2.7, 4, g); const n = 3 + (SEEDR() > 0.5 ? 1 : 0);
-            for (let i = 0; i < n; i++) { const a = i / n * 6.283 + 0.4; mkThug(s, def.x + Math.cos(a) * 2.6, def.z + Math.sin(a) * 2.6, a + Math.PI); }
+            buildHideout(s, g, def); mkCyl(0.6, 0.6, 1.2, 0x7f1d1d, 0, 0.6, 0, g, 10); mkCone(0.4, 1.0, 0xf97316, 0, 1.6, 0, g, 6).material = cm(0xf97316, { emissive: 0xf97316, emissiveIntensity: 0.9 });
+            const regular = ['pukul', 'pukul', 'kilat', 'lempar', 'tameng', 'bayang', 'dukun'], n = def.boss ? 7 + Math.floor(s.rng() * 2) : 4 + Math.floor(s.rng() * 4); const order = [];
+            for (let i = 0; i < n; i++) order.push(i < 3 && !def.boss ? ['pukul', 'kilat', 'lempar'][i] : regular[Math.floor(s.rng() * regular.length)]);
+            order.forEach((ty, i) => { const a = i / n * 6.283 + 0.4, rr = 3.4 + (n > 6 ? 1 : 0); mkThug(s, i, def.x + Math.cos(a) * rr, def.z + Math.sin(a) * rr, a + Math.PI, ty); });
+            if (def.boss) mkThug(s, n, def.x + 1.2, def.z - 1.8, 0, def.boss);
         } else {
-            const v = buildPerson({ shirt: pick([0xf59e0b, 0x16a34a, 0xdb2777, 0x2563eb]), pants: 0x1e293b, skirt: Math.random() < 0.5, longHair: false, skin: pick(SK) }), vg = new THREE.Group(); vg.add(v.root); vg.position.set(def.x, 0, def.z); scene.add(vg); s.objs.push(vg); s.victim = { p: v, g: vg }; s.vbub = makeBubble(); s.vbub.sprite.position.y = 5.2; vg.add(s.vbub.sprite);
-            [0, 1].forEach(i => { const a = i * 3.14 + 0.5; mkThug(s, def.x + Math.cos(a) * 2.0, def.z + Math.sin(a) * 2.0, a + Math.PI); });
+            const v = buildPerson({ shirt: [0xf59e0b, 0x16a34a, 0xdb2777, 0x2563eb][Math.floor(s.rng() * 4)], pants: 0x1e293b, skirt: s.rng() < 0.5, longHair: false, skin: SK[Math.floor(s.rng() * SK.length)] }), vg = new THREE.Group(); vg.add(v.root); vg.position.set(def.x, 0, def.z); scene.add(vg); s.objs.push(vg); s.victim = { p: v, g: vg }; s.vbub = makeBubble(); s.vbub.sprite.position.y = 5.2; vg.add(s.vbub.sprite);
+            ['pukul', 'kilat', 'lempar'].forEach((ty, i) => { const a = i * 2.1 + 0.5; mkThug(s, i, def.x + Math.cos(a) * 2.2, def.z + Math.sin(a) * 2.2, a + Math.PI, s.rng() < 0.5 ? ty : 'pukul'); });
         }
-        s.thugs.forEach(e => { e.eg.rotation.y = Math.atan2(def.x - e.eg.position.x, def.z - e.eg.position.z); }); SITES.push(s); return s;
+        s.thugs.forEach(e => { e.eg.rotation.y = Math.atan2(def.x - e.eg.position.x, def.z - e.eg.position.z); e.pr = e.eg.rotation.y; }); SITES.push(s); return s;
     }
-    function destroySite(s) { s.thugs.forEach(e => { scene.remove(e.eg); const i = FIGHT.enemies.indexOf(e); if (i >= 0) FIGHT.enemies.splice(i, 1); }); s.objs.forEach(o => scene.remove(o)); const i = SITES.indexOf(s); if (i >= 0) SITES.splice(i, 1); }
-    function buildSites() {
-        if (sitesBuilt) return; sitesBuilt = true; const used = [{ x: 0, z: 40 }]; const defs = [];
-        [['camp', 110, 320, false], ['camp', 110, 320, false], ['camp', 110, 320, false], ['harass', 70, 260, true], ['harass', 70, 260, true], ['harass', 70, 260, true]].forEach(([kind, a, b, road]) => { const q = freeSpot(a, b, road, used) || freeSpot(a, b, false, used); if (q) { used.push(q); defs.push({ kind, x: q.x, z: q.z }); } });
-        defs.forEach(buildSite); if (state.settings.fight && started) floatText('🗺️ Ada markas preman & warga yang diganggu di kota. Cari mereka! (lihat petunjuk 🥊)', '#fca5a5');
+    function destroySite(s) { s.thugs.forEach(e => { scene.remove(e.eg); const i = FIGHT.enemies.indexOf(e); if (i >= 0) FIGHT.enemies.splice(i, 1); }); (s.cols || []).forEach(c => { const i = boxColliders.indexOf(c); if (i >= 0) boxColliders.splice(i, 1); }); s.objs.forEach(o => scene.remove(o)); const i = SITES.indexOf(s); if (i >= 0) SITES.splice(i, 1); }
+    function buildSites(defsIn) {
+        if (sitesBuilt) return; if (!defsIn && isCl()) return; sitesBuilt = true; SITE_VER++; let defs = defsIn;
+        if (!defs) { const used = [{ x: 0, z: 40 }]; defs = [];
+            [['camp', 'raja'], ['camp', 'bos'], ['camp', 'bos'], ['camp', 0], ['camp', 0], ['camp', 0], ['harass'], ['harass'], ['harass'], ['harass']].forEach(([kind, boss], di) => { const a = kind === 'camp' ? 110 : 70, b = kind === 'camp' ? 330 : 260, road = kind !== 'camp', pad = kind !== 'camp' ? 7 : boss ? 19 : 14; const q = freeSpot(a, b, road, used, pad) || freeSpot(a, b, false, used, pad); if (q) { used.push(q); defs.push({ id: di, kind, x: Math.round(q.x * 10) / 10, z: Math.round(q.z * 10) / 10, boss: boss || 0, seed: 1000 + Math.floor(SEEDR() * 1e8) }); } }); }
+        SITE_DEFS = defs; defs.forEach(d => { if (d.kind === 'camp') clearTrees(d.x, d.z, d.boss ? (d.boss === 'raja' ? 17 : 14) : 12); buildSite(d); });
+        if (fightEnabled() && started) floatText('🗺️ Ada markas geng preman & warga yang diganggu di kota. Cari mereka! (lihat petunjuk 🥊)', '#fca5a5');
+        if (LB.role === 'host') LB.players.forEach(p => sendSites(p));
     }
-    function clearSites() { while (SITES.length) destroySite(SITES[0]); sitesBuilt = false; FIGHT.enemies.length = 0; }
-    function siteAlert(s, t, why) { if (s.alert || s.cleared) return; s.alert = true; s.thugs.forEach(e => { if (!e.dead) { e.state = 'aggro'; e.bub.show(pick(THUG_LINES), 2.2); } }); if (s.kind === 'harass') s.vbub.show('Tolong! 🙏', 2.5); }
-    function siteTick(s, t, dt, k, p, freeze) {
-        const dP = Math.hypot(p.x - s.x, p.z - s.z), alive = s.thugs.filter(e => !e.dead); s.lab.visible = dP < 70 && !s.cleared; s.thugs.forEach(e => e.bub.update()); if (s.vbub) s.vbub.update();
+    function clearTrees(x, z, hw) { for (let i = circleColliders.length - 1; i >= 0; i--) { const c = circleColliders[i]; if (c.r < 4 && Math.abs(c.x - x) < hw && Math.abs(c.z - z) < hw) { scene.children.forEach(o => { if (!o.visible || o === playerGroup || o.userData.isPerson || (o.geometry && o.geometry.type === 'PlaneGeometry')) return; if (Math.hypot(o.position.x - c.x, o.position.z - c.z) < 2.4) o.visible = false; }); circleColliders.splice(i, 1); } } }
+    function clearSites() { while (SITES.length) destroySite(SITES[0]); sitesBuilt = false; FIGHT.enemies.length = 0; SITE_VER++; }
+    function siteAlert(s, t, why) { if (s.alert || s.cleared) return; s.alert = true; if (!isCl()) s.thugs.forEach(e => { if (!e.dead) { e.state = 'aggro'; e.bub.show(pick(THUG_LINES), 2.2); } }); if (s.kind === 'harass' && s.vbub) s.vbub.show('Tolong! 🙏', 2.5); }
+    const siteById = id => SITES.find(q => q.id === id);
+    function allFar(s, d) { const P = pgp(); if (fightOn() && Math.hypot(P.x - s.x, P.z - s.z) < d) return false; if (LB.role === 'host') for (const q of LB.players) { if (q.on && q.st && Math.hypot(q.st.x - s.x, q.st.z - s.z) < d) return false; } return true; }
+    function rebuildSite(s) { const d = s.def; destroySite(s); buildSite(d); }
+    function siteTick(s, t, dt, k, p, freeze, TG) {
+        const dP = Math.hypot(p.x - s.x, p.z - s.z), alive = s.thugs.filter(e => !e.dead); s.lab.visible = dP < 80 && !s.cleared; s.thugs.forEach(e => e.bub.update()); if (s.vbub) s.vbub.update();
         if (!s.cleared && !alive.length) {
-            s.cleared = true; s.clearT = t; state.coins += s.kind === 'camp' ? 30 : 20; addRewards(0, s.kind === 'camp' ? 30 : 20); updateHUD(); sfx.level();
-            if (s.kind === 'harass') { goodDeed('defend', 5, 'Warga selamat!'); addProgress('rescue', 1); s.vbub.show(pick(['Terima kasih banyak! 🥹', 'Kamu pahlawan! 🦸']), 4); floatText('🛡️ Warga diselamatkan! +20 🪙', '#4ade80'); }
-            else { goodDeed('defend', 4, 'Markas bersih'); floatText('🏴 Markas preman dibubarkan! +30 🪙', '#4ade80'); } if (!window.__confettiSkip && typeof confetti == 'function') try { confetti(); } catch (e) { }
+            s.cleared = true; s.clearT = t; const near = dP < 170;
+            if (near) { state.coins += s.kind === 'camp' ? 30 : 20; addRewards(0, s.kind === 'camp' ? 30 : 20); updateHUD(); sfx.level();
+                if (s.kind === 'harass') { goodDeed('defend', 5, 'Warga selamat!'); addProgress('rescue', 1); floatText('🛡️ Warga diselamatkan! +20 🪙', '#4ade80'); }
+                else { goodDeed('defend', 4, 'Markas bersih'); addProgress('camp', 1); floatText('🏴 Markas Geng ' + s.gname + ' dibubarkan! +30 🪙', '#4ade80'); } if (!window.__confettiSkip && typeof confetti == 'function') try { confetti(); } catch (e) { } }
+            if (s.kind === 'harass' && s.vbub) s.vbub.show(pick(['Terima kasih banyak! 🥹', 'Kamu pahlawan! 🦸']), 4);
         }
-        if (s.cleared) { if (s.victim) { const u = t - s.clearT; if (u < 4) animPerson(s.victim.p, t, 'wave', 1); else if (u < 12) { const g = s.victim.g, dx = g.position.x - s.x, dz = g.position.z - s.z, d = Math.hypot(dx, dz) || 1; g.position.x += (dx / d || 1) * 0.07 * k; g.position.z += (dz / d || 0) * 0.07 * k; turnTo(g, Math.atan2(dx, dz), 0.2 * k); animPerson(s.victim.p, t, 'loco', 1); } else s.victim.g.visible = false; } if (t - s.clearT > 160 && dP > 70) { const d = s.def; destroySite(s); buildSite(d); } return; }
+        if (s.cleared) { if (s.victim) { const u = t - s.clearT; if (u < 4) animPerson(s.victim.p, t, 'wave', 1); else if (u < 12) { const g = s.victim.g, dx = g.position.x - s.x, dz = g.position.z - s.z, d = Math.hypot(dx, dz) || 1; g.position.x += (dx / d || 1) * 0.07 * k; g.position.z += (dz / d || 0) * 0.07 * k; turnTo(g, Math.atan2(dx, dz), 0.2 * k); animPerson(s.victim.p, t, 'loco', 1); } else s.victim.g.visible = false; }
+            if (!isCl() && t - s.clearT > 160 && allFar(s, 70)) { const sid = s.id; rebuildSite(s); emitFx({ k: 'rebuild', sid }); } return; }
         if (freeze) return;
         if (s.victim) animPerson(s.victim.p, t, 'hurt', 1);
-        if (!s.alert) { if (fightOn() && dP < 9) siteAlert(s, t); else if (dP < 24 && (!s.tauntT || t > s.tauntT)) { s.tauntT = t + 5 + Math.random() * 4; const e = pick(alive); e.bub.show(s.kind === 'harass' ? pick(HARASS_LINES) : pick(THUG_LINES), 2.2); if (s.kind === 'harass' && Math.random() < 0.6) s.vbub.show(pick(['Tolong...', 'Jangan ambil uangku! 😭']), 2.2); } }
-        else if (dP > 55 && !alive.some(e => Math.hypot(e.eg.position.x - p.x, e.eg.position.z - p.z) < 40)) { s.alert = false; alive.forEach(e => { e.state = 'loiter'; e.hp = e.max; }); }
+        if (isCl()) { s.alert = alive.some(e => e.state === 'aggro'); if (!s.alert && dP < 24 && (!s.tauntT || t > s.tauntT) && alive.length) { s.tauntT = t + 6 + Math.random() * 4; pick(alive).bub.show(s.kind === 'harass' ? pick(HARASS_LINES) : pick(THUG_LINES), 2.2); } return; }
+        if (!s.alert) { if (TG && TG.some(q => q.pl && Math.hypot(q.x - s.x, q.z - s.z) < 9)) siteAlert(s, t); else if (dP < 24 && (!s.tauntT || t > s.tauntT)) { s.tauntT = t + 5 + Math.random() * 4; const e = pick(alive); e.bub.show(s.kind === 'harass' ? pick(HARASS_LINES) : pick(THUG_LINES), 2.2); if (s.kind === 'harass' && Math.random() < 0.6) s.vbub.show(pick(['Tolong...', 'Jangan ambil uangku! 😭']), 2.2); } }
+        else if (alive.length && TG && !TG.some(q => Math.hypot(q.x - s.x, q.z - s.z) < 55) && !alive.some(e => TG.some(q => Math.hypot(e.eg.position.x - q.x, e.eg.position.z - q.z) < 40))) { s.alert = false; alive.forEach(e => { e.state = 'loiter'; e.hp = e.max; e.ult = null; }); }
     }
-    function thugTick(e, i, t, dt, k, p, freeze) {
+    /* ---- jurus pamungkas ---- */
+    function ultSpec(e, id, tg) {
+        const U = ULTS[id], P = e.eg.position, dx = tg.x - P.x, dz = tg.z - P.z, d = Math.hypot(dx, dz) || 1, ax = dx / d, az = dz / d, bs = e.big ? Math.min(e.big, 1.5) : 1;
+        const ev = { k: U.at === 'dash' ? 'line' : U.at === 'rain' ? 'rain' : 'ring', u: id, name: U.n, sid: e.site.id, ti: e.idx, delay: U.delay, d: Math.round(e.dmg * U.dmg), push: U.push || 2.4, dur: U.dur || 0, ticks: U.ticks || 1 };
+        if (U.at === 'self') { ev.x = P.x; ev.z = P.z; ev.r = U.r * bs; } else if (U.at === 'dash') { ev.x = P.x; ev.z = P.z; ev.ax = ax; ev.az = az; ev.len = U.len; ev.w = U.w; }
+        else if (U.at === 'rain') { ev.r = U.r; ev.pts = [[tg.x, tg.z]]; for (let q = 1; q < U.cnt; q++) { const a = Math.random() * 6.283, rr = 1.5 + Math.random() * 4.5; ev.pts.push([tg.x + Math.cos(a) * rr, tg.z + Math.sin(a) * rr]); } ev.pts = ev.pts.map(q => [Math.round(q[0] * 10) / 10, Math.round(q[1] * 10) / 10]); }
+        else if (U.at === 'target') { ev.x = tg.x; ev.z = tg.z; ev.r = U.r; ev.jump = !!U.jump; ev.sx = P.x; ev.sz = P.z; } else if (U.at === 'behind') { ev.x = tg.x + ax * 2; ev.z = tg.z + az * 2; ev.r = U.r; ev.bl = 1; }
+        if (ev.x != null) { ev.x = Math.round(ev.x * 10) / 10; ev.z = Math.round(ev.z * 10) / 10; } return ev;
+    }
+    function ultStart(e, id, tg, t) {
+        const ev = ultSpec(e, id, tg), U = ULTS[id]; e.ult = { id, ev, t0: t, fired: false }; e.ultCd = t + U.cd * (e.boss && e.hp < e.max * 0.5 ? 0.65 : 1) + Math.random() * 3; e.cd = t + U.delay + 1.2;
+        if (!isCl()) { emitFx(Object.assign({}, ev)); ultBegin(ev); } e.bub.show(U.n + '!', 1.6);
+    }
+    function ultTick(e, t, dt, k, tg) {
+        const u = e.ult, ev = u.ev, el = t - u.t0, eg = e.eg;
+        if (el < ev.delay) { e.mode = 6; if (!ev.ax) turnTo(eg, Math.atan2(tg.x - eg.position.x, tg.z - eg.position.z), 0.2 * k); else eg.rotation.y = Math.atan2(ev.ax, ev.az);
+            if (ev.jump) { const f = el / ev.delay; eg.position.x = ev.sx + (ev.x - ev.sx) * f; eg.position.z = ev.sz + (ev.z - ev.sz) * f; eg.position.y = Math.sin(Math.PI * f) * 3.2; } animPerson(e.p, t, 'stretch', 1); return; }
+        if (!u.fired) { u.fired = true; if (ev.bl) { eg.position.x = ev.x; eg.position.z = ev.z; } if (ev.jump) { eg.position.set(ev.x, 0, ev.z); } if (ev.k === 'line') { u.dash = { x0: ev.x, z0: ev.z, t0: t }; } e.atkStart = t; }
+        e.mode = 7; if (u.dash) { const f = Math.min(1, (t - u.dash.t0) / 0.32); eg.position.x = u.dash.x0 + ev.ax * ev.len * f; eg.position.z = u.dash.z0 + ev.az * ev.len * f; resolveCollisions(eg.position); }
+        animPerson(e.p, t - e.atkStart, ev.u === 'spin' ? 'dance' : (ev.k === 'line' ? 'kick' : 'punch'), 1);
+        if (el > ev.delay + (ev.dur || 0) + 0.6) { e.ult = null; eg.position.y = 0; e.atkUntil = 0; }
+    }
+    const ULT_OK = (id, d) => { const r = ULTS[id].rng; return d >= r[0] && d <= r[1]; };
+    /* ---- kecerdasan preman (tuan rumah / main sendiri) ---- */
+    function targetsList(p) {
+        const L = []; if (fightOn()) L.push({ id: meId(), x: p.x, z: p.z, pl: true });
+        if (LB.role === 'host' && LB.ok) LB.players.forEach(q => { if (q.on && q.st && q.st.fi && !q.st.ih && performance.now() - (q.seen || 0) < 4000) L.push({ id: q.id, x: q.st.x, z: q.st.z, pl: true }); });
+        comps.forEach(c => { if (!c.group.visible || c.vride || c.down || c.hp === undefined) return; L.push({ id: meId(), x: c.group.position.x, z: c.group.position.z, c }); }); return L;
+    }
+    function hitTarget(e, tg, reach) {
+        const eg = e.eg, dmg = Math.round(e.dmg * (e.boss ? 1 : 1)), push = e.big ? 2.4 : 0.9;
+        if (tg.c) { if (Math.hypot(tg.c.group.position.x - eg.position.x, tg.c.group.position.z - eg.position.z) < reach + 0.2) compHurt(tg.c, Math.round(dmg * (e.big ? 1.3 : 1) * (1 - 0.03 * cLv(tg.c))), clock.elapsedTime); return; }
+        if (tg.id === meId()) { if (Math.hypot(pgp().x - eg.position.x, pgp().z - eg.position.z) < reach && fightOn()) playerHurt(clock.elapsedTime, eg.position, dmg, push); return; }
+        const q = LB.players.find(x => x.id === tg.id); if (q && q.st && Math.hypot(q.st.x - eg.position.x, q.st.z - eg.position.z) < reach + 0.6) sendL(q, { t: 'fx', k: 'hit', to: tg.id, x: eg.position.x, z: eg.position.z, d: dmg, p: push });
+    }
+    function thugTick(e, i, t, dt, k, TG, freeze) {
         const eg = e.eg, s = e.site;
-        if (e.dead) { const u = Math.min(1, (t - e.deadT) / 0.5); eg.rotation.x = -1.45 * u; eg.position.y = 0.55 * u; if (t - e.deadT > 3) eg.visible = false; return; }
+        if (e.dead) { const u = Math.min(1, (t - e.deadT) / 0.5); eg.rotation.x = -1.45 * u; eg.position.y = 0.55 * u; if (t - e.deadT > 3) eg.visible = false; e.mode = 5; return; }
         if (freeze) return;
-        if (t < e.hurtUntil) { eg.position.x += e.kx * k; eg.position.z += e.kz * k; resolveCollisions(eg.position); animPerson(e.p, t, 'hurt', 1); return; }
+        if (t < e.hurtUntil && !e.ult) { eg.position.x += e.kx * k; eg.position.z += e.kz * k; resolveCollisions(eg.position); animPerson(e.p, t - (e.hurtUntil - 0.35), 'hurt', 1); e.mode = 4; return; }
         if (e.state === 'loiter') {
             const dx = e.hx - eg.position.x, dz = e.hz - eg.position.z, dd = Math.hypot(dx, dz);
-            if (dd > 0.9) { eg.position.x += dx / dd * 0.1 * k; eg.position.z += dz / dd * 0.1 * k; resolveCollisions(eg.position); turnTo(eg, Math.atan2(dx, dz), 0.2 * k); animPerson(e.p, t, 'loco', 1); }
-            else { e.lmT -= dt; if (e.lmT < 0) { e.lmT = 5 + Math.random() * 6; e.lm = pick(['idle', 'phone', 'laugh', 'clap', 'idle']); } turnTo(eg, Math.atan2(s.x - eg.position.x, s.z - eg.position.z), 0.05 * k); animPerson(e.p, t, s.kind === 'harass' ? (i % 2 ? 'laugh' : 'fight') : e.lm, 1); }
+            if (dd > 0.9) { eg.position.x += dx / dd * 0.1 * k; eg.position.z += dz / dd * 0.1 * k; resolveCollisions(eg.position); turnTo(eg, Math.atan2(dx, dz), 0.2 * k); animPerson(e.p, t, 'loco', 1); e.mode = 2; }
+            else { e.lmT -= dt; if (e.lmT < 0) { e.lmT = 5 + Math.random() * 6; e.lm = pick(['idle', 'phone', 'laugh', 'clap', 'idle']); } turnTo(eg, Math.atan2(s.x - eg.position.x, s.z - eg.position.z), 0.05 * k); animPerson(e.p, t, s.kind === 'harass' ? (i % 2 ? 'laugh' : 'fight') : e.lm, 1); e.mode = 1; }
             return;
         }
-        let tg = { x: p.x, z: p.z, pl: true }, bd = Math.hypot(p.x - eg.position.x, p.z - eg.position.z);
-        comps.forEach(c => { if (!c.group.visible || c.vride) return; const d = Math.hypot(c.group.position.x - eg.position.x, c.group.position.z - eg.position.z); if (d + 3 < bd) { bd = d; tg = { x: c.group.position.x, z: c.group.position.z, c }; } });
-        if (bd > 60 && Math.hypot(eg.position.x - e.hx, eg.position.z - e.hz) > 40) { e.state = 'loiter'; e.hp = e.max; return; }
-        const dx = tg.x - eg.position.x, dz = tg.z - eg.position.z, dd = Math.hypot(dx, dz); let mode = 'fight';
-        const blockers = FIGHT.enemies.filter(o => o !== e && !o.dead && o.state === 'aggro' && o.rank !== undefined && Math.hypot(o.eg.position.x - tg.x, o.eg.position.z - tg.z) < 2.8 && o.rank < (e.rank = e.rank === undefined ? FIGHT.enemies.indexOf(e) : e.rank)).length;
-        if (t < e.atkUntil) mode = 'punch';
-        else if (dd > 2.1) { const st = Math.min(0.12 * k, dd - 1.8); eg.position.x += dx / dd * st; eg.position.z += dz / dd * st; resolveCollisions(eg.position); mode = 'loco'; }
-        else if (blockers >= 2) { const px = -dz / dd, pz = dx / dd, sd = (i % 2 ? 1 : -1) * 0.05 * k; eg.position.x += px * sd; eg.position.z += pz * sd; resolveCollisions(eg.position); mode = 'fight'; }
-        else if (t > e.cd) { e.cd = t + 1.8; e.atkStart = t; e.atkUntil = t + 0.5; mode = 'punch'; pend.push({ at: t + 0.22, fn: () => { if (e.dead) return; if (tg.pl) { if (Math.hypot(p.x - eg.position.x, p.z - eg.position.z) < 3.2 && fightOn()) playerHurt(clock.elapsedTime, eg.position); } else if (tg.c) { tg.c.av.setPose('hurt', clock.elapsedTime, 0.4); tg.c.bubble.show('Aduh! 😣', 1.2); } } }); }
-        turnTo(eg, Math.atan2(dx, dz), 0.25 * k); animPerson(e.p, mode === 'punch' ? t - e.atkStart : t, mode, 1);
+        let tg = null, bd = 1e9, sc = 1e9; TG.forEach(q => { const d = Math.hypot(q.x - eg.position.x, q.z - eg.position.z), v = d + (q.c ? 3 : 0); if (v < sc) { sc = v; bd = d; tg = q; } });
+        if (!tg || (bd > 60 && Math.hypot(eg.position.x - e.hx, eg.position.z - e.hz) > 40)) { e.state = 'loiter'; e.hp = e.max; e.ult = null; e.mode = 1; return; }
+        if (e.ult) { ultTick(e, t, dt, k, tg); return; }
+        const dx = tg.x - eg.position.x, dz = tg.z - eg.position.z, dd = Math.hypot(dx, dz), big = e.big || 1; let mode = 'fight', m = 1;
+        if (e.healer && t > e.healT) { e.healT = t + 7; let w = null, bw = 1; s.thugs.forEach(o => { if (!o.dead && o !== e && o.hp / o.max < bw && Math.hypot(o.eg.position.x - eg.position.x, o.eg.position.z - eg.position.z) < 14) { bw = o.hp / o.max; w = o; } }); if (w && bw < 0.7) { w.hp = Math.min(w.max, w.hp + w.max * 0.25); burst(w.eg.position.x, 2.5, w.eg.position.z, 0x4ade80, 14, 3); e.bub.show('Sembuhlah! ✨', 1.4); } }
+        if (t > e.ultCd && t >= e.atkUntil) { const L = TYPES[e.type].ult.filter(id => ULT_OK(id, dd)); if (L.length && Math.random() < 0.9) { ultStart(e, pick(L), tg, t); return; } e.ultCd = t + 1.5; }
+        const stp = (0.12 * e.sp * (e.big ? 0.7 : 1)) * k;
+        if (t < e.atkUntil) { mode = 'punch'; m = 3; }
+        else if (e.ranged) {
+            if (dd < 6) { eg.position.x -= dx / dd * stp * 0.9; eg.position.z -= dz / dd * stp * 0.9; resolveCollisions(eg.position); mode = 'loco'; m = 2; }
+            else if (dd > 12) { eg.position.x += dx / dd * stp; eg.position.z += dz / dd * stp; resolveCollisions(eg.position); mode = 'loco'; m = 2; }
+            else if (t > e.cd) { e.cd = t + 2.2; e.atkStart = t; e.atkUntil = t + 0.5; mode = 'punch'; m = 3; const x1 = tg.x, z1 = tg.z, ev = { k: 'proj', x0: Math.round(eg.position.x * 10) / 10, z0: Math.round(eg.position.z * 10) / 10, x1: Math.round(x1 * 10) / 10, z1: Math.round(z1 * 10) / 10, dur: 0.85, d: e.dmg }; pend.push({ at: t + 0.2, fn: () => { if (e.dead) return; emitFx(Object.assign({}, ev)); projBegin(ev); } }); }
+            else { const px = -dz / dd, pz = dx / dd, sd = (i % 2 ? 1 : -1) * 0.04 * k; eg.position.x += px * sd; eg.position.z += pz * sd; resolveCollisions(eg.position); }
+        }
+        else if (dd > 2.1 * big) { const st = Math.min(stp, dd - 1.8 * big); eg.position.x += dx / dd * st; eg.position.z += dz / dd * st; resolveCollisions(eg.position); mode = 'loco'; m = 2; }
+        else if (t > e.cd) { e.cd = t + (e.boss ? 2.4 : 1.8) / (e.sp > 1.2 ? 1.3 : 1); e.atkStart = t; e.atkUntil = t + 0.5; mode = 'punch'; m = 3; pend.push({ at: t + 0.22, fn: () => { if (!e.dead && !e.ult) hitTarget(e, tg, 3.2 * big); } }); }
+        turnTo(eg, Math.atan2(dx, dz), 0.25 * k); animPerson(e.p, mode === 'punch' ? t - e.atkStart : t, mode, 1); e.mode = m;
     }
+    /* ---- sisi peserta: preman mengikuti tuan rumah ---- */
+    function thugPuppet(e, i, t, dt, k) {
+        const eg = e.eg, kk = 1 - Math.exp(-dt * 12);
+        if (e.mode !== e.pm) { e.pm = e.mode; e.pmT = t; }
+        if (e.dead) { const u = Math.min(1, (t - e.deadT) / 0.5); eg.rotation.x = -1.45 * u; eg.position.y = 0.55 * u; if (t - e.deadT > 3) eg.visible = false; return; }
+        if (Math.hypot(e.px - eg.position.x, e.pz - eg.position.z) > 20) eg.position.set(e.px, e.py, e.pz); else { eg.position.x += (e.px - eg.position.x) * kk; eg.position.z += (e.pz - eg.position.z) * kk; eg.position.y += (e.py - eg.position.y) * kk; }
+        eg.rotation.y += angDiff(eg.rotation.y, e.pr) * kk; const m = e.mode, pt = t - e.pmT;
+        if (m === 5) { return; }
+        if (m === 4) animPerson(e.p, pt, 'hurt', 1); else if (m === 3) animPerson(e.p, pt, 'punch', 1); else if (m === 6) animPerson(e.p, t, 'stretch', 1); else if (m === 7) animPerson(e.p, pt, e.ultKind === 'dance' ? 'dance' : e.ultKind === 'kick' ? 'kick' : 'punch', 1);
+        else if (m === 2) animPerson(e.p, t, 'loco', 1); else { if (e.state === 'aggro') animPerson(e.p, t, 'fight', 1); else { e.lmT -= dt; if (e.lmT < 0) { e.lmT = 5 + Math.random() * 6; e.lm = pick(['idle', 'phone', 'laugh', 'clap', 'idle']); } animPerson(e.p, t, e.site.kind === 'harass' ? (i % 2 ? 'laugh' : 'fight') : e.lm, 1); } }
+    }
+    function encodeTh(all) {
+        const out = [], TG = targetsList(pgp()).filter(q => q.pl);
+        SITES.forEach(s => { const near = all || s.alert || TG.some(q => Math.hypot(q.x - s.x, q.z - s.z) < 130); if (!near) return; s.thugs.forEach(e => { const P = e.eg.position; out.push([s.id, e.idx, Math.round(P.x * 10), Math.round(P.z * 10), Math.round(P.y * 10), Math.round(e.eg.rotation.y * 50), Math.round(e.hp), (e.dead ? 5 : e.mode) | (e.state === 'aggro' ? 16 : 0) | (e.ult && e.ult.ev.u === 'spin' ? 32 : e.ult && e.ult.ev.k === 'line' ? 64 : 0)]); }); });
+        return out;
+    }
+    function applyTh(arr) {
+        if (!arr) return; const t = clock.elapsedTime;
+        arr.forEach(a => { const s = siteById(a[0]); if (!s) return; const e = s.thugs[a[1]]; if (!e) return; e.px = a[2] / 10; e.pz = a[3] / 10; e.py = a[4] / 10; e.pr = a[5] / 50; e.hp = a[6]; const m = a[7] & 15; e.state = a[7] & 16 ? 'aggro' : 'loiter'; e.ultKind = a[7] & 32 ? 'dance' : a[7] & 64 ? 'kick' : 'punch'; if (m === 5) { if (!e.dead) { e.dead = true; e.deadT = t; e.tag.visible = false; } } else e.mode = m; });
+    }
+    function sendSites(p) { sendL(p, { t: 'sites', defs: SITE_DEFS, ver: SITE_VER, th: encodeTh(true) }); }
+    function sitesMsg(m) { if (!fightEnabled()) { LB.pendSites = m; return; } if (sitesBuilt) clearSites(); buildSites(m.defs); applyTh(m.th); LB.siteVer = m.ver; LB.pendSites = null; }
+    function hitMsgHost(p, m) { const s = siteById(+m.s), e = s && s.thugs[+m.i | 0]; if (!e || e.dead) return; hitEnemy(e, Math.max(0, Math.min(160, +m.d || 0)), { x: +m.x || 0, z: +m.z || 0 }, p.id); }
+    function fxMsg(m) {
+        if (m.k === 'ult') ultBegin(m); else if (m.k === 'proj') projBegin(m);
+        else if (m.k === 'hit') { if (m.to === meId() && fightOn()) playerHurt(clock.elapsedTime, { x: m.x, z: m.z }, m.d, m.p); }
+        else if (m.k === 'kill') { const s = siteById(m.sid), e = s && s.thugs[m.i]; if (e && !e.dead) { e.dead = true; e.deadT = clock.elapsedTime; e.tag.visible = false; } rewardKill(m.boss || null, s ? { x: s.x, z: s.z } : pgp(), m.by === meId()); }
+        else if (m.k === 'rebuild') { const s = siteById(m.sid); if (s) rebuildSite(s); }
+    }
+    function rewardKill(boss, pos, byMe) {
+        if (Math.hypot(pgp().x - pos.x, pgp().z - pos.z) > 170) return; if (byMe) { addProgress('brave', 1); if (boss) addProgress('boss', 1); chalEvent('thug'); }
+        const bc = boss ? (boss === 'raja' ? 250 : 120) : 12; state.coins += bc; addRewards(0, boss ? 60 : 10); gainFx(boss ? (boss === 'raja' ? 200 : 90) : 12); updateHUD(); sfx.correct(); floatText((boss ? '👹 Bos preman tumbang! +' : '🥊 Preman kalah! +') + bc + ' 🪙', '#4ade80'); goodDeed('defend', boss ? 8 : 3, 'Warga aman');
+    }
+    function hitEnemy(e, dmg, from, byId) {
+        if (!e || e.dead) return; const t = clock.elapsedTime, eg = e.eg;
+        if (isCl()) { toHost({ t: 'hit', s: e.site.id, i: e.idx, d: Math.round(dmg), x: +from.x.toFixed(1), z: +from.z.toFixed(1) }); sfx.click(); burst(eg.position.x, 2.2, eg.position.z, 0xfde047, 6, 3); e.hurtFlash = t; return; }
+        if (e.shield) { const a = Math.atan2(from.x - eg.position.x, from.z - eg.position.z); if (Math.abs(angDiff(eg.rotation.y, a)) < 1.0) { dmg *= 0.3; burst(eg.position.x, 2.4, eg.position.z, 0xe2e8f0, 8, 3); e.bub.show('Tameng! 🛡️', 0.8); } }
+        e.hp -= dmg; e.hurtUntil = t + (e.big ? 0.1 : 0.35); const dx = eg.position.x - from.x, dz = eg.position.z - from.z, d = Math.hypot(dx, dz) || 1; e.kx = dx / d * 0.14 / (e.big || 1); e.kz = dz / d * 0.14 / (e.big || 1); sfx.click();
+        burst(eg.position.x, 2.2, eg.position.z, 0xfde047, 8, 3); siteAlert(e.site, t);
+        if (e.hp <= 0) { e.dead = true; e.deadT = t; e.tag.visible = false; e.ult = null; const by = byId == null ? meId() : byId; emitFx({ k: 'kill', sid: e.site.id, i: e.idx, by, boss: e.boss }); rewardKill(e.boss, eg.position, by === meId()); }
+    }
+
     const compass = (dx, dz) => { const a = Math.atan2(dx, -dz), n = ['Utara', 'Timur Laut', 'Timur', 'Tenggara', 'Selatan', 'Barat Daya', 'Barat', 'Barat Laut']; return n[((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8]; };
     let hintT = 0;
     const nearestFoe = (pos, r) => { let b = null, bd = r; FIGHT.enemies.forEach(e => { if (e.dead) return; const d = Math.hypot(e.eg.position.x - pos.x, e.eg.position.z - pos.z); if (d < bd) { bd = d; b = e; } }); return b; };
-    function hitEnemy(e, dmg, from) {
-        if (!e || e.dead) return; const t = clock.elapsedTime; e.hp -= dmg; e.hurtUntil = t + 0.35; const dx = e.eg.position.x - from.x, dz = e.eg.position.z - from.z, d = Math.hypot(dx, dz) || 1; e.kx = dx / d * 0.14; e.kz = dz / d * 0.14; sfx.click();
-        burst(e.eg.position.x, 2.2, e.eg.position.z, 0xfde047, 8, 3); const fl = Math.max(0, e.hp / e.max);
-        siteAlert(e.site, t); if (e.hp <= 0) { e.dead = true; e.deadT = t; e.tag.visible = false; addProgress('brave', 1); state.coins += 12; addRewards(0, 10); updateHUD(); sfx.correct(); floatText('🥊 Preman kalah! +12 🪙', '#4ade80'); goodDeed('defend', 3, 'Warga aman'); }
+    function gainFx(n) { const F = state.fight; F.xp += n; let up = false; while (F.xp >= fNeed()) { F.xp -= fNeed(); F.lv++; up = true; } if (up) { FIGHT.max = fMax(); FIGHT.hp = FIGHT.max; sfx.level(); floatText('⭐ Level Petarung ' + F.lv + '! Nyawa & serangan naik' + (F.lv === 3 ? ' · 🌀 Tendangan putar!' : ''), '#fde047'); burst(pgp().x, pgp().y + 2, pgp().z, 0xfacc15, 40, 5); state.coins += 20 * F.lv; updateHUD(); } save(); }
+    function hitCivilians(fx, fz) {
+        let v = null, bd = 3.4; const P = pgp();
+        const test = (x, z, o) => { const dx = x - P.x, dz = z - P.z, d = Math.hypot(dx, dz); if (d < bd && (dx * fx + dz * fz) / (d || 1) > 0.15) { bd = d; v = o; } };
+        npcList.forEach(r => { if (r.comp || r.inside || !r.group.visible) return; test(r.group.position.x, r.group.position.z, { k: 'npc', r }); });
+        wanderers.forEach(w => { if (w.recruited || !w.p.root.visible) return; test(w.p.root.position.x, w.p.root.position.z, { k: 'w', w }); });
+        Object.values(remotes).forEach(r => { if (r.g.visible) test(r.g.position.x, r.g.position.z, { k: 'rm', r }); });
+        if (!v) return; const t = clock.elapsedTime;
+        if (v.k === 'npc') { v.r.av.setPose('hurt', t, 0.6); v.r.bubble.show('Aduh! Kenapa memukulku?! 😢', 2.8); v.r.group.position.x += fx * 0.6; v.r.group.position.z += fz * 0.6; badDeed('memukul ' + v.r.d.name); }
+        else if (v.k === 'w') { v.w.wait = 0.9; v.w.emote = 'hurt'; v.w.p.root.position.x += fx * 0.6; v.w.p.root.position.z += fz * 0.6; badDeed('memukul warga'); }
+        else { relayEmo(myId(), v.r.id, 'hit'); badDeed('memukul ' + v.r.name); }
+    }
+    function badDeed(why) {
+        kDay(); state.kind.pts -= 4; state.kind.log.hit = (state.kind.log.hit || 0) + 1; bullyUntil = Math.max(nowS(), bullyUntil) + 45; floatText('😈 -4 Kebaikan · ' + why, '#f87171'); sfx.wrong();
+        comps.slice().forEach(c => { c.bubble.show('Aku tidak mau berteman dengan tukang pukul! 😤', 3); dismiss(c); });
+        npcList.forEach(r => { if (!r.comp && !r.inside && r.group.position.distanceTo(pgp()) < 32) r.bubble.show(pick(['Dasar jahat! 😠', 'Kamu memukul orang!', 'Hei, itu tidak baik! 👎']), 2.6); });
+        save(); if (!km.classList.contains('hidden')) kindRender();
     }
     function attack() {
         if (!started || uiOpen() || riding || swimming || onTransit) return; const t = clock.elapsedTime;
-        if (!state.settings.fight) { floatText('Aktifkan 🥊 Mode Bertarung di Pengaturan', '#fde047'); return; }
-        if (t < FIGHT.atkCd) return; FIGHT.atkCd = t + 0.55; FIGHT.combo++;
+        if (!fightEnabled()) { floatText(MPon() ? 'Tuan rumah belum mengaktifkan 🥊 Mode Bertarung' : 'Aktifkan 🥊 Mode Bertarung di Pengaturan', '#fde047'); return; }
+        if (t < FIGHT.atkCd) return; FIGHT.atkCd = t + Math.max(0.34, 0.55 - 0.012 * trn('spd')); FIGHT.combo++;
         const foe = nearestFoe(pgp(), 7); if (foe) playerGroup.rotation.y = Math.atan2(foe.eg.position.x - pgp().x, foe.eg.position.z - pgp().z);
-        const kick = FIGHT.combo % 3 === 0; player.setPose(kick ? 'kick' : 'punch', t, 0.5);
-        pend.push({ at: t + 0.2, fn: () => { const fx = Math.sin(playerGroup.rotation.y), fz = Math.cos(playerGroup.rotation.y); FIGHT.enemies.forEach(e => { if (e.dead) return; const dx = e.eg.position.x - pgp().x, dz = e.eg.position.z - pgp().z, d = Math.hypot(dx, dz); if (d < 3.6 && (dx * fx + dz * fz) / (d || 1) > 0.1) hitEnemy(e, kick ? 30 : 22, pgp()); }); } });
+        const kick = FIGHT.combo % 3 === 0, spin = kick && state.fight.lv >= 3; player.setPose(kick ? 'kick' : 'punch', t, 0.5); pend.push({ at: t + 0.49, fn: () => { if (player.poseStart === t && (!player.pose || player.pose === 'punch' || player.pose === 'kick')) player.setPose('fight', clock.elapsedTime, 1.8); } }); if (spin) burst(pgp().x, 1.5, pgp().z, 0xfde047, 14, 4);
+        pend.push({ at: t + 0.2, fn: () => {
+            const fx = Math.sin(playerGroup.rotation.y), fz = Math.cos(playerGroup.rotation.y); let hit = false;
+            FIGHT.enemies.forEach(e => { if (e.dead) return; const dx = e.eg.position.x - pgp().x, dz = e.eg.position.z - pgp().z, d = Math.hypot(dx, dz), rr = 3.6 + (e.big ? (e.big - 1) * 1.3 : 0); if ((d < rr && (dx * fx + dz * fz) / (d || 1) > 0.1) || (spin && d < rr + 1.2)) { hitEnemy(e, (kick ? 30 : 22) * fMul() * gangAtk(), pgp()); hit = true; } });
+            if (!hit) hitCivilians(fx, fz);
+        } });
     }
-    function playerHurt(t, from) {
-        if (t < FIGHT.hurtCd) return; FIGHT.hurtCd = t + 0.7; FIGHT.hp -= 10; FIGHT.lastHurt = t; flash.style.opacity = 1; setTimeout(() => { flash.style.opacity = 0; }, 160); player.setPose('hurt', t, 0.4); sfx.wrong();
-        const dx = pgp().x - from.x, dz = pgp().z - from.z, d = Math.hypot(dx, dz) || 1; pgp().x += dx / d * 0.9; pgp().z += dz / d * 0.9; resolveCollisions(pgp());
+    function playerHurt(t, from, dmg, push) {
+        if (t < FIGHT.hurtCd) return; FIGHT.hurtCd = t + 0.7; FIGHT.hp -= Math.round((dmg || 8) * gangDef()); FIGHT.lastHurt = t; flash.style.opacity = 1; setTimeout(() => { flash.style.opacity = 0; }, 160); player.setPose('hurt', t, 0.4); sfx.wrong();
+        const dx = pgp().x - from.x, dz = pgp().z - from.z, d = Math.hypot(dx, dz) || 1; pgp().x += dx / d * (push || 0.9); pgp().z += dz / d * (push || 0.9); resolveCollisions(pgp());
         comps.forEach(c => { c.alert = t + 8; c.bubble.show(pick(['Tenang, aku bantu! 💪', 'Jangan ganggu temanku! 😠']), 2.2); });
-        if (FIGHT.hp <= 0) { FIGHT.hp = FIGHT.max; SITES.forEach(q => { q.alert = false; q.thugs.forEach(e => { if (!e.dead) { e.state = 'loiter'; e.hp = e.max; } }); }); fadeThen(() => { pgp().set(-167, 0, -232); playerGroup.rotation.y = 0; floatText('🏥 Kamu diantar ke Rumah Sakit dan sudah sehat lagi', '#7dd3fc'); }, 900); }
+        if (FIGHT.hp <= 0) { FIGHT.hp = FIGHT.max; if (!isCl()) SITES.forEach(q => { q.alert = false; q.thugs.forEach(e => { if (!e.dead) { e.state = 'loiter'; e.hp = e.max; } }); }); fadeThen(() => { pgp().set(-167, 0, -232); playerGroup.rotation.y = 0; floatText('🏥 Kamu diantar ke Rumah Sakit dan sudah sehat lagi', '#7dd3fc'); }, 900); }
     }
     let prayWas = false, litT = 0;
     function social(dt, k, t, p) {
@@ -5691,33 +6056,116 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
             const g = rt.group; if (inHouse) { g.visible = false; return; } if (rt.vride) return;
             if (!g.visible) { g.visible = true; g.position.set(p.x - fx * 3 + rx * (i - 1) * 2.4, 0, p.z - fz * 3 + rz * (i - 1) * 2.4); }
             rt.bubble.update(); if (freeze) return;
+            if (!rt.hpS) mkHp(rt); rt.hpS.visible = fightEnabled();
+            if (rt.down) { if (t > rt.down) { rt.down = 0; rt.hp = Math.round(rt.hpMax * 0.5); drawHp(rt); g.rotation.x = 0; g.position.y = 0; rt.bubble.show('Aku bangun lagi! 💪', 2.2); } else { g.rotation.x = -1.45; g.position.y = 0.5; return; } }
+            else if (rt.hp < rt.hpMax && t - (rt.lastHit || 0) > 6) { rt.hp = Math.min(rt.hpMax, rt.hp + 3 * dt); drawHp(rt); }
             const foe = fo ? nearestFoe(g.position, 24) : null, near = pp && g.position.distanceTo(p) < 22;
             let tx = p.x - fx * 3.2 + rx * (i - 1) * 2.6, tz = p.z - fz * 3.2 + rz * (i - 1) * 2.6, stop = 0.9, face = null;
-            if (near) { tx = p.x + rx * 2.4 * (i + 1); tz = p.z + rz * 2.4 * (i + 1); stop = 0.3; face = fy; } else if (foe) { tx = foe.eg.position.x; tz = foe.eg.position.z; stop = 1.9; }
+            if (near) { tx = p.x + rx * 2.4 * (i + 1); tz = p.z + rz * 2.4 * (i + 1); stop = 0.3; face = fy; } else if (foe) { tx = foe.eg.position.x; tz = foe.eg.position.z; stop = 1.9 * (foe.big || 1); }
             const dx = tx - g.position.x, dz = tz - g.position.z, dd = Math.hypot(dx, dz); let mv = false;
             if (dd > 45 && !foe) g.position.set(tx, 0, tz);
             else if (dd > stop) { const st = Math.min(dd - stop * 0.5, (foe ? 0.2 : 0.08 + Math.min(dd, 20) * 0.012) * k); g.position.x += dx / dd * st; g.position.z += dz / dd * st; resolveCollisions(g.position); turnTo(g, Math.atan2(dx, dz), 0.2 * k); mv = true; }
             else if (face !== null) turnTo(g, face, 0.2 * k); else if (foe) turnTo(g, Math.atan2(foe.eg.position.x - g.position.x, foe.eg.position.z - g.position.z), 0.2 * k); else turnTo(g, fy, 0.05 * k);
             if (near && dd <= 0.8) { if (rt.av.pose !== 'pray') rt.av.setPose('pray', player.poseStart, PRAY_LEN); } else if (rt.av.pose === 'pray') rt.av.pose = null;
-            if (foe && dd < 2.7 && t > (rt.atkCd || 0)) { rt.atkCd = t + 1.1; rt.av.setPose('punch', t, 0.5); pend.push({ at: t + 0.22, fn: () => hitEnemy(foe, 12, g.position) }); if (Math.random() < 0.5) rt.bubble.show(pick(['Hiyaa! 💥', 'Awas! 💢', 'Rasakan! 👊']), 1.2); }
+            if (rt.jump) { const u = (t - rt.jump.t0) / 0.7; if (u >= 1) { rt.jump = null; g.position.y = 0; } else g.position.y = 2.4 * Math.sin(Math.PI * u); }
+            if (foe && !rt.jump && dd < 2.7 * (foe.big || 1) && t > (rt.atkCd || 0)) {
+                const lvl = cLv(rt), rr = Math.random(), mvk = (lvl >= 3 && rr < 0.28) ? 'jump' : rr < 0.62 ? 'kick' : 'punch';
+                if (mvk === 'jump') {
+                    rt.atkCd = t + 2.2; rt.jump = { t0: t }; rt.av.setPose('air', t, 0.3); rt.bubble.show(pick(['Hiyaaa! 🦘💥', 'Terbang! 🚀', 'Serangan loncat! 💫']), 1.4);
+                    pend.push({ at: t + 0.3, fn: () => { if (rt.jump && !rt.down) rt.av.setPose('kick', clock.elapsedTime, 0.5); } });
+                    pend.push({ at: t + 0.52, fn: () => { if (rt.down) return; FIGHT.enemies.forEach(e2 => { if (!e2.dead && Math.hypot(e2.eg.position.x - g.position.x, e2.eg.position.z - g.position.z) < 3.4 * (e2.big || 1)) hitEnemy(e2, compDmg(rt) * 1.6, g.position); }); burst(g.position.x, 0.6, g.position.z, 0xfde047, 12, 3); } });
+                } else {
+                    const kk = mvk === 'kick'; rt.atkCd = t + (kk ? 1.3 : 1.1); rt.av.setPose(mvk, t, 0.5); pend.push({ at: t + 0.22, fn: () => { if (!rt.down) hitEnemy(foe, compDmg(rt) * (kk ? 1.35 : 1), g.position); } });
+                    if (Math.random() < 0.5) rt.bubble.show(kk ? pick(['Tendangan! 🦵', 'Hyaat! 🦶']) : pick(['Hiyaa! 💥', 'Awas! 💢', 'Rasakan! 👊']), 1.2);
+                }
+            }
             rt.av.animate(t, mv, 1, false);
         });
         /* UI & musuh */
-        const fon = !!state.settings.fight && started; fh.style.display = fon ? 'block' : 'none'; fbtn.style.display = fon ? 'flex' : 'none';
-        if (!fon) { if (sitesBuilt) clearSites(); } else if (!sitesBuilt) buildSites();
+        const fon = fightEnabled() && started; fh.style.display = fon ? 'block' : 'none'; fbtn.style.display = fon ? 'flex' : 'none';
+        if (!fon) { if (sitesBuilt) clearSites(); } else if (!sitesBuilt) { if (LB.pendSites) sitesMsg(LB.pendSites); else buildSites(); }
+        ultFxTick(t);
         const sleepy = inHouse || riding || onTransit || swimming;
         if (fo && !freeze && t - FIGHT.lastHurt > 6 && FIGHT.hp < FIGHT.max) FIGHT.hp = Math.min(FIGHT.max, FIGHT.hp + 4 * dt);
+        FIGHT.max = fMax(); if (FIGHT.hp > FIGHT.max) FIGHT.hp = FIGHT.max; const lvT = $('fight-lv'); if (lvT) { lvT.textContent = 'Lv' + state.fight.lv; const xb = $('fight-xp'); if (xb) xb.style.width = Math.round(state.fight.xp / fNeed() * 100) + '%'; }
         const bar = $('fight-bar'); if (bar) bar.style.width = Math.max(0, FIGHT.hp / FIGHT.max * 100) + '%';
         if (fon) {
-            SITES.slice().forEach(q => siteTick(q, t, dt, k, p, freeze || sleepy)); FIGHT.enemies.forEach((e, i) => thugTick(e, i, t, dt, k, p, freeze || sleepy));
-            hintT -= dt; if (hintT < 0) { hintT = 0.5; let b = null, bd = 1e9; SITES.forEach(q => { if (q.cleared) return; const d = Math.hypot(q.x - p.x, q.z - p.z); if (d < bd) { bd = d; b = q; } }); const h = $('fight-hint'); if (h) h.textContent = b ? (b.kind === 'camp' ? '😈 Markas' : '🚨 Warga diganggu') + ' ' + Math.round(bd) + ' m ke ' + compass(b.x - p.x, b.z - p.z) : 'Semua aman ✨'; }
+            const fz = MPon() ? false : (freeze || sleepy), TG = isCl() ? [] : targetsList(p); SITES.slice().forEach(q => siteTick(q, t, dt, k, p, fz, TG)); FIGHT.enemies.forEach((e, i) => isCl() ? thugPuppet(e, i, t, dt, k) : thugTick(e, i, t, dt, k, TG, fz));
+            hintT -= dt; if (hintT < 0) { hintT = 0.5; let b = null, bd = 1e9; SITES.forEach(q => { if (q.cleared) return; const d = Math.hypot(q.x - p.x, q.z - p.z); if (d < bd) { bd = d; b = q; } }); const h = $('fight-hint'); if (h) h.textContent = b ? (b.kind === 'camp' ? '🏴 Markas ' + b.gname : '🚨 Warga diganggu') + ' ' + Math.round(bd) + ' m ke ' + compass(b.x - p.x, b.z - p.z) + gangLine() : 'Semua aman ✨' + gangLine(); }
         }
+        /* dirundung warga bila berbuat jahat */
+        const bul = bullyOn() && !inHouse && !riding && !onTransit && !swimming && !freeze;
+        npcList.forEach((r, idx) => {
+            if (r.comp || r.inside) return; const g = r.group, d = Math.hypot(p.x - g.position.x, p.z - g.position.z);
+            if (bul && d < 45 && dialogNpc !== r) {
+                r.bully = true; r.bubble.update(); const a = idx * 2.399 + t * 0.04, tx = p.x + Math.cos(a) * 5.5, tz = p.z + Math.sin(a) * 5.5, dx = tx - g.position.x, dz = tz - g.position.z, dd = Math.hypot(dx, dz); let mv = false;
+                if (dd > 1.2) { const st = Math.min(dd, 0.11 * k); g.position.x += dx / dd * st; g.position.z += dz / dd * st; resolveCollisions(g.position); mv = true; } turnTo(g, Math.atan2(p.x - g.position.x, p.z - g.position.z), 0.15 * k);
+                if (!mv && (!r.taT || t > r.taT)) { r.taT = t + 3.5 + Math.random() * 4; r.bubble.show(pick(['Tukang pukul! 😠', 'Jahat! Huuu 👎', 'Pergi sana, nakal!', 'Kamu tidak boleh begitu!', 'Dasar pembully!']), 2.4); r.av.setPose(Math.random() < 0.5 ? 'laugh' : 'clap', t, 1.4); }
+                r.av.animate(t, mv, 1, false);
+            } else if (r.bully) { r.bully = false; r.mode = 'post'; r.tripT = 0; r.av.pose = null; }
+        });
+        if (bullyOn() && !inHouse) wanderers.forEach(w => { if (w.recruited || !w.p.root.visible) return; const r = w.p.root, d = Math.hypot(p.x - r.position.x, p.z - r.position.z); if (d < 14) { w.wait = 1; w.emote = 'laugh'; turnTo(r, Math.atan2(p.x - r.position.x, p.z - r.position.z), 0.12 * k); if (!w.bub) { w.bub = makeBubble(); w.bub.sprite.position.y = 5.2; r.add(w.bub.sprite); } if (!w.taT || t > w.taT) { w.taT = t + 4 + Math.random() * 5; w.bub.show(pick(['Huuu, jahat!', 'Dasar nakal! 👎', 'Tukang pukul!']), 2.2); } } });
+        wanderers.forEach(w => { if (w.bub) w.bub.update(); });
+        /* rekrut warga lewat (saat Mode Bertarung) */
+        { let nr = null, nrd = 3.4; if (!freeze && !inHouse && !riding) comps.forEach(c => { const d = Math.hypot(p.x - c.group.position.x, p.z - c.group.position.z); if (d < nrd) { nrd = d; nr = c; } }); relIt.target = nr; if (nr) relIt.pos.copy(nr.group.position); chalTick(); }
+        { let nw = null, nd = 7; if (fon && !freeze && !inHouse && comps.length < 5) wanderers.forEach(w => { if (!w.nm || w.recruited || !w.p.root.visible) return; const d = Math.hypot(p.x - w.p.root.position.x, p.z - w.p.root.position.z); if (d < nd) { nd = d; nw = w; } }); recIt.target = nw; if (nw) recIt.pos.copy(nw.p.root.position); }
         /* sampah muncul lagi */
         litT += dt; if (litT > 5) { litT = 0; litter.forEach(it => { if (!it.on && nowS() > it.back) { const [x, z] = randomCoinPos(); it.g.position.set(x, 0, z); it.g.visible = true; it.on = true; } }); }
         /* aura kebaikan */
-        if (kLevel() >= 2 && Math.random() < 0.05 * kLevel() * 0.5) emit(p.x + (Math.random() - .5) * 1.6, p.y + 4.2, p.z + (Math.random() - .5) * 1.6, 0, 0.7, 0, 0xf9a8d4, 0.7);
+        if (state.kind.pts < -10 && Math.random() < 0.08) emit(p.x + (Math.random() - .5) * 1.4, p.y + 4.2, p.z + (Math.random() - .5) * 1.4, 0, 0.6, 0, 0xef4444, 0.6);
+        if (kLevel() >= 2 && state.kind.pts > 0 && Math.random() < 0.05 * kLevel() * 0.5) emit(p.x + (Math.random() - .5) * 1.6, p.y + 4.2, p.z + (Math.random() - .5) * 1.6, 0, 0.7, 0, 0xf9a8d4, 0.7);
     }
-    window.FG = { FIGHT, SITES, attack, comps, hitEnemy, buildSites };
+    const _on = openNpc; openNpc = function (rt) { if (bullyOn()) { rt.bubble.show('Aku tidak mau bicara dengan orang jahat! 😤', 2.6); sfx.wrong(); return; } _on(rt); };
+    const _re = recvEmo; recvEmo = function (from, k) { if (k === 'hit') { const r = remotes[from]; floatText('🥊 ' + (r ? r.name : 'Seseorang') + ' memukulmu!', '#f87171'); player.setPose('hurt', clock.elapsedTime, 0.5); if (state.settings.fight && started && !inHouse) { FIGHT.hp = Math.max(1, FIGHT.hp - 8); FIGHT.lastHurt = clock.elapsedTime; } return; } _re(from, k); };
+    /* ================= v32: GENG ================= */
+    LB.gangs = LB.gangs || {};
+    const myGang = () => { if (!MPon()) return null; const me = meId(); return Object.values(LB.gangs || {}).find(g => g.m.includes(me)) || null; };
+    const nameOfId = id => id === meId() ? 'Kamu' : (LB.roster || []).map(p => p).find(p => p.id === id) ? (LB.roster.find(p => p.id === id).n) : 'Pemain ' + id;
+    function gangMates() {
+        if (!MPon()) return state.gang ? Math.min(5, comps.filter(c => !c.down).length) : 0;
+        const g = myGang(); if (!g) return 0; let n = 0; const me = meId();
+        g.m.forEach(id => { if (id === me) return; const r = remotes[id]; if (r && r.g.visible && Math.hypot(r.g.position.x - pgp().x, r.g.position.z - pgp().z) < 70) n++; });
+        return Math.min(5, n);
+    }
+    const gangAtk = () => 1 + 0.07 * gangMates(), gangDef = () => 1 - 0.05 * gangMates();
+    const gangLine = () => { const g = MPon() ? myGang() : (state.gang ? { n: state.gang.n } : null); if (!g) return ''; const m = gangMates(); return ' · 🏴 ' + g.n + (m ? ' 👥' + m + ' (+' + m * 7 + '% serang, −' + m * 5 + '% luka)' : ''); };
+    function gangApply(from, m) {
+        const G = LB.gangs, gOf = id => Object.values(G).find(g => g.m.includes(id));
+        const leave = id => { const g = gOf(id); if (!g) return; g.m = g.m.filter(x => x !== id); if (!g.m.length) delete G[g.id]; else if (g.lead === id) g.lead = g.m[0]; };
+        if (m.a === 'new') { leave(from); const nm = String(m.name || '').replace(/[<>&]/g, '').trim().slice(0, 14) || GNAMES[Math.floor(Math.random() * GNAMES.length)]; const id = 'g' + Date.now().toString(36) + from; G[id] = { id, n: nm, lead: from, m: [from] }; }
+        else if (m.a === 'join') { const g = G[m.gid]; if (g && g.m.length < 6 && !g.m.includes(from)) { leave(from); g.m.push(from); } }
+        else if (m.a === 'leave') leave(from);
+        else if (m.a === 'kick') { const g = gOf(from); if (g && g.lead === from && m.id !== from && g.m.includes(m.id)) { g.m = g.m.filter(x => x !== m.id); } }
+        LB.players.forEach(p => sendL(p, { t: 'gangs', gg: G })); gangTags();
+    }
+    function gangDo(m) { if (LB.role === 'host') gangApply(0, m); else toHost(m); if (LB.role === 'host') floatText('🏴 Geng diperbarui', '#fca5a5'); setTimeout(gangMenu, 350); }
+    function gangTags() {
+        Object.values(remotes).forEach(r => { const g = Object.values(LB.gangs || {}).find(x => x.m.includes(r.id)), want = g ? '🏴' + g.n : ''; if ((r.gt || '') === want) return; r.gt = want; r.g.remove(r.tag); r.tag = labelSprite(r.name + (want ? ' ' + want : ''), want ? '#7f1d1d' : '#0ea5e9', want ? 7.5 : 5, 1.25); r.tag.position.y = 4.6; r.g.add(r.tag); });
+    }
+    function gangMenu() {
+        const items = [];
+        if (!MPon()) {
+            if (!state.gang) items.push({ emoji: '➕', name: 'Bentuk Geng Pahlawan', desc: 'Teman yang kamu rekrut jadi anggota geng. Tiap teman: +7% serangan, −5% luka (maks 5).', fn: () => { const n = (prompt('Nama gengmu:', 'Pahlawan Kota') || '').trim().slice(0, 14); if (!n) return; state.gang = { n }; save(); floatText('🏴 Geng ' + n + ' terbentuk! Rekrut teman 🛡️ untuk jadi anggota', '#4ade80'); gangMenu(); } });
+            else { items.push({ emoji: '🏴', name: 'Geng ' + state.gang.n, desc: 'Anggota: kamu + ' + comps.length + ' teman rekrutan. Bonus saat ini: +' + gangMates() * 7 + '% serangan, −' + gangMates() * 5 + '% luka.', fn: () => { } }); items.push({ emoji: '🚪', name: 'Bubarkan geng', desc: 'Hapus geng pribadimu', fn: () => { state.gang = null; save(); gangMenu(); } }); }
+            items.push({ emoji: '🌐', name: 'Geng sungguhan = main online!', desc: 'Buat/gabung ruangan 🌐, aktifkan 🥊 Mode Bertarung, lalu bentuk geng bareng temanmu.', fn: () => { } });
+        } else {
+            const g = myGang(), me = meId();
+            if (!g) { items.push({ emoji: '➕', name: 'Bentuk geng baru', desc: 'Kamu jadi ketua. Ajak teman gabung (maks 6 orang).', fn: () => { const n = (prompt('Nama gengmu:', 'Pahlawan Kota') || '').trim().slice(0, 14); if (n) gangDo({ t: 'gang', a: 'new', name: n }); } });
+                Object.values(LB.gangs || {}).forEach(x => items.push({ emoji: '🏴', name: 'Gabung ' + x.n, desc: x.m.length + '/6 anggota: ' + x.m.map(nameOfId).join(', '), fn: () => gangDo({ t: 'gang', a: 'join', gid: x.id }) })); }
+            else { items.push({ emoji: '🏴', name: 'Geng ' + g.n, desc: 'Anggota: ' + g.m.map(id => nameOfId(id) + (id === g.lead ? ' 👑' : '')).join(', ') + '. Dekat teman (≤70 m): +7% serangan & −5% luka per teman.', fn: () => { } });
+                if (g.lead === me) g.m.filter(id => id !== me).forEach(id => items.push({ emoji: '✖', name: 'Keluarkan ' + nameOfId(id), desc: 'Ketua bisa mengeluarkan anggota', fn: () => gangDo({ t: 'gang', a: 'kick', id }) }));
+                items.push({ emoji: '🚪', name: 'Keluar dari geng', desc: '', fn: () => gangDo({ t: 'gang', a: 'leave' }) }); }
+        }
+        openMenu('🏴', 'Geng', MPon() ? 'Bentuk geng bersama temanmu untuk melawan geng preman!' : 'Geng pribadi bersama teman rekrutanmu.', items);
+    }
+    const gb = mkEl('button', 'action-btn bg-red-800 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center border-2 border-white/30 text-lg', '🏴'); gb.id = 'btn-gang'; gb.title = 'Geng'; gb.style.display = 'none';
+    { const b0 = $('btn-bag'); if (b0) b0.parentNode.insertBefore(gb, b0); } gb.addEventListener('click', e => { e.stopPropagation(); gangMenu(); });
+    setInterval(() => { gb.style.display = fightEnabled() && started ? '' : 'none'; if (MPon()) gangTags(); }, 700);
+    /* ---- tombol minta maaf cepat ---- */
+    const sorryB = mkEl('button', 'action-btn bg-amber-500 text-slate-950 font-black border-4 border-white shadow-2xl', '🙏 Minta Maaf'); sorryB.id = 'btn-sorry'; sorryB.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:150px;z-index:26;padding:10px 18px;border-radius:999px;font-size:15px;display:none'; document.body.appendChild(sorryB);
+    sorryB.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (!bullyOn()) return; bullyUntil = 0; if (state.kind.pts < -10) state.kind.pts = -10; save(); sfx.correct(); player.setPose('wave', clock.elapsedTime, 1.4); floatText('🙏 Maaf ya... Warga memaafkanmu dan berhenti mengikuti', '#4ade80'); npcList.forEach(r => { if (!r.comp && !r.inside && r.group.position.distanceTo(pgp()) < 40) r.bubble.show(pick(['Iya, dimaafkan 😊', 'Jangan diulangi ya!', 'Oke, kita berteman lagi 🤝']), 2.6); }); if (!km.classList.contains('hidden')) kindRender(); sorryB.style.display = 'none'; });
+    setInterval(() => { sorryB.style.display = started && bullyOn() && !inHouse && !uiOpen() ? 'block' : 'none'; }, 400);
+    window.FG = { gangMates, gangApply, myGang, FIGHT, SITES, attack, comps, hitEnemy, buildSites, recruitW, compHurt, cLv, TYPES, ULTS, ultStart, applyTh, encodeTh, sitesMsg, fxMsg, hitMsgHost, targetsList, thugTick, get SITE_DEFS() { return SITE_DEFS; }, ULT_FX, get sitesBuilt() { return sitesBuilt; } };
     /* ================= v26: KENDARAAN PRIBADI & BONCENG ================= */
     const VEHS = { motor: { n: 'Motor', e: '🏍️', seats: [[0, 0], [0, -0.95]], spd: 3.0, y: 0.5, col: 0xdc2626 }, jeep: { n: 'Mobil Jeep', e: '🚙', seats: [[-0.5, 0.35], [0.5, 0.35], [-0.5, -0.85], [0.5, -0.85]], spd: 2.7, y: 0.45, col: 0x16a34a } };
     function mkVeh(type, col) {
@@ -5793,7 +6241,7 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
     window.VEH = { spawnOwn, boardRemote, get own() { return own; }, get myPass() { return myPass; } };
     /* ================= v26: TOMBOL EDIT TATA LETAK ================= */
     if (!state.ui) state.ui = { pos: {}, hide: {} };
-    const MOVE_IDS = ['btn-jump-mobile', 'btn-interact-mobile', 'btn-fight', 'ow-chatbtn'], HIDE_IDS = ['btn-missions', 'btn-wardrobe', 'btn-mute', 'btn-bag', 'btn-kind', 'btn-pray', 'btn-veh', 'btn-online'];
+    const MOVE_IDS = ['btn-jump-mobile', 'btn-interact-mobile', 'btn-fight', 'ow-chatbtn'], HIDE_IDS = ['btn-missions', 'btn-wardrobe', 'btn-mute', 'btn-bag', 'btn-kind', 'btn-pray', 'btn-gang', 'btn-veh', 'btn-online'];
     let editOn = false;
     const applyUI = () => {
         MOVE_IDS.forEach(id => { const el = $(id), q = state.ui.pos[id]; if (el && q) { el.style.left = Math.round(q[0] * innerWidth) + 'px'; el.style.top = Math.round(q[1] * innerHeight) + 'px'; el.style.right = 'auto'; el.style.bottom = 'auto'; } });
@@ -5817,12 +6265,331 @@ $('fps-chip').classList.toggle('hidden', !state.settings.showFps);
     addEventListener('resize', applyUI); setTimeout(applyUI, 300); setInterval(() => { if (!editOn) applyUI(); }, 3000);
     window.UIED = { setEdit, applyUI };
     const _uw25 = updateWorld; updateWorld = function (dt, k, t, p) { _uw25(dt, k, t, p); social(dt, k, t, p); vehTick(dt, k, t, p); };
+    /* ================= v31: PADEPOKAN SILAT, GYM, RESTORAN AYAM, KAFE, MINIMARKET (bisa dimasuki, duduk & makan) ================= */
+    (function places31() {
+        ['pow', 'spd', 'sta'].forEach(k => { if (!state.train[k]) state.train[k] = { lv: 0, xp: 0 }; });
+        const TN = { pow: ['💪', 'Kekuatan', 'Serangan +5% per level'], spd: ['⚡', 'Kecepatan', 'Serang lebih cepat'], sta: ['❤️', 'Stamina', 'Darah maks +8 per level'] }, T_MAX = 20, tNeed = k => 8 + 5 * state.train[k].lv;
+        function trainGain(k, pts) {
+            const s = state.train[k]; s.xp += pts; let up = false;
+            while (s.xp >= tNeed(k) && s.lv < T_MAX) { s.xp -= tNeed(k); s.lv++; up = true; } if (s.lv >= T_MAX) s.xp = 0;
+            if (up) { floatText(TN[k][0] + ' ' + TN[k][1] + ' naik ke Lv' + s.lv + '!', '#fde047'); sfx.level(); burst(playerGroup.position.x, 2, playerGroup.position.z, 0xfacc15, 30, 4); FIGHT.max = fMax(); }
+            save();
+        }
+        function statusMenu(who) {
+            openMenu('📊', 'Status Latihanmu', (who || 'Latihan') + ': makin rajin berlatih, makin kuat kamu melawan preman! Latihan di Padepokan Silat dan Pusat Kebugaran.',
+                ['pow', 'spd', 'sta'].map(k => { const s = state.train[k]; return { emoji: TN[k][0], name: TN[k][1] + ' Lv' + s.lv + (s.lv >= T_MAX ? ' (MAKS 🏆)' : ''), desc: TN[k][2] + (s.lv >= T_MAX ? '' : ' · latihan ' + s.xp + '/' + tNeed(k)), price: 0, fn: () => { } }; }));
+        }
+        /* ---------- minigame latihan: tekan tepat di zona hijau ---------- */
+        let tgOpen = false;
+        function trainGame(o) {
+            if (tgOpen) return; const S = state.train[o.stat];
+            if (S.lv >= T_MAX) { floatText(TN[o.stat][0] + ' ' + TN[o.stat][1] + ' sudah maksimal! 🏆', '#fde047'); return; }
+            if (state.coins < o.cost) { floatText('Koin kurang untuk latihan (🪙 ' + o.cost + ')', '#f87171'); sfx.wrong(); return; }
+            state.coins -= o.cost; updateHUD(); save(); tgOpen = true;
+            playerGroup.position.set(o.at[0], 0, o.at[1]); playerGroup.rotation.y = o.at[2]; playerVelY = 0;
+            if (o.sit) sitAt(o.at[0], o.at[1], o.at[2], 0.25, 0); else if (o.hold) player.setPose(o.hold, clock.elapsedTime, 1e9);
+            const N = o.rounds || 6, m = document.createElement('div'); m.id = 'tg-modal';
+            m.style.cssText = 'position:fixed;inset:0;z-index:200;background:rgba(2,6,23,.72);display:flex;align-items:flex-end;justify-content:center;padding:12px;font-family:inherit';
+            m.innerHTML = `<div style="background:#0f172a;border:2px solid #fb923c;border-radius:24px;padding:14px;width:100%;max-width:380px;color:#fff;text-align:center;margin-bottom:8px">
+              <div style="font-size:34px;line-height:1">${o.emoji}</div><div style="font-weight:900;font-size:15px">${o.title}</div>
+              <div id="tg-info" style="font-size:12px;color:#94a3b8;font-weight:700;margin:4px 0">Tekan tombol saat penanda kuning ada di zona hijau! · Ronde 1/${N}</div>
+              <div style="position:relative;height:30px;background:#1e293b;border-radius:15px;margin:10px 0;overflow:hidden"><div id="tg-zone" style="position:absolute;top:0;bottom:0;background:rgba(34,197,94,.55)"></div><div id="tg-mark" style="position:absolute;top:3px;bottom:3px;width:10px;margin-left:-5px;background:#fde047;border-radius:5px"></div></div>
+              <div id="tg-res" style="height:22px;font-weight:900;font-size:15px">&nbsp;</div>
+              <button id="tg-go" style="width:100%;padding:14px;border-radius:16px;background:#f97316;color:#fff;font-weight:900;font-size:18px;border:0;margin-top:4px">💥 TEKAN!</button>
+              <button id="tg-x" style="margin-top:8px;background:none;border:0;color:#94a3b8;font-weight:800;font-size:12px">Berhenti</button></div>`;
+            document.body.appendChild(m);
+            const $$ = id => m.querySelector(id), zone = $$('#tg-zone'), mark = $$('#tg-mark'), res = $$('#tg-res'), info = $$('#tg-info'), go = $$('#tg-go'), xb = $$('#tg-x');
+            let r = 0, pts = 0, c = 0.5, w = 0.28, done = false, raf = 0; const t0 = performance.now();
+            const posNow = () => 0.5 + 0.5 * Math.sin((performance.now() - t0) / 1000 * (3.2 + 0.5 * r));
+            const newZone = () => { w = Math.max(0.15, 0.28 - 0.025 * r); c = 0.2 + Math.random() * 0.6; zone.style.left = ((c - w / 2) * 100) + '%'; zone.style.width = (w * 100) + '%'; }; newZone();
+            const loop = () => { mark.style.left = (posNow() * 100) + '%'; raf = requestAnimationFrame(loop); }; loop();
+            const close = () => { cancelAnimationFrame(raf); m.remove(); tgOpen = false; if (o.sit || o.hold) player.pose = null; };
+            const finish = () => {
+                done = true; cancelAnimationFrame(raf); const gain = pts; if (o.sit || o.hold) player.pose = null;
+                if (gain > 0) trainGain(o.stat, gain);
+                const s = state.train[o.stat]; res.innerHTML = gain > 0 ? `+${gain} latihan! ${TN[o.stat][0]} Lv${s.lv}${s.lv >= T_MAX ? ' MAKS' : ' (' + s.xp + '/' + tNeed(o.stat) + ')'}` : 'Belum ada hasil, coba lagi!'; res.style.color = '#86efac';
+                go.textContent = 'Selesai ✅'; go.style.background = '#16a34a'; xb.style.display = 'none';
+            };
+            go.onclick = () => {
+                if (done) { close(); return; }
+                const d = Math.abs(posNow() - c), sc = d < w * 0.2 ? 3 : d < w / 2 ? 2 : d < w ? 1 : 0; pts += sc;
+                res.textContent = ['😵 Meleset!', '😅 Hampir!', '👍 Bagus!', '🔥 SEMPURNA!'][sc]; res.style.color = ['#f87171', '#fbbf24', '#86efac', '#fde047'][sc];
+                if (!o.sit && !o.hold) player.setPose(o.pose || 'punch', clock.elapsedTime, 0.6); else if (o.pulse) player.setPose(o.pulse, clock.elapsedTime, 0.7);
+                sfx[sc > 1 ? 'coin' : 'click'](); r++;
+                if (r >= N) finish(); else { info.textContent = 'Tekan saat penanda ada di zona hijau! · Ronde ' + (r + 1) + '/' + N; newZone(); }
+            };
+            xb.onclick = () => { if (pts > 0) finish(); else close(); };
+        }
+        /* ---------- pesan makanan, duduk, dan makan ---------- */
+        const tray = [];
+        function orderMenu(emoji, title, desc, items) {
+            openMenu(emoji, title, desc, items.map(m => ({ emoji: m.e, name: m.n, desc: m.d, price: m.p, fn: () => {
+                if (state.coins < m.p) { floatText('Koin kurang! 😢', '#f87171'); sfx.wrong(); return; }
+                state.coins -= m.p; sfx.buy(); tray.push(m); updateHUD(); save(); $('menu-coins').textContent = state.coins;
+                floatText('🍽️ ' + m.n + ' siap! Duduk di kursi lalu pilih "Makan Pesanan" (pesanan: ' + tray.length + ')', '#fde047');
+            } })));
+        }
+        function eatNow() {
+            if (!tray.length) { floatText('Belum ada pesanan. Pesan dulu di kasir 🍽️', '#fde047'); return; }
+            const m = tray.shift(), t = clock.elapsedTime, seated = player.pose === 'sit' || player.pose === 'eatsit', bonus = seated ? 1.25 : 1;
+            player.setPose(seated ? 'eatsit' : (m.dr ? 'drink' : 'eat'), t, 3.4); sfx.coin();
+            const px = playerGroup.position.x, pz = playerGroup.position.z; setTimeout(() => { if (seated && (!player.pose || player.pose === 'eatsit') && Math.hypot(playerGroup.position.x - px, playerGroup.position.z - pz) < 0.4) player.setPose('sit', clock.elapsedTime, 1e9); }, 3500);
+            if (m.act === 'full') FIGHT.hp = FIGHT.max; else if (m.v && m.act === 'heal') FIGHT.hp = Math.min(FIGHT.max, FIGHT.hp + Math.round(m.v * bonus));
+            if (m.act === 'boost' || m.act === 'full') { boostUntil = nowS() + (m.v || 60); }
+            if (m.xp) addRewards(0, m.xp); updateHUD(); save();
+            floatText('😋 ' + m.n + ' enak!' + (m.act === 'heal' || m.act === 'full' ? ' ❤️ darah pulih' : '') + (m.act === 'boost' ? ' ⚡ lari cepat' : '') + (seated ? ' · makan duduk +25%' : ''), '#86efac');
+        }
+        const eatSpot = (R, lx, lz, r, lbl) => interactables.push({ id: 'eat' + interactables.length, type: 'roomact', indoor: true, pos: new THREE.Vector3(R.cx + lx, 0, R.cz + lz), radius: r, label: lbl || 'Makan Pesanan 🍽️', hideIf: () => !tray.length || player.pose === 'sit' || player.pose === 'eatsit', fn: eatNow });
+        function seat(R, lx, lz, rot, h) {
+            const x = R.cx + lx, z = R.cz + lz; addSit(true, x, z, rot, h || 0.55, 0, 'Duduk 🪑', 1.8);
+            interactables.push({ id: 'eat' + interactables.length, type: 'roomact', indoor: true, pos: new THREE.Vector3(x, 0, z), radius: 1.8, label: 'Makan Pesanan 🍽️', hideIf: () => !tray.length || !(player.pose === 'sit' || player.pose === 'eatsit') || Math.hypot(playerGroup.position.x - x, playerGroup.position.z - z) > 0.8, fn: eatNow });
+        }
+        /* ---------- penghuni ruangan yang bergerak ---------- */
+        const RES = {};
+        function resident(R, o, lx, lz, ry, anim, seatH, sc) {
+            const p = buildPerson(o); sc = sc || 1; p.root.scale.setScalar(sc); p.root.position.set(lx, 0, lz); p.root.rotation.y = ry || 0; p.seat = (seatH || 0.55) / sc; R.g.add(p.root);
+            (RES[R.key] = RES[R.key] || []).push(typeof anim === 'string' ? t => animPerson(p, t, anim, 1) : anim(p)); return p;
+        }
+        const waveEvery = p => t => animPerson(p, (t % 9) < 1.6 ? (t % 9) : t, (t % 9) < 1.6 ? 'wave' : 'idle', 1);
+        const ceilLamps = (ig, hw, hd, c) => { const lm = mkGlow(c || 0xfff7c2, 0.7, 1.2); [[-hw / 2, -hd / 3], [hw / 2, -hd / 3], [-hw / 2, hd / 3], [hw / 2, hd / 3], [0, 0]].forEach(([x, z]) => mkBox(3.4, 0.12, 0.5, 0xffffff, x, 6.9, z, ig).material = lm); };
+        const chair = (ig, x, z, face, col) => { mkBox(0.9, 0.12, 0.9, col, x, 0.5, z, ig); mkBox(0.9, 0.9, 0.12, col, x, 0.98, z - face * 0.42, ig); mkBox(0.2, 0.44, 0.2, 0x475569, x, 0.22, z, ig); };
+        const stool = (ig, x, z, col) => { mkCyl(0.4, 0.4, 0.1, col, x, 0.62, z, ig, 10); mkCyl(0.08, 0.08, 0.6, 0x475569, x, 0.3, z, ig, 6); };
+        const table = (R, x, z, col, w, d) => { const ig = R.g; mkBox(w || 1.8, 0.1, d || 1.5, col, x, 1.0, z, ig); mkBox(0.25, 1.0, 0.25, 0x475569, x, 0.5, z, ig); R.col(x, z, (w || 1.8) / 2, (d || 1.5) / 2); mkBox(0.45, 0.07, 0.45, 0xffffff, x - 0.35, 1.08, z, ig); mkBox(0.3, 0.12, 0.3, 0xb45309, x - 0.35, 1.15, z, ig); mkBox(0.22, 0.4, 0.22, 0xef4444, x + 0.4, 1.25, z + 0.2, ig); };
+        const tableSet = (R, x, z, c1, c2) => { table(R, x, z, c1); chair(R.g, x, z - 1.3, 1, c2); chair(R.g, x, z + 1.3, -1, c2); seat(R, x, z - 1.3, 0); seat(R, x, z + 1.3, Math.PI); };
+        const plant = (ig, x, z, R) => { mkCyl(0.5, 0.6, 0.9, 0x78350f, x, 0.45, z, ig, 8); mkSph(0.9, 0x16a34a, x, 1.6, z, ig, null, 7); R.col(x, z, 0.8, 0.8); };
+
+        /* ======== data menu ======== */
+        const AYAM_MENU = [
+            { e: '🍗', n: 'Ayam Goreng Krispi', d: 'Pulihkan 40 darah tempur', p: 15, act: 'heal', v: 40 }, { e: '🍔', n: 'Burger Jumbo', d: '+45 darah, +5 XP', p: 18, act: 'heal', v: 45, xp: 5 },
+            { e: '🍟', n: 'Kentang Goreng', d: '+20 darah', p: 8, act: 'heal', v: 20 }, { e: '🍚', n: 'Nasi Ayam Geprek', d: '+60 darah', p: 22, act: 'heal', v: 60 },
+            { e: '🥤', n: 'Es Teh Segar', d: 'Lari cepat 30 detik', p: 6, act: 'boost', v: 30, dr: 1 }, { e: '🍱', n: 'Paket Hemat Juara', d: 'Darah penuh + lari cepat 60 detik', p: 40, act: 'full' }];
+        const KAFE_MENU2 = [
+            { e: '☕', n: 'Kopi Susu Senja', d: 'Lari cepat 40 detik', p: 12, act: 'boost', v: 40, dr: 1 }, { e: '🧋', n: 'Boba Brown Sugar', d: '+6 XP', p: 14, act: 'xp', xp: 6, dr: 1 },
+            { e: '🍵', n: 'Teh Hijau Matcha', d: '+25 darah', p: 12, act: 'heal', v: 25, dr: 1 }, { e: '🥐', n: 'Croissant Mentega', d: '+30 darah', p: 14, act: 'heal', v: 30 },
+            { e: '🍰', n: 'Kue Coklat Lumer', d: '+40 darah, +8 XP', p: 20, act: 'heal', v: 40, xp: 8 }];
+        const MART_MENU = [
+            { e: '🍜', n: 'Mie Cup Panas', d: '+30 darah', p: 10, act: 'heal', v: 30 }, { e: '🥪', n: 'Roti Isi Keju', d: '+20 darah', p: 8, act: 'heal', v: 20 },
+            { e: '🍙', n: 'Nasi Kepal Tuna', d: '+25 darah', p: 9, act: 'heal', v: 25 }, { e: '🥛', n: 'Susu Kotak Dingin', d: '+4 XP', p: 7, act: 'xp', xp: 4, dr: 1 }, { e: '🍦', n: 'Es Krim Cone', d: 'Lari cepat 30 detik', p: 6, act: 'boost', v: 30 }];
+        const GYM_MENU = [
+            { e: '🥤', n: 'Shake Protein', d: '+50 darah, lari cepat 30 detik', p: 14, act: 'heal', v: 50, dr: 1 }, { e: '🍌', n: 'Pisang Energi', d: '+20 darah', p: 6, act: 'heal', v: 20 },
+            { e: '🥗', n: 'Salad Sehat', d: '+35 darah', p: 12, act: 'heal', v: 35 }, { e: '💧', n: 'Air Mineral', d: '+10 darah', p: 3, act: 'heal', v: 10, dr: 1 }];
+
+        /* ======== ISI RUANGAN ======== */
+        function buildAyam(R) {
+            const ig = R.g; mkBox(28, 0.04, 20, 0xb08080, 0, 0.04, 0, ig); mkBox(6, 0.05, 20, 0x8f5f5f, 0, 0.06, 0, ig);
+            mkBox(28, 1.0, 0.2, 0xdc2626, 0, 0.5, 9.9, ig); mkBox(28, 0.5, 0.2, 0xfef08a, 0, 6.6, 9.9, ig);
+            signPlane(['🍗 AYAM KRIBO'], 12, 1.7, '#b91c1c', '#fef9c3', ig, 0, 5.5, 9.75, Math.PI);
+            [[-8.5, '🍗 Ayam Krispi 15'], [0, '🍔 Burger Jumbo 18'], [8.5, '🍟 Kentang 8']].forEach(([x, t]) => { mkBox(7.2, 1.3, 0.12, 0x1f2937, x, 3.4, 9.82, ig); signPlane([t], 6.8, 1.1, '#111827', '#fde047', ig, x, 3.4, 9.7, Math.PI); });
+            mkBox(24, 1.2, 1.6, 0xfef3c7, 0, 0.6, 5.6, ig); mkBox(24.2, 0.12, 1.9, 0xdc2626, 0, 1.26, 5.6, ig); R.col(0, 5.6, 12, 0.9);
+            [[-3, 0.1, 0x111827], [3, 0.1, 0x111827]].forEach(([x]) => { mkBox(0.9, 0.5, 0.7, 0x111827, x, 1.6, 5.6, ig); mkBox(0.6, 0.3, 0.05, 0x22d3ee, x, 1.9, 5.3, ig, { emissive: 0x22d3ee, emissiveIntensity: 0.6 }); });
+            [-9, -6.8].forEach(x => { mkBox(1.6, 1.0, 1.1, 0x94a3b8, x, 0.5, 8.6, ig); mkBox(1.5, 0.1, 1.0, 0xf59e0b, x, 1.05, 8.6, ig); }); mkBox(3, 1.4, 1.2, 0x64748b, 9, 0.7, 8.6, ig);
+            const warm = mkGlow(0xfbbf24, 0.9, 1.4); [-9, -6.8, 9].forEach(x => mkBox(1.5, 0.1, 0.3, 0xffffff, x, 3.0, 8.5, ig).material = warm);
+            resident(R, { shirt: 0xdc2626, pants: 0x1e293b, hat: 'topi', topi: 0xfef08a, skin: pick(SK) }, -4, 7.3, Math.PI, p => t => animPerson(p, t, 'cook', 1));
+            resident(R, { shirt: 0xdc2626, pants: 0x1e293b, hat: 'topi', topi: 0xfef08a, skin: pick(SK) }, 5, 7.3, Math.PI, p => t => animPerson(p, t, 'cook', 1));
+            resident(R, { shirt: 0xfef3c7, pants: 0x1e293b, hat: 'topi', topi: 0xdc2626, skin: pick(SK) }, 0, 7.1, Math.PI, waveEvery);
+            [[-10, -3], [-6.5, -3], [6.5, -3], [10, -3], [-10, 0.8], [-6.5, 0.8], [6.5, 0.8], [10, 0.8]].forEach(([x, z], i) => tableSet(R, x, z, 0xf8fafc, i % 2 ? 0xdc2626 : 0xfacc15));
+            resident(R, { shirt: 0x38bdf8, pants: 0x1e293b, skin: pick(SK) }, -6.5, -4.3, 0, 'eatsit');
+            resident(R, { shirt: 0xf472b6, pants: 0x7c2d12, skirt: true, longHair: true, skin: pick(SK) }, 10, 2.1, Math.PI, 'eatsit');
+            resident(R, { shirt: 0x84cc16, pants: 0x1e293b, skin: pick(SK) }, 6.5, -1.7, Math.PI, 'sit');
+            /* maskot ayam raksasa */
+            mkSph(1.3, 0xfde047, 11.5, 1.9, -7, ig, null, 10); mkSph(0.8, 0xfde047, 11.5, 3.5, -6.6, ig, null, 10); mkBox(0.3, 0.5, 0.2, 0xdc2626, 11.5, 4.4, -6.6, ig); mkBox(0.4, 0.2, 0.5, 0xf97316, 11.5, 3.45, -6.0, ig); mkBox(0.15, 0.15, 0.1, 0x111827, 11.2, 3.7, -6.0, ig); mkBox(0.15, 0.15, 0.1, 0x111827, 11.8, 3.7, -6.0, ig); mkBox(0.3, 0.8, 0.3, 0xf97316, 11.0, 0.4, -7, ig); mkBox(0.3, 0.8, 0.3, 0xf97316, 12.0, 0.4, -7, ig); R.col(11.5, -7, 1.4, 1.4);
+            plant(ig, -12, -7.5, R); plant(ig, 12, 7.5, R); ceilLamps(ig, 24, 18);
+            R.I('act', 0, 3.4, 5.5, 'Pesan Makanan 🍗', () => orderMenu('🍗', 'Ayam Kribo', 'Pilih menu favoritmu! Bawa pesananmu ke meja, lalu makan sambil duduk.', AYAM_MENU)); eatSpot(R, -6, 3.4, 3, 'Makan Pesanan (berdiri) 🍽️');
+        }
+        function buildKafe(R) {
+            const ig = R.g; mkBox(24, 0.04, 18, 0xb08968, 0, 0.04, 0, ig); [-9, -3, 3, 9].forEach(x => mkBox(0.06, 0.05, 18, 0x8b6b4a, x, 0.07, 0, ig));
+            mkBox(24, 1.0, 0.2, 0x78350f, 0, 0.5, 8.9, ig); signPlane(['☕ KAFE SENJA'], 8, 1.3, '#1f2937', '#fde68a', ig, 0, 5.3, 8.75, Math.PI);
+            mkBox(18, 3.2, 0.5, 0x92400e, 0, 1.6, 8.5, ig); [0.9, 1.8, 2.7].forEach(y => { mkBox(18, 0.08, 0.7, 0xb45309, 0, y, 8.3, ig); for (let i = 0; i < 12; i++) mkBox(0.35, 0.3, 0.35, [0xf8fafc, 0xfde68a, 0xfca5a5, 0x93c5fd][(i + Math.floor(y * 3)) % 4], -7.6 + i * 1.4, y + 0.2, 8.3, ig); });
+            mkBox(16, 1.2, 1.6, 0x78350f, 0, 0.6, 5.6, ig); mkBox(16.2, 0.12, 1.9, 0xfef3c7, 0, 1.26, 5.6, ig); R.col(0, 5.6, 8.1, 0.9);
+            mkBox(1.4, 1.0, 0.9, 0x9ca3af, -4, 1.85, 5.7, ig); mkBox(0.5, 0.5, 0.5, 0x111827, -4.3, 2.55, 5.7, ig); mkCyl(0.12, 0.12, 0.3, 0xdc2626, -3.7, 2.5, 5.4, ig, 6);
+            const gl = new THREE.Mesh(gBox(3.2, 0.9, 1.2), HGLASS); place(gl, 3.5, 1.85, 5.6, ig); [[2.7, 0xf472b6], [3.5, 0x92400e], [4.3, 0xfde047]].forEach(([x, c]) => mkBox(0.55, 0.5, 0.55, c, x, 1.55, 5.6, ig));
+            resident(R, { shirt: 0x15803d, pants: 0x1e293b, hat: 'topi', topi: 0x78350f, skin: pick(SK) }, 0, 7.0, Math.PI, waveEvery);
+            [[-7, -1.5], [-7, 2.5], [7, -1.5], [7, 2.5], [-2.8, -2.5], [2.8, -2.5]].forEach(([x, z]) => {
+                mkCyl(0.85, 0.85, 0.1, 0xfef3c7, x, 1.0, z, ig, 14); mkCyl(0.12, 0.2, 1.0, 0x78350f, x, 0.5, z, ig, 8); mkCyl(0.3, 0.3, 0.08, 0xffffff, x, 1.08, z, ig, 10); mkCyl(0.15, 0.15, 0.25, 0xf8fafc, x + 0.3, 1.2, z + 0.2, ig, 8); R.col(x, z, 0.9, 0.9);
+                stool(ig, x - 1.4, z, 0x15803d); stool(ig, x + 1.4, z, 0x15803d); seat(R, x - 1.4, z, Math.PI / 2, 0.66); seat(R, x + 1.4, z, -Math.PI / 2, 0.66);
+            });
+            mkBox(1.3, 0.8, 4.4, 0x9f1239, -11.2, 0.4, 1.5, ig); mkBox(0.4, 1.2, 4.4, 0x9f1239, -11.8, 1.1, 1.5, ig); mkBox(1.0, 0.25, 4.0, 0xbe123c, -11.1, 0.9, 1.5, ig); R.col(-11.2, 1.5, 0.9, 2.2); seat(R, -11.0, 0.3, Math.PI / 2, 0.55); seat(R, -11.0, 2.7, Math.PI / 2, 0.55);
+            resident(R, { shirt: 0xa78bfa, pants: 0x1e293b, skin: pick(SK) }, -11.0, 2.7, Math.PI / 2, 'read', 0.55);
+            resident(R, { shirt: 0xfb923c, pants: 0x1e293b, skirt: true, hijab: 0xf8fafc, longSleeve: true, skin: pick(SK) }, 8.4, 2.5, -Math.PI / 2, 'eatsit', 0.66);
+            mkBox(0.6, 3.2, 4.4, 0x78350f, 11.6, 1.6, -3.5, ig); for (let r = 0; r < 4; r++) for (let i = 0; i < 7; i++) mkBox(0.4, 0.5, 0.45, [0xef4444, 0x2563eb, 0x16a34a, 0xfacc15][(i + r) % 4], 11.25, 0.5 + r * 0.7, -5.3 + i * 0.6, ig); R.col(11.6, -3.5, 0.6, 2.3);
+            plant(ig, -11, -7, R); plant(ig, 11, 7, R); plant(ig, 11, -7.5, R);
+            const sl = mkGlow(0xfde68a, 0.95, 1.2); for (let i = 0; i < 12; i++) place(new THREE.Mesh(gSph(0.14, 6), sl), -10 + i * 1.8, 5.6 - 0.25 * Math.sin(i * 1.3), -1, ig); mkBox(22, 0.04, 0.04, 0x78350f, 0, 5.8, -1, ig);
+            ceilLamps(ig, 20, 14, 0xffe4b5);
+            R.I('act', 0, 3.5, 5.5, 'Pesan di Kafe ☕', () => orderMenu('☕', 'Kafe Senja', 'Selamat datang! Duduk santai di sofa atau meja bulat ya. Pesanan dimakan sambil duduk.', KAFE_MENU2)); eatSpot(R, -5, 3.5, 3, 'Minum/Makan Pesanan 🍽️');
+        }
+        function buildMart(R, th) {
+            const ig = R.g; mkBox(20, 0.04, 16, th.floor, 0, 0.04, 0, ig); for (let i = -9; i <= 9; i += 2) mkBox(0.05, 0.05, 16, 0xe2e8f0, i, 0.06, 0, ig);
+            mkBox(20, 0.9, 0.2, th.c1, 0, 0.45, 7.9, ig); mkBox(20, 0.3, 0.2, th.c2, 0, 6.4, 7.9, ig); signPlane([th.name], 8, 1.1, th.bg, th.fg, ig, 0, 5.4, 7.75, Math.PI);
+            const prod = [0xef4444, 0xfacc15, 0x22c55e, 0x3b82f6, 0xf97316, 0xec4899, 0x8b5cf6, 0xf8fafc];
+            const shelf = (x, z) => { mkBox(4.6, 2.6, 0.5, 0x94a3b8, x, 1.3, z, ig); [0.5, 1.1, 1.7, 2.3].forEach((y, t) => { mkBox(4.6, 0.06, 1.1, 0xcbd5e1, x, y, z, ig); for (let i = 0; i < 7; i++) { mkBox(0.45, 0.42 + (i % 3) * 0.08, 0.35, prod[(i + t * 3 + Math.floor(x)) % 8], x - 2.0 + i * 0.66, y + 0.26, z + 0.38, ig); mkBox(0.45, 0.42, 0.35, prod[(i * 2 + t) % 8], x - 2.0 + i * 0.66, y + 0.26, z - 0.38, ig); } }); R.col(x, z, 2.4, 0.7); };
+            [[-4.2, -1.2], [4.2, -1.2], [-4.2, 2.6], [4.2, 2.6]].forEach(([x, z]) => shelf(x, z));
+            mkBox(4.6, 1.2, 1.4, th.c1, -4, 0.6, 6.3, ig); mkBox(4.8, 0.12, 1.6, 0xf8fafc, -4, 1.26, 6.3, ig); mkBox(0.8, 0.5, 0.6, 0x111827, -3, 1.55, 6.3, ig); R.col(-4, 6.3, 2.4, 0.8);
+            mkBox(8, 2.8, 0.9, 0xe0f2fe, 4.5, 1.4, 7.3, ig); for (let i = 0; i < 4; i++) { mkBox(1.8, 2.4, 0.06, 0xbae6fd, 1.0 + i * 2.1 + 0.9, 1.4, 6.8, ig, { emissive: 0x7dd3fc, emissiveIntensity: 0.35 }); } R.col(4.5, 7.3, 4, 0.5);
+            resident(R, { shirt: th.c1, pants: 0x1e293b, hat: 'topi', topi: th.c2, skin: pick(SK) }, -4, 7.5, Math.PI, waveEvery);
+            mkBox(1.0, 1.1, 6.4, 0x92400e, 9.2, 0.55, 0.7, ig); mkBox(1.1, 0.1, 6.5, 0xfef3c7, 9.2, 1.12, 0.7, ig); R.col(9.2, 0.7, 0.6, 3.2);
+            [-1.2, 0.8, 2.8].forEach(z => { stool(ig, 7.9, z, th.c2); seat(R, 7.9, z, Math.PI / 2, 0.66); });
+            resident(R, { shirt: 0x60a5fa, pants: 0x1e293b, skin: pick(SK) }, 7.9, 0.8, Math.PI / 2, 'eatsit', 0.66);
+            resident(R, { shirt: 0xf472b6, pants: 0x1e293b, skirt: true, longHair: true, skin: pick(SK) }, 1.5, 4.3, 0, p => t => animPerson(p, t, Math.sin(t * 0.4) > 0.7 ? 'clap' : 'idle', 1));
+            plant(ig, 9, -6.5, R); ceilLamps(ig, 18, 14, 0xffffff);
+            R.I('act', -4, 4.4, 3.8, 'Belanja di Kasir 🛒', () => openMinimarket(false)); R.I('act', 5.2, 5.4, 3.8, 'Ambil Minuman Dingin 🥤', () => openMinimarket(true));
+            R.I('act', 7.2, -3.4, 3.2, 'Pesan Makanan Siap Santap 🍜', () => orderMenu('🍜', th.name, 'Makanan siap santap! Duduk di kursi bar lalu makan sambil melihat ke luar.', MART_MENU)); eatSpot(R, 6, -4.5, 2.5, 'Makan Pesanan (berdiri) 🍽️');
+        }
+        const COST = 15, spar = (a, b) => t => { const u = t % 4.4, h = u >= 2.2, v = h ? u - 2.2 : u, A = h ? b : a, B = h ? a : b; if (v < 0.6) animPerson(A, v, h ? 'kick' : 'punch', 1); else animPerson(A, t, 'fight', 1); if (v > 0.22 && v < 0.9) animPerson(B, v - 0.22, 'hurt', 1); else animPerson(B, t, 'fight', 1); };
+        function buildDojo(R) {
+            const ig = R.g; mkBox(26, 0.04, 20, 0x78350f, 0, 0.04, 0, ig);
+            for (let i = 0; i < 6; i++) for (let j = 0; j < 5; j++) mkBox(4.0, 0.04, 3.7, (i + j) % 2 ? 0xd9c98b : 0xcdbb78, -10.4 + i * 4.16, 0.07, -8 + j * 3.9, ig);
+            mkBox(26, 1.5, 0.2, 0x78350f, 0, 0.75, 9.9, ig); signPlane(['🥋 PADEPOKAN SILAT ILMI'], 13, 1.6, '#7f1d1d', '#fde68a', ig, 0, 5.4, 9.75, Math.PI);
+            [-9.5, 9.5].forEach(x => { mkBox(1.6, 4.4, 0.12, 0xb91c1c, x, 3.6, 9.8, ig); mkBox(1.2, 0.3, 0.14, 0xfde68a, x, 5.5, 9.72, ig); mkBox(1.2, 0.3, 0.14, 0xfde68a, x, 1.8, 9.72, ig); mkBox(0.3, 2.4, 0.14, 0xfde68a, x, 3.6, 9.72, ig); });
+            for (let i = 0; i < 5; i++) mkBox(0.12, 3.2, 0.12, i % 2 ? 0x92400e : 0xb45309, -12.5, 2.4, -4 + i * 0.6, ig); mkBox(0.2, 0.15, 3.0, 0x451a03, -12.5, 1.0, -2.8, ig); mkBox(0.2, 0.15, 3.0, 0x451a03, -12.5, 3.4, -2.8, ig);
+            [-11.5, 11.5].forEach(x => { mkBox(0.5, 2.6, 0.5, 0x92400e, x, 1.3, -1, ig); mkBox(0.3, 0.12, 1.4, 0x92400e, x, 1.9, -1, ig); mkBox(0.3, 0.12, 1.4, 0x92400e, x, 1.4, -1, ig, {}).rotation.y = Math.PI / 2; mkSph(0.3, 0xf1c27d, x, 2.8, -1, ig, null, 6); R.col(x, -1, 0.5, 0.5); });
+            /* samsak */
+            mkBox(0.06, 2.6, 0.06, 0x64748b, -8, 4.7, 5.5, ig); mkCyl(0.7, 0.7, 2.2, 0xb45309, -8, 2.4, 5.5, ig, 12); mkCyl(0.72, 0.72, 0.2, 0x451a03, -8, 3.5, 5.5, ig, 12); mkBox(3, 0.2, 0.2, 0x451a03, -8, 6.0, 5.5, ig); R.col(-8, 5.5, 0.8, 0.8);
+            /* pad tendangan */
+            mkBox(0.3, 3, 0.3, 0x78350f, 8, 1.5, 5.8, ig); mkBox(1.5, 1.6, 0.5, 0xdc2626, 8, 2.2, 5.4, ig); mkBox(1.3, 0.2, 0.2, 0xfde047, 8, 2.9, 5.15, ig); mkBox(1.2, 0.5, 0.9, 0x78350f, 8, 0.25, 5.8, ig); R.col(8, 5.8, 1.0, 0.9);
+            mkCyl(1.4, 1.4, 0.1, 0x7f1d1d, 0, 0.1, 2.6, ig, 20); mkCyl(0.6, 0.6, 0.14, 0xfde68a, 0, 0.14, 2.6, ig, 14);
+            const sensei = resident(R, { shirt: 0xf8fafc, pants: 0x111827, hat: 'none', longSleeve: true, skin: pick(SK) }, 0, 7.4, Math.PI, p => t => animPerson(p, t, (t % 12) < 1.5 ? 'salute' : 'idle', 1), 0.55, 1.08);
+            const mk = (c, x, z, ry, s) => { const p = buildPerson({ shirt: 0xf8fafc, pants: c, hat: 'none', longSleeve: true, skin: pick(SK) }); p.root.scale.setScalar(s || 1); p.root.position.set(x, 0, z); p.root.rotation.y = ry; p.seat = 0.55; ig.add(p.root); return p; };
+            const sa = mk(0x15803d, -5.2, -2.6, Math.PI / 2), sb = mk(0x1d4ed8, -3.4, -2.6, -Math.PI / 2); (RES[R.key] = RES[R.key] || []).push(spar(sa, sb));
+            resident(R, { shirt: 0xf8fafc, pants: 0xb91c1c, hat: 'none', longSleeve: true, skin: pick(SK) }, 6.5, -3, 0, p => t => animPerson(p, t, (t % 6) < 3 ? 'stretch' : 'idle', 1), 0.55, 0.85);
+            ceilLamps(ig, 22, 16, 0xfff1c2);
+            const stand = { s: [-8, 3.5, 0], k: [8, 3.5, 0], m: [0, 2.6, 0] };
+            R.I('act', -8, 3.5, 3.0, 'Latihan Samsak 🥊 (🪙' + COST + ')', () => trainGame({ emoji: '🥊', title: 'Latihan Samsak — Kekuatan', stat: 'pow', cost: COST, at: stand.s, pose: 'punch' }));
+            R.I('act', 8, 3.5, 3.0, 'Latihan Tendangan 🦵 (🪙' + COST + ')', () => trainGame({ emoji: '🦵', title: 'Latihan Tendangan — Kecepatan', stat: 'spd', cost: COST, at: stand.k, pose: 'kick' }));
+            R.I('act', 0, 2.6, 2.8, 'Meditasi Napas 🧘 (🪙' + COST + ')', () => trainGame({ emoji: '🧘', title: 'Meditasi Pernapasan — Stamina', stat: 'sta', cost: COST, at: stand.m, sit: true, pulse: 'stretch' }));
+            R.I('act', 0, 5.6, 3.8, 'Bicara dengan Guru Besar 🥋', () => statusMenu('Guru Besar Wira'));
+        }
+        function buildGym(R) {
+            const ig = R.g; mkBox(28, 0.04, 20, 0x1f2937, 0, 0.04, 0, ig); [-9, -3, 3, 9].forEach(x => mkBox(0.08, 0.05, 20, 0xfacc15, x, 0.07, 0, ig));
+            mkBox(28, 1.0, 0.2, 0x0f172a, 0, 0.5, 9.9, ig); signPlane(['🏋️ PUSAT KEBUGARAN ILMI'], 13, 1.5, '#0f172a', '#38bdf8', ig, 0, 6.0, 9.75, Math.PI);
+            [-8, 0, 8].forEach(x => { const m = new THREE.Mesh(gBox(7, 3.6, 0.06), cm(0xbae6fd, { metalness: 0.9, roughness: 0.05 })); place(m, x, 3.0, 9.8, ig); mkBox(7.2, 0.15, 0.1, 0x334155, x, 4.85, 9.78, ig); mkBox(7.2, 0.15, 0.1, 0x334155, x, 1.15, 9.78, ig); });
+            /* bangku angkat beban */
+            mkBox(0.8, 0.45, 2.4, 0x111827, -8, 0.55, 5.8, ig); mkBox(0.6, 0.15, 1.8, 0xdc2626, -8, 0.85, 5.8, ig); [-1, 1].forEach(s => { mkBox(0.15, 1.5, 0.15, 0x64748b, -8 + s * 1.0, 0.9, 6.6, ig); });
+            const bar = mkCyl(0.06, 0.06, 3.6, 0x94a3b8, -8, 1.6, 6.6, ig, 8); bar.rotation.z = Math.PI / 2; [-1.6, 1.6].forEach(dx => { const pl = mkCyl(0.5, 0.5, 0.18, 0x111827, -8 + dx, 1.6, 6.6, ig, 12); pl.rotation.z = Math.PI / 2; }); R.col(-8, 5.9, 2.0, 1.4);
+            mkBox(0.8, 1.2, 6, 0x111827, -13.0, 0.6, 1.5, ig); for (let i = 0; i < 6; i++) { mkBox(0.3, 0.3, 0.5, [0xdc2626, 0x2563eb, 0xfacc15][i % 3], -13.0, 1.35, -0.8 + i * 0.9, ig); mkBox(0.5, 0.25, 0.5, 0x475569, -13.0, 1.08 - 0.0, -0.8 + i * 0.9, ig); } R.col(-13, 1.5, 0.6, 3.2);
+            /* sepeda statis */
+            [[-2.5, 5.0], [2.5, 5.0]].forEach(([x, z]) => { mkBox(0.2, 1.0, 1.2, 0x2563eb, x, 0.6, z + 0.2, ig); const w = mkCyl(0.55, 0.55, 0.12, 0x1f2937, x, 0.65, z + 0.8, ig, 14); w.rotation.z = Math.PI / 2; mkBox(0.4, 0.14, 0.7, 0x111827, x, 1.2, z - 0.2, ig); mkBox(0.6, 0.1, 0.1, 0x94a3b8, x, 1.55, z + 0.9, ig); mkBox(0.5, 0.3, 0.08, 0x22d3ee, x, 1.75, z + 0.95, ig, { emissive: 0x22d3ee, emissiveIntensity: 0.6 }); R.col(x, z + 0.3, 0.6, 1.1); });
+            /* treadmill */
+            [[6, 4.5], [9.5, 4.5]].forEach(([x, z]) => { mkBox(1.1, 0.35, 2.6, 0x111827, x, 0.3, z, ig); mkBox(0.9, 0.05, 2.4, 0x374151, x, 0.5, z, ig); mkBox(0.1, 1.6, 0.1, 0x94a3b8, x - 0.5, 1.2, z + 1.2, ig); mkBox(0.1, 1.6, 0.1, 0x94a3b8, x + 0.5, 1.2, z + 1.2, ig); mkBox(1.1, 0.4, 0.15, 0x0f172a, x, 2.0, z + 1.2, ig, { emissive: 0x22c55e, emissiveIntensity: 0.4 }); R.col(x, z, 0.7, 1.4); });
+            [[5.5, -1.5, 0xdc2626], [9.5, -1.5, 0x2563eb]].forEach(([x, z, c]) => mkBox(2.2, 0.06, 2.2, c, x, 0.08, z, ig));
+            /* bar protein */
+            mkBox(5, 1.2, 1.6, 0x0ea5e9, 10.5, 0.6, 8.3, ig); mkBox(5.2, 0.12, 1.8, 0xf8fafc, 10.5, 1.26, 8.3, ig); mkCyl(0.3, 0.25, 0.7, 0xa78bfa, 9.5, 1.65, 8.3, ig, 8); mkCyl(0.3, 0.25, 0.7, 0x22c55e, 10.5, 1.65, 8.3, ig, 8); R.col(10.5, 8.3, 2.6, 0.9);
+            [9.3, 11.7].forEach(x => { stool(ig, x, 6.2, 0xf97316); seat(R, x, 6.2, 0, 0.66); });
+            resident(R, { shirt: 0x0ea5e9, pants: 0x0f172a, hat: 'topi', topi: 0xf8fafc, skin: pick(SK) }, 10.5, 9.0, Math.PI, waveEvery);
+            const trainer = resident(R, { shirt: 0xef4444, pants: 0x0f172a, hat: 'none', skin: pick(SK) }, 0, 7.6, Math.PI, p => t => animPerson(p, t, (t % 10) < 3 ? 'stretch' : 'idle', 1), 0.55, 1.12);
+            resident(R, { shirt: 0x84cc16, pants: 0x0f172a, skin: pick(SK) }, -2.5, 5.0, 0, 'bike'); resident(R, { shirt: 0xf472b6, pants: 0x0f172a, skirt: false, longHair: true, skin: pick(SK) }, 2.5, 5.0, 0, p => t => animPerson(p, t + 1.3, 'bike', 1));
+            resident(R, { shirt: 0xf59e0b, pants: 0x0f172a, skin: pick(SK) }, 5.5, -1.5, 0, 'cheer', 0.55, 0.95); resident(R, { shirt: 0x38bdf8, pants: 0x0f172a, skin: pick(SK) }, -4, 2.5, Math.PI / 2, p => t => animPerson(p, t, (t % 5) < 2.5 ? 'stretch' : 'idle', 1));
+            ceilLamps(ig, 24, 16, 0xdbeafe);
+            R.I('act', -8, 3.9, 3.0, 'Angkat Beban 🏋️ (🪙' + COST + ')', () => trainGame({ emoji: '🏋️', title: 'Angkat Beban — Kekuatan', stat: 'pow', cost: COST, at: [-8, 3.9, 0], pose: 'stretch', rounds: 6 }));
+            R.I('act', 0, 3.4, 3.2, 'Sepeda Statis 🚴 (🪙' + COST + ')', () => trainGame({ emoji: '🚴', title: 'Sepeda Statis — Stamina', stat: 'sta', cost: COST, at: [0, 3.4, 0], hold: 'bike' }));
+            R.I('act', 9.5, -1.5, 3.0, 'Lompat Tali 🪢 (🪙' + COST + ')', () => trainGame({ emoji: '🪢', title: 'Lompat Tali — Kecepatan', stat: 'spd', cost: COST, at: [9.5, -1.5, 0], pose: 'cheer' }));
+            R.I('act', 0, 6.0, 3.6, 'Bicara dengan Pelatih Roni 🏋️', () => statusMenu('Pelatih Roni'));
+            R.I('act', 10.5, 6.6, 3.2, 'Bar Protein 🥤', () => orderMenu('🥤', 'Bar Protein', 'Isi tenaga setelah latihan! Duduk di kursi bar lalu minum.', GYM_MENU)); eatSpot(R, 6, 1.5, 2.5, 'Makan Pesanan (berdiri) 🍽️');
+        }
+
+        /* ======== BANGUNAN LUAR + CARI LAHAN KOSONG ======== */
+        const taken = [], ROOMTXT = {}; window.ROOMTXT = ROOMTXT;
+        function findLot(W, D) {
+            const cands = []; for (let x = -150; x <= 150; x += 4) for (let z = -140; z <= 140; z += 4) { const d = Math.hypot(x, z); if (d >= 46 && d <= 160) cands.push([x, z, d]); } cands.sort((a, b) => a[2] - b[2]);
+            const test = (relax) => { for (const [x, z] of cands) for (const rot of [0, Math.PI, Math.PI / 2, -Math.PI / 2]) {
+                const odd = Math.abs(Math.sin(rot)) > 0.5, hw = (odd ? D : W) / 2 + 2, hd = (odd ? W : D) / 2 + 2, f = toW({ x, z, rot }, 0, D / 2 + 4);
+                if (inRoad(f.x, f.z, relax ? 2 : 6) || Math.hypot(f.x, f.z) < 40) continue; if (!inRoad(f.x, f.z, relax ? 22 : 18)) continue;
+                if ([[-hw, -hd], [hw, -hd], [-hw, hd], [hw, hd], [0, 0], [-hw, 0], [hw, 0], [0, -hd], [0, hd], [-hw, -hd / 2], [hw, hd / 2], [hw / 2, -hd], [-hw / 2, hd]].some(([a, c]) => inRoad(x + a, z + c, 4) || Math.hypot(x + a, z + c) < 40)) continue;
+                if (tooCloseToBuilding(x, z, Math.max(hw, hd) - 5)) continue;
+                if (taken.some(t => Math.abs(t.x - x) < hw + t.hw + 3 && Math.abs(t.z - z) < hd + t.hd + 3)) continue;
+                if (boxColliders.some(c => Math.abs(c.x - x) < hw + (c.hw || 0.5) && Math.abs(c.z - z) < hd + (c.hd || 0.5))) continue;
+                if (Math.hypot(x - pond.x, z - pond.z) < pond.r + 16) continue;
+                const o = { x, z, rot, hw, hd }; taken.push(o); return o; } return null; };
+            return test(false) || test(true);
+        }
+        function makePlace(S, idx) {
+            const L = findLot(S.W, S.D); if (!L) { console.warn('Tidak ada lahan untuk', S.key); return; } const { x, z, rot } = L, odd = Math.abs(Math.sin(rot)) > 0.5, W = S.W, D = S.D, H = S.H || 5;
+            for (let i = circleColliders.length - 1; i >= 0; i--) { const c = circleColliders[i]; if (Math.abs(c.x - x) < L.hw && Math.abs(c.z - z) < L.hd && c.r < 4) { scene.children.forEach(o => { if (!o.visible || o === playerGroup || o.userData.isPerson || (o.geometry && o.geometry.type === 'PlaneGeometry')) return; if (Math.hypot(o.position.x - c.x, o.position.z - c.z) < 2.4) o.visible = false; }); circleColliders.splice(i, 1); } }
+            const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rot; scene.add(g);
+            mkPlane(W + 2, D + 4, S.pad || 0x7d8a72, 0, 0.05, 1, g);
+            mkBox(W, H, D, S.wall, 0, H / 2, 0, g, { roughness: 0.7 }); mkBox(W + 0.6, 0.9, D + 0.6, S.trim, 0, H + 0.45, 0, g); mkBox(W + 0.7, 0.45, D + 0.7, S.trim2 || 0x1f2937, 0, 3.6, 0, g);
+            place(new THREE.Mesh(gBox(W - 8, 2.2, 0.15), HGLASS), -2.5, 1.9, D / 2 + 0.02, g); mkBox(2.4, 3.2, 0.25, S.door || 0x7c2d12, W / 2 - 3.2, 1.6, D / 2 + 0.08, g);
+            const n = Math.round(W / 2); for (let i = 0; i < n; i++) mkBox(W / n, 0.5, 3.0, i % 2 ? S.awn[0] : S.awn[1], -W / 2 + W / n / 2 + i * W / n, 3.3, D / 2 + 1.4, g);
+            signPlane([S.sign], Math.min(W - 2, 12), 1.8, S.signBg, S.signFg, g, 0, H + 0.45, D / 2 + 0.36, 0);
+            if (S.extra) S.extra(g, W, D, H);
+            boxCol(x, z, rot, W / 2 + 0.5, D / 2 + 0.5); reserve(x, z, Math.max(L.hw, L.hd), Math.max(L.hw, L.hd)); mapBuildings.push({ x, z, color: S.mm });
+            const lb = labelSprite(S.label, S.signBg, 9, 2); lb.position.set(x, H + 4.2, z); scene.add(lb);
+            const front = toW({ x, z, rot }, 0, D / 2 + 4);
+            const R = window.MKROOM(S.key, 2200 + idx * 400, 1000, S.room[0], S.room[1], S.room[2], S.room[3], front, 'Masuk ' + S.label + ' 🚪'); R.key = S.key; R.h.rot = rot; S.build(R); R.g.children.forEach(o => { if (o.isMesh && o.position.y < 0.15 && o.material && o.material.color && o.geometry && o.geometry.type !== 'CylinderGeometry') { o.material = o.material.clone(); o.material.color.multiplyScalar(0.55); } });
+            ROOMTXT[S.key] = [S.loading, S.welcome]; window.PLACES31 = window.PLACES31 || {}; window.PLACES31[S.key] = { x, z, rot, front };
+        }
+        const mart = (name, sign, c1, c2, bg, fg, wall, floor, key, label) => ({ key, W: 15, D: 10, wall, trim: c1, trim2: c2, awn: [c1, c2], sign, signBg: bg, signFg: fg, label, mm: bg, room: [10, 8, 0xf8fafc, floor], build: R => buildMart(R, { name, floor, c1, c2, bg, fg }), loading: 'Memasuki ' + label + '…', welcome: '🛒 Selamat datang di ' + label + '!' });
+        const SPECS = [
+            { key: 'ayam', W: 18, D: 12, H: 6, wall: 0xfef2f2, trim: 0xdc2626, trim2: 0xfef08a, awn: [0xdc2626, 0xffffff], sign: '🍗 AYAM KRIBO', signBg: '#b91c1c', signFg: '#fef9c3', label: '🍗 Ayam Kribo', mm: '#dc2626', room: [14, 10, 0xfef2f2, 0xfde8e8], build: buildAyam, loading: 'Memasuki Ayam Kribo…', welcome: '🍗 Selamat datang di Ayam Kribo! Pesan, duduk, lalu makan 😋',
+                extra: (g, W, D, H) => { mkSph(1.1, 0xfde047, -W / 2 + 2, H + 1.9, 0, g, null, 8); mkSph(0.7, 0xfde047, -W / 2 + 2.3, H + 3.0, 0.2, g, null, 8); mkBox(0.25, 0.4, 0.2, 0xdc2626, -W / 2 + 2.3, H + 3.7, 0.2, g); mkBox(0.3, 0.15, 0.4, 0xf97316, -W / 2 + 2.3, H + 2.95, 0.7, g); } },
+            { key: 'kafe', W: 16, D: 11, wall: 0xfde7c8, trim: 0x78350f, trim2: 0x15803d, awn: [0x15803d, 0xf8fafc], sign: '☕ KAFE SENJA', signBg: '#78350f', signFg: '#fde68a', label: '☕ Kafe Senja', mm: '#92400e', room: [12, 9, 0xfde7c8, 0xb08968], build: buildKafe, loading: 'Memasuki Kafe Senja…', welcome: '☕ Selamat datang di Kafe Senja! Duduk santai ya',
+                extra: (g, W, D) => { [-5, 5].forEach(x => { mkCyl(0.7, 0.6, 0.4, 0x92400e, x, 0.2, D / 2 + 3.2, g, 8); mkCyl(0.7, 0.7, 0.08, 0xfef3c7, x, 1.0, D / 2 + 3.2, g, 12); mkCyl(0.08, 0.08, 1.0, 0x78350f, x, 0.5, D / 2 + 3.2, g, 6); }); } },
+            mart('TETANGGA MART 24 JAM', '🛒 TETANGGA MART', 0x16a34a, 0xfacc15, '#15803d', '#fef9c3', 0xf0fdf4, 0xa8a29e, 'mart2', '🛒 Tetangga Mart'),
+            mart('CEMARA MART 24 JAM', '🛒 CEMARA MART 24', 0xea580c, 0xf8fafc, '#c2410c', '#ffffff', 0xfff7ed, 0xaab2bd, 'mart3', '🛒 Cemara Mart'),
+            { key: 'dojo', W: 20, D: 13, H: 6, wall: 0xfef3c7, trim: 0x7f1d1d, trim2: 0x451a03, awn: [0x7f1d1d, 0xfde68a], door: 0x451a03, sign: '🥋 PADEPOKAN SILAT', signBg: '#7f1d1d', signFg: '#fde68a', label: '🥋 Padepokan Silat', mm: '#b91c1c', room: [13, 10, 0xfef3c7, 0x78350f], build: buildDojo, loading: 'Memasuki Padepokan Silat…', welcome: '🥋 Selamat datang di Padepokan Silat! Berlatih untuk jadi lebih kuat 💪',
+                extra: (g, W, D, H) => { mkBox(W + 2.4, 0.5, D + 2.4, 0x451a03, 0, H + 0.95, 0, g); mkBox(W - 2, 0.9, D - 2, 0x7f1d1d, 0, H + 1.65, 0, g); mkBox(W - 5, 0.5, D - 5, 0x451a03, 0, H + 2.35, 0, g); [-1, 1].forEach(s => { mkCyl(0.3, 0.3, 0.9, 0xdc2626, s * 5, 1.3, D / 2 + 3.2, g, 8); mkSph(0.45, 0xfef08a, s * 5, 2.1, D / 2 + 3.2, g, null, 6); }); } },
+            { key: 'gym', W: 20, D: 13, H: 6, wall: 0xe2e8f0, trim: 0x0f172a, trim2: 0x2563eb, awn: [0x2563eb, 0x0f172a], door: 0x1e293b, sign: '🏋️ PUSAT KEBUGARAN', signBg: '#0f172a', signFg: '#38bdf8', label: '🏋️ Pusat Kebugaran', mm: '#2563eb', room: [14, 10, 0xe2e8f0, 0x1f2937], build: buildGym, loading: 'Memasuki Pusat Kebugaran…', welcome: '🏋️ Selamat datang di Pusat Kebugaran Ilmi! Ayo latihan 💪',
+                extra: (g, W, D, H) => { const b = mkCyl(0.12, 0.12, 5, 0x94a3b8, 0, H + 2.0, 0, g, 8); b.rotation.z = Math.PI / 2; [-2.6, 2.6].forEach(x => { const p = mkCyl(0.9, 0.9, 0.5, 0x111827, x, H + 2.0, 0, g, 12); p.rotation.z = Math.PI / 2; }); } }
+        ];
+        SPECS.forEach((S, i) => { try { makePlace(S, i); } catch (e) { console.error('place31 ' + S.key, e); } });
+        /* ---- hook: animasi penghuni, teks masuk, keluar sambil duduk ---- */
+        const _uw31 = updateWorld; updateWorld = function (dt, k, t, p) {
+            _uw31(dt, k, t, p);
+            if (inHouse && curRoom) for (const key in RES) { const R = window.ROOMS[key]; if (R && Math.abs(R.cx - curRoom.x) < 1 && Math.abs(R.cz - curRoom.z) < 1) { RES[key].forEach(f => f(t)); break; } }
+        };
+        const _xh31 = exitHome; exitHome = function () { if (player.pose === 'sit' || player.pose === 'eatsit') player.pose = null; _xh31(); };
+        window.TRAIN31 = { trainGame, trainGain, statusMenu, tray, eatNow, orderMenu, RES, SPECS };
+    })();
     window.OW = { LB, openUI, hostInit, burst, hostStartMission };
     /* gabung otomatis dari tautan ?join=KODE */
     if (JOIN) { clientInit(); openUI(); }
 })();
 
 loop();
+</script>
+<style id="fit32-css">
+  /* v32: menu mengikuti ukuran layar (tanpa scroll bila memungkinkan) */
+  #webgl-container{width:100vw;height:100vh;height:100dvh}
+  @media (orientation:landscape) and (max-height:520px){
+    .fit32-wide{max-width:min(46rem,96vw)!important}
+    .fit32-wide .grid-cols-1{grid-template-columns:repeat(2,minmax(0,1fr))}
+    #start-screen{padding:6px!important} #start-screen h1{font-size:1.5rem!important;line-height:1.6rem} #start-screen h1+p{display:none} #start-screen .custom-scroll{max-width:46rem!important}
+    #start-screen .custom-scroll{padding:10px!important} #start-screen .mb-3{margin-bottom:.35rem!important} #start-screen .mb-4{margin-bottom:.45rem!important} #start-screen .inp{padding:6px 10px!important} #pick-skin>*,#pick-hair>*,#pick-shirt>*{aspect-ratio:auto!important;height:26px!important;min-height:0!important} #start-screen .custom-scroll p{margin-bottom:.1rem!important}
+  }
+</style>
+<script>
+(function () {
+  const sel = '.overflow-y-auto,.custom-scroll';
+  let busy = false, raf = 0, last = 0, obs = null;
+  function overlayOf(el) { for (let n = el; n && n !== document.body; n = n.parentElement) { if (getComputedStyle(n).position === 'fixed') return n; } return null; }
+  function fit() {
+    if (busy) return; busy = true; last = performance.now(); if (obs) obs.disconnect();
+    try {
+      const H = window.innerHeight, W = window.innerWidth, avail = H * 0.97, seen = new Set();
+      document.querySelectorAll(sel).forEach(sc => {
+        if (!sc.offsetParent && getComputedStyle(sc).position !== 'fixed') return;
+        const ov = overlayOf(sc); if (!ov || ov === sc || ov.classList.contains('hidden')) return;
+        if (ov.offsetWidth < W * 0.5 || ov.offsetHeight < H * 0.5) return; /* hanya modal layar-penuh */
+        let card = sc; while (card.parentElement && card.parentElement !== ov) card = card.parentElement;
+        if (seen.has(card)) return; seen.add(card);
+        const scs = [...new Set([sc, ...card.querySelectorAll(sel)])];
+        card.classList.add('fit32-wide'); card.style.zoom = ''; card.style.flexShrink = '0';
+        scs.concat(card).forEach(e => { e.style.maxHeight = 'none'; });
+        let sib = 0; [...ov.children].forEach(c => { if (c !== card) { const p = getComputedStyle(c).position; if (p !== 'absolute' && p !== 'fixed') sib += c.offsetHeight; } });
+        const nat = Math.max(card.getBoundingClientRect().height, card.scrollHeight), av = avail - sib - (sib ? 8 : 0);
+        let z = 1; if (nat > av) z = Math.max(0.6, av / nat * 0.86);
+        card.style.zoom = z < 1 ? String(Math.round(z * 100) / 100) : '';
+        const lim = Math.floor(av / z) + 2;
+        card.style.maxHeight = lim + 'px'; if (card !== sc) scs.forEach(e => { e.style.maxHeight = Math.max(120, lim - 24) + 'px'; });
+      });
+    } catch (e) { }
+    busy = false; if (obs) { obs.takeRecords(); obs.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] }); }
+  }
+  function soon() { if (raf) return; raf = setTimeout(() => { raf = 0; fit(); }, Math.max(60, 200 - (performance.now() - last))); }
+  window.addEventListener('resize', soon); window.addEventListener('orientationchange', () => setTimeout(soon, 250));
+  obs = new MutationObserver(() => { if (!busy) soon(); }); obs.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+  setInterval(soon, 1000);
+  window.__fit32 = fit;
+})();
 </script>
 </body>
 </html>
